@@ -1,0 +1,96 @@
+/* 🌙 Theme Variables */
+:root {
+  --primary-bg: #f4f4f4;
+  --primary-text: #333;
+  --secondary-bg: #ffffff;
+  --accent-color: #4f46e5;
+}
+
+.dark-mode {
+  --primary-bg: #181818;
+  --primary-text: #f4f4f4;
+  --secondary-bg: #232323;
+}
+
+/* 🌐 General Layout */
+body, html {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--primary-bg);
+  color: var(--primary-text);
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  transition: all 0.3s ease-in-out;
+  scroll-behavior: smooth;
+}
+
+#root {
+  height: 100%;
+}
+
+.app-layout {
+  display: flex;
+}
+
+/* 📄 Main Content Area */
+.main-content {
+  flex-grow: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: var(--primary-bg);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 🌟 Navbar */
+.navbar {
+  background: var(--secondary-bg);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar h1 {
+  color: var(--accent-color);
+  font-weight: bold;
+}
+
+/* 🎯 Buttons */
+button {
+  background: var(--accent-color);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+button:hover {
+  background: #4338ca;
+}
+
+/* 💬 Chat UI */
+.chat-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+.message {
+  padding: 10px;
+  border-radius: 10px;
+  margin: 5px 0;
+}
+
+.message.user {
+  background: var(--accent-color);
+  color: white;
+  align-self: flex-end;
+}
+
+.message.bot {
+  background: var(--secondary-bg);
+  color: var(--primary-text);
+}

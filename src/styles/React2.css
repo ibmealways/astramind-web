@@ -1,0 +1,100 @@
+/* React2 Component Styling */
+.react2-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 30px;
+    width: 90%;
+    max-width: 800px;
+    min-height: 400px;
+    background: linear-gradient(135deg, #6A0DAD, #FFD700);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    border-radius: 15px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease-in-out;
+    margin: auto;
+    text-align: center;
+}
+
+/* Expanded Container */
+.react2-container.expanded {
+    transform: scale(1.05);
+}
+
+/* Header Styling */
+.react2-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.react2-header h2 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.react2-header p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+/* Toggle Button */
+.toggle-btn {
+    background: #FFD700;
+    color: black;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    transition: all 0.3s ease-in-out;
+}
+
+.toggle-btn:hover {
+    background: #FFA500;
+    transform: scale(1.1);
+}
+
+/* Content Area */
+.react2-content {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Boxes */
+.react2-box {
+    background: #FFD700;
+    color: black;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 10px;
+    width: 120px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Chart Container */
+.react2-chart-container {
+    margin: 20px 0;
+}
+
+.chart-box {
+    width: 100%;
+    max-width: 600px;
+    height: 300px;
+    margin: auto;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(255, 221, 68, 0.5);
+}
