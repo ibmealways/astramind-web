@@ -1,0 +1,33 @@
+/* src/styles/AmbientLayer.css */
+
+.ambient-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(circle at 50% 40%,
+            hsla(var(--ambient-hue), 90%, 60%, 0.18),
+            transparent 60%),
+        radial-gradient(circle at 80% 80%,
+            hsla(var(--ambient-hue), 80%, 55%, 0.12),
+            transparent 65%);
+
+    filter: blur(60px);
+    animation: ambientPulse var(--pulse-speed) ease-in-out infinite;
+}
+
+@keyframes ambientPulse {
+    0% {
+        opacity: 0.55;
+    }
+
+    50% {
+        opacity: 0.9;
+    }
+
+    100% {
+        opacity: 0.55;
+    }
+}

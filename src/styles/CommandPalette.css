@@ -1,0 +1,55 @@
+/* src/styles/CommandPalette.css */
+
+.command-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: grid;
+    place-items: center;
+}
+
+.command-palette {
+    width: 420px;
+    background: rgba(20, 20, 30, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.35);
+    padding: 14px;
+}
+
+.command-palette input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 15px;
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.command-results {
+    margin-top: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.command-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.command-item:hover {
+    background: rgba(99, 102, 241, 0.25);
+}
+
+.command-empty {
+    padding: 12px;
+    font-size: 13px;
+    opacity: 0.5;
+}

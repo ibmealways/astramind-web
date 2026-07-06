@@ -1,0 +1,23 @@
+.floating-chappy {
+    position: fixed;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #818cf8, #312e81);
+    box-shadow:
+        0 0 25px rgba(99, 102, 241, 0.7),
+        inset 0 0 12px rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: grab;
+    user-select: none;
+    z-index: 9999;
+    transition: transform 0.15s ease;
+}
+
+.floating-chappy:active {
+    cursor: grabbing;
+    transform: scale(0.95);
+}

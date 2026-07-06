@@ -1,48 +1,243 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+################################################################################
+# AstraMind Technologies
+# Enterprise .gitignore
+# Version: 3.0.0
+################################################################################
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+############################
+# Node
+############################
 
-# testing
-/coverage
-
-# production
-/build
-
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Logs
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# VS Code settings (optional)
-.vscode/
+############################
+# Build Output
+############################
 
-# ESLint & Prettier cache (optional)
-.eslintcache
-.prettierignore
-
-# Webpack/Parcel cache (optional)
-.cache/
-
-# React / CRA / Vite builds
 build/
-public/build/
+dist/
+coverage/
+.cache/
+.next/
+out/
 
-# Secrets
+############################
+# Runtime
+############################
+
+logs/
+*.log
+
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+############################
+# Environment
+############################
+
 .env
 .env.*
+!.env.example
 
-# Node
-node_modules/
+############################
+# Operating System
+############################
 
-# Duplicate configs
-* (1).js
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+############################
+# VS Code
+############################
+
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.history/
+
+############################
+# JetBrains
+############################
+
+.idea/
+
+############################
+# Temporary
+############################
+
+tmp/
+temp/
+
+*.tmp
+*.bak
+*.old
+*.orig
+*.rej
+
+############################
+# Archives
+############################
+
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+############################
+# Local Databases
+############################
+
+*.sqlite
+*.sqlite3
+*.db
+
+############################
+# Render Output
+############################
+
+renders/
+server-renders/
+public/renders/
+exports/
+
+############################
+# AI Cache
+############################
+
+cache/
+.cache/
+
+.semantic/
+embeddings/
+vector-cache/
+vector-db/
+
+############################
+# AI Models
+############################
+
+models/
+checkpoints/
+weights/
+training/
+datasets/
+
+############################
+# Voice
+############################
+
+voice-cache/
+tts-cache/
+whisper-cache/
+
+############################
+# Video
+############################
+
+generated-video/
+generated-images/
+generated-audio/
+
+############################
+# Local Memory
+############################
+
+memory/
+sessions/
+conversation-cache/
+
+############################
+# Testing
+############################
+
+playwright-report/
+test-results/
+
+############################
+# Stripe
+############################
+
+.stripe/
+
+############################
+# Secrets
+############################
+
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+############################
+# Python
+############################
+
+__pycache__/
+*.pyc
+
+############################
+# Docker
+############################
+
+.docker/
+
+############################
+# Terraform
+############################
+
+.terraform/
+
+############################
+# GitHub
+############################
+
+.github/*.local
+
+############################
+# AstraMind Backup Files
+############################
+
+README.zip
+build.zip
+package.zip
+package-lock.zip
+src.zip
+src (2).zip
+
+############################
+# Temporary AstraMind Files
+############################
+
+fake file
+
+############################
+# Windows
+############################
+
+$RECYCLE.BIN/
+
+############################
+# Linux
+############################
+
+*~
+
+############################
+# Mac
+############################
+
+.AppleDouble
+.LSOverride
+
+################################################################################
+# END
+################################################################################

@@ -1,0 +1,631 @@
+/* src/styles/chat.css */
+
+/* =========================
+   ASTRAMIND CHAT UI
+========================= */
+
+.astrachat-page {
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+    color: #fff;
+    overflow: hidden;
+}
+
+.astrachat-layout {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 310px minmax(0, 1fr);
+    gap: 18px;
+}
+
+.astrachat-history,
+.astrachat-main,
+.astrachat-header,
+.astrachat-panel {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.08), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(147, 51, 234, 0.1), transparent 32%),
+        rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 0 35px rgba(99, 102, 241, 0.14);
+}
+
+.astrachat-history {
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 28px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.astrachat-history-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.astrachat-eyebrow {
+    margin: 0 0 6px;
+    color: #93c5fd;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.astrachat-history h2,
+.astrachat-header h1 {
+    margin: 0;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: -0.04em;
+}
+
+.astrachat-history h2 {
+    font-size: 25px;
+}
+
+.astrachat-header h1 {
+    font-size: clamp(34px, 4vw, 54px);
+}
+
+.astrachat-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    border: 1px solid rgba(192, 132, 252, 0.35);
+    background: rgba(147, 51, 234, 0.18);
+    color: #fff;
+    cursor: pointer;
+    font-size: 22px;
+    transition: all 0.2s ease;
+}
+
+.astrachat-icon-btn:hover {
+    background: rgba(147, 51, 234, 0.34);
+    transform: scale(1.05);
+}
+
+.astrachat-new-btn {
+    min-height: 46px;
+    border-radius: 18px;
+    border: 1px solid rgba(192, 132, 252, 0.35);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(37, 99, 235, 0.86));
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 0 28px rgba(124, 58, 237, 0.25);
+    transition: all 0.2s ease;
+}
+
+.astrachat-new-btn:hover {
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 0 36px rgba(124, 58, 237, 0.38);
+}
+
+.astrachat-chat-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 14px;
+    padding-right: 4px;
+    display: grid;
+    gap: 10px;
+    align-content: start;
+}
+
+.astrachat-chat-list::-webkit-scrollbar,
+.astrachat-messages::-webkit-scrollbar {
+    width: 7px;
+}
+
+.astrachat-chat-list::-webkit-scrollbar-track,
+.astrachat-messages::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.astrachat-chat-list::-webkit-scrollbar-thumb,
+.astrachat-messages::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.36);
+    border-radius: 999px;
+}
+
+.astrachat-chat-card {
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(0, 0, 0, 0.28);
+    padding: 10px;
+    transition: all 0.2s ease;
+}
+
+.astrachat-chat-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(125, 211, 252, 0.24);
+    transform: translateX(2px);
+}
+
+.astrachat-chat-card-active {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.28), rgba(14, 165, 233, 0.13));
+    border-color: rgba(192, 132, 252, 0.45);
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.18);
+}
+
+.astrachat-chat-card-main {
+    display: grid;
+    gap: 5px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    text-align: left;
+    cursor: pointer;
+    padding: 0;
+}
+
+.astrachat-chat-title {
+    font-size: 13px;
+    font-weight: 850;
+    line-height: 1.35;
+    color: #f8fafc;
+}
+
+.astrachat-chat-date {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.astrachat-chat-count {
+    font-size: 11px;
+    color: #67e8f9;
+}
+
+.astrachat-delete-btn {
+    margin-top: 8px;
+    border: 0;
+    background: transparent;
+    color: #fca5a5;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.astrachat-delete-btn:hover {
+    color: #fff;
+}
+
+.astrachat-main {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.astrachat-header {
+    border-radius: 28px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+}
+
+.astrachat-subtitle {
+    margin: 12px 0 0;
+    color: #cbd5e1;
+    max-width: 760px;
+    line-height: 1.55;
+}
+
+.astrachat-status-grid {
+    min-width: 340px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.astrachat-status-card {
+    border-radius: 20px;
+    padding: 13px;
+    background: rgba(0, 0, 0, 0.28);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: grid;
+    gap: 5px;
+}
+
+.astrachat-status-card span {
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: #94a3b8;
+}
+
+.astrachat-status-card strong {
+    color: #67e8f9;
+    font-size: 14px;
+}
+
+.astrachat-status-card select {
+    width: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #c4b5fd;
+    font-weight: 900;
+}
+
+.astrachat-status-card option {
+    color: #000;
+}
+
+.status-connected {
+    color: #86efac !important;
+}
+
+.status-thinking {
+    color: #facc15 !important;
+}
+
+.status-error {
+    color: #fca5a5 !important;
+}
+
+.astrachat-notice {
+    border-radius: 20px;
+    border: 1px solid rgba(234, 179, 8, 0.22);
+    background: rgba(234, 179, 8, 0.09);
+    color: #fde68a;
+    padding: 13px 16px;
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.1);
+}
+
+.astrachat-panel {
+    flex: 1;
+    min-height: 0;
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.astrachat-messages {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.astrachat-message-row {
+    display: flex;
+    width: 100%;
+}
+
+.astrachat-message-ai {
+    justify-content: flex-start;
+}
+
+.astrachat-message-user {
+    justify-content: flex-end;
+}
+
+.astrachat-bubble {
+    width: fit-content;
+    max-width: min(880px, 82%);
+    border-radius: 26px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px 18px;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.22);
+    animation: astraMessageIn 0.18s ease-out both;
+}
+
+@keyframes astraMessageIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px) scale(0.995);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.bubble-user {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.42), rgba(37, 99, 235, 0.28));
+    border-color: rgba(192, 132, 252, 0.35);
+}
+
+.bubble-ai {
+    background: rgba(0, 0, 0, 0.36);
+}
+
+.bubble-system {
+    background: rgba(14, 165, 233, 0.12);
+    border-color: rgba(34, 211, 238, 0.25);
+}
+
+.bubble-error {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(248, 113, 113, 0.28);
+}
+
+.bubble-thinking {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(234, 179, 8, 0.1);
+    border-color: rgba(234, 179, 8, 0.25);
+    color: #fde68a;
+}
+
+.astrachat-bubble-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.astrachat-source-pill,
+.astrachat-mini-pill,
+.astrachat-workspace-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.astrachat-source-pill {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    color: #e2e8f0;
+}
+
+.astrachat-mini-pill {
+    background: rgba(168, 85, 247, 0.13);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    color: #e9d5ff;
+}
+
+.astrachat-workspace-pill {
+    background: rgba(34, 197, 94, 0.11);
+    border: 1px solid rgba(34, 197, 94, 0.26);
+    color: #bbf7d0;
+}
+
+.astrachat-bubble-content {
+    white-space: pre-wrap;
+    line-height: 1.65;
+    font-size: 14.5px;
+    color: #f8fafc;
+}
+
+.astrachat-handoff-btn {
+    margin-top: 14px;
+    min-height: 42px;
+    border-radius: 16px;
+    border: 1px solid rgba(192, 132, 252, 0.35);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(37, 99, 235, 0.85));
+    color: #fff;
+    font-weight: 900;
+    padding: 0 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.astrachat-handoff-btn:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 0 22px rgba(124, 58, 237, 0.35);
+}
+
+.astrachat-thinking-dots {
+    display: inline-flex;
+    gap: 5px;
+}
+
+.astrachat-thinking-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #fde68a;
+    animation: astraDotPulse 1s infinite ease-in-out;
+}
+
+.astrachat-thinking-dots span:nth-child(2) {
+    animation-delay: 0.12s;
+}
+
+.astrachat-thinking-dots span:nth-child(3) {
+    animation-delay: 0.24s;
+}
+
+@keyframes astraDotPulse {
+
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: translateY(0);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateY(-3px);
+    }
+}
+
+.astrachat-composer {
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(0, 0, 0, 0.28);
+    padding: 15px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.astrachat-composer textarea {
+    width: 100%;
+    min-height: 58px;
+    max-height: 180px;
+    resize: vertical;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.46);
+    color: #fff;
+    outline: none;
+    padding: 13px 15px;
+    font: inherit;
+    line-height: 1.45;
+}
+
+.astrachat-composer textarea:focus {
+    border-color: rgba(192, 132, 252, 0.65);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
+}
+
+.astrachat-composer-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.astrachat-send-btn,
+.astrachat-clear-btn {
+    min-height: 50px;
+    border-radius: 18px;
+    padding: 0 20px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.astrachat-send-btn {
+    border: 1px solid rgba(192, 132, 252, 0.35);
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    color: #fff;
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.24);
+}
+
+.astrachat-send-btn:hover {
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.36);
+}
+
+.astrachat-send-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.astrachat-clear-btn {
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+}
+
+.astrachat-clear-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.astrachat-shortcuts {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.astrachat-shortcuts span {
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+}
+
+/* =========================
+   LEGACY SUPPORT
+========================= */
+
+.chat-page,
+.chat-shell,
+.chat-header,
+.chat-messages,
+.chat-input-bar {
+    min-height: 0;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1180px) {
+    .astrachat-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .astrachat-history {
+        max-height: 280px;
+    }
+
+    .astrachat-chat-list {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .astrachat-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .astrachat-status-grid {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 720px) {
+    .astrachat-layout {
+        gap: 12px;
+    }
+
+    .astrachat-history,
+    .astrachat-header,
+    .astrachat-panel {
+        border-radius: 22px;
+    }
+
+    .astrachat-header h1 {
+        font-size: 32px;
+    }
+
+    .astrachat-status-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .astrachat-bubble {
+        max-width: 94%;
+    }
+
+    .astrachat-composer {
+        grid-template-columns: 1fr;
+    }
+
+    .astrachat-composer-actions {
+        width: 100%;
+    }
+
+    .astrachat-send-btn,
+    .astrachat-clear-btn {
+        flex: 1;
+    }
+}

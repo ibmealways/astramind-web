@@ -1,0 +1,51 @@
+### ADD AAPL
+POST http://localhost:5000/api/finance/portfolio
+Content-Type: application/json
+
+{
+  "symbol": "AAPL",
+  "amount": 10,
+  "avgPrice": 180
+}
+
+### ADD TSLA
+POST http://localhost:5000/api/finance/portfolio
+Content-Type: application/json
+
+{
+  "symbol": "TSLA",
+  "amount": 5,
+  "avgPrice": 250
+}
+
+### ADD BTC
+POST http://localhost:5000/api/finance/portfolio
+Content-Type: application/json
+
+{
+  "symbol": "BTC",
+  "amount": 0.25,
+  "avgPrice": 30000
+}
+
+### ADD WATCHLIST NVDA
+POST http://localhost:5000/api/finance/watchlist
+Content-Type: application/json
+
+{
+  "symbol": "NVDA"
+}
+
+### ADD WATCHLIST ETH
+POST http://localhost:5000/api/finance/watchlist
+Content-Type: application/json
+
+{
+  "symbol": "ETH"
+}
+
+### GET PORTFOLIO
+GET http://localhost:5000/api/finance/portfolio
+
+### GET WATCHLIST
+GET http://localhost:5000/api/finance/watchlist

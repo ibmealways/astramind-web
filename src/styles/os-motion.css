@@ -1,0 +1,71 @@
+/* =========================
+   ASTRAMIND OS — MOTION ENGINE
+========================= */
+
+/* Subtle ambient motion */
+@keyframes floatSoft {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Hover lift */
+.os-hover {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.os-hover:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 12px 35px rgba(88, 101, 242, 0.35);
+}
+
+/* Focus glow */
+.os-focus:focus-within {
+    box-shadow:
+        0 0 0 2px rgba(88, 101, 242, 0.6),
+        0 0 25px rgba(88, 101, 242, 0.45);
+}
+
+/* Page entry */
+.os-page-enter {
+    animation: pageEnter 0.35s ease;
+}
+
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Breathing OS glow */
+.os-breathe {
+    animation: breatheGlow 6s ease-in-out infinite;
+}
+
+@keyframes breatheGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 25px rgba(88, 101, 242, 0.15);
+    }
+
+    50% {
+        box-shadow: 0 0 45px rgba(88, 101, 242, 0.35);
+    }
+}

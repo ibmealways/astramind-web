@@ -1,0 +1,354 @@
+.tradepilot-page {
+    min-height: 100vh;
+    padding: 3rem 2rem;
+    color: #f8fafc;
+    background:
+        radial-gradient(circle at top left, rgba(0, 255, 255, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(168, 85, 247, 0.2), transparent 30%),
+        linear-gradient(135deg, #020617 0%, #07111f 45%, #0f172a 100%);
+}
+
+/* ---------- HERO ---------- */
+
+.tradepilot-hero {
+    max-width: 980px;
+    margin: 0 auto 2rem;
+    padding: 2rem;
+    border: 1px solid rgba(125, 211, 252, 0.25);
+    border-radius: 28px;
+    background: rgba(15, 23, 42, 0.72);
+    box-shadow: 0 0 40px rgba(56, 189, 248, 0.14);
+    backdrop-filter: blur(16px);
+}
+
+.tradepilot-eyebrow {
+    margin: 0 0 0.6rem;
+    color: #67e8f9;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.tradepilot-hero h1 {
+    margin: 0;
+    font-size: clamp(2.1rem, 6vw, 4.6rem);
+    background: linear-gradient(90deg, #22d3ee, #a78bfa, #f0abfc);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+.tradepilot-hero p {
+    margin-top: 1rem;
+    color: #cbd5e1;
+    line-height: 1.7;
+}
+
+/* ---------- GRID ---------- */
+
+.tradepilot-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 1.5rem;
+}
+
+/* ---------- CARD ---------- */
+
+.tradepilot-card {
+    position: relative;
+    padding: 1.6rem;
+    border-radius: 26px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    backdrop-filter: blur(18px);
+}
+
+.tradepilot-card h2 {
+    margin-bottom: 1rem;
+    color: #e0f2fe;
+}
+
+.tradepilot-card h3 {
+    margin-top: 1.2rem;
+    color: #bae6fd;
+}
+
+/* ---------- INPUTS ---------- */
+
+.tradepilot-card label {
+    display: block;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.tradepilot-card input,
+.tradepilot-card select,
+.tradepilot-card textarea {
+    width: 100%;
+    margin-top: 0.4rem;
+    padding: 0.8rem;
+    border-radius: 14px;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    background: rgba(2, 6, 23, 0.7);
+    color: white;
+}
+
+.tradepilot-card textarea {
+    min-height: 100px;
+}
+
+/* ---------- BUTTON ---------- */
+
+.tradepilot-card button {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(90deg, #22d3ee, #a78bfa);
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tradepilot-card button:hover {
+    opacity: 0.9;
+}
+
+/* ---------- RESULT ---------- */
+
+.result-card {
+    min-height: 500px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+}
+
+/* ---------- BADGES ---------- */
+
+.route-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.15);
+    color: #67e8f9;
+    margin-bottom: 1rem;
+}
+
+/* ---------- SUMMARY ---------- */
+
+.route-summary {
+    background: rgba(2, 6, 23, 0.5);
+    padding: 1rem;
+    border-radius: 16px;
+}
+
+/* ---------- GRID ---------- */
+
+.allocation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.allocation-grid div {
+    padding: 1rem;
+    border-radius: 16px;
+    background: rgba(2, 6, 23, 0.6);
+}
+
+/* ---------- ERROR ---------- */
+
+.tradepilot-error {
+    margin-top: 1rem;
+    color: #f87171;
+}
+
+/* ---------- MARKET MENTOR ---------- */
+
+.marketmentor-wrap {
+    max-width: 1180px;
+    margin: 2rem auto 0;
+}
+
+.marketmentor-card {
+    margin-top: 1rem;
+}
+
+/* HEADER */
+
+.marketmentor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mentor-pill {
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+    font-size: 0.8rem;
+}
+
+/* INTRO */
+
+.mentor-intro {
+    margin: 1rem 0;
+    color: #94a3b8;
+}
+
+/* LAYOUT */
+
+.mentor-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+/* MINI GRID */
+
+.mentor-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+}
+
+/* RESPONSE */
+
+.mentor-response {
+    background: rgba(2, 6, 23, 0.5);
+    padding: 1rem;
+    border-radius: 18px;
+}
+
+/* TOPLINE */
+
+.mentor-topline {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.mentor-topline span {
+    font-size: 0.7rem;
+    color: #94a3b8;
+}
+
+.mentor-topline strong {
+    display: block;
+    color: #67e8f9;
+}
+
+/* NEXT STEP */
+
+.next-step-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(168, 85, 247, 0.2);
+    border-radius: 16px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 900px) {
+
+    .tradepilot-grid,
+    .mentor-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .allocation-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.live-signal-card {
+    margin-top: 1rem;
+}
+
+.signal-controls {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 1rem;
+    align-items: end;
+    margin: 1.25rem 0;
+}
+
+.chart-shell {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(34, 211, 238, 0.18);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at top, rgba(34, 211, 238, 0.12), transparent 55%),
+        rgba(2, 6, 23, 0.62);
+}
+
+.chart-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+}
+
+.chart-topbar span {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+}
+
+.chart-topbar strong {
+    display: block;
+    margin-top: 0.2rem;
+    color: #f8fafc;
+    font-size: 1.8rem;
+}
+
+.price-up {
+    color: #4ade80;
+    font-weight: 900;
+}
+
+.price-down {
+    color: #fb7185;
+    font-weight: 900;
+}
+
+.signal-chart {
+    width: 100%;
+    height: 260px;
+    padding: 0.5rem;
+    border-radius: 18px;
+    background:
+        linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+    background-size: 42px 42px;
+}
+
+.signal-zones {
+    display: flex;
+    justify-content: space-between;
+    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.signal-result {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid rgba(167, 139, 250, 0.24);
+    border-radius: 20px;
+    background: rgba(2, 6, 23, 0.45);
+}
+
+@media (max-width: 900px) {
+    .signal-controls {
+        grid-template-columns: 1fr;
+    }
+}

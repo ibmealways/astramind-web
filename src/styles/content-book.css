@@ -1,0 +1,202 @@
+.content-book-page {
+    height: 100%;
+    width: 100%;
+    padding: 18px;
+    box-sizing: border-box;
+    overflow: auto;
+}
+
+.content-book-header {
+    margin-bottom: 18px;
+}
+
+.content-book-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    line-height: 1.1;
+}
+
+.content-book-header p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 900px;
+}
+
+.content-book-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 16px;
+    min-height: 0;
+}
+
+.content-book-sidebar,
+.content-book-main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+}
+
+.content-book-card {
+    border-radius: 16px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(14px);
+}
+
+.content-book-card h3 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    color: #f8fafc;
+}
+
+.content-book-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    gap: 10px;
+    margin: 12px 0;
+}
+
+.content-book-input,
+.content-book-select,
+.content-book-textarea {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(0, 0, 0, 0.45);
+    color: white;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.content-book-input:focus,
+.content-book-select:focus,
+.content-book-textarea:focus {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+.content-book-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.content-book-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.content-book-checkbox input {
+    accent-color: #6366f1;
+}
+
+.content-book-generate-btn,
+.content-book-delete-btn {
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.45);
+    background: rgba(99, 102, 241, 0.32);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.content-book-generate-btn:hover,
+.content-book-delete-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(99, 102, 241, 0.42);
+}
+
+.content-book-generate-btn:disabled,
+.content-book-delete-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.content-book-delete-btn {
+    margin-top: 10px;
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.content-book-delete-btn:hover {
+    background: rgba(239, 68, 68, 0.28);
+}
+
+.content-book-project-meta {
+    margin-top: 12px;
+    display: grid;
+    gap: 8px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.content-book-pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    line-height: 1.6;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.96);
+}
+
+.content-book-placeholder {
+    color: rgba(255, 255, 255, 0.68);
+    line-height: 1.5;
+}
+
+.content-book-chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.content-book-chapter-item {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.content-book-chapter-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #f8fafc;
+}
+
+.content-book-chapter-summary {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.45;
+}
+
+@media (max-width: 1100px) {
+    .content-book-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 980px) {
+    .content-book-page {
+        padding: 14px;
+    }
+
+    .content-book-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .content-book-header h1 {
+        font-size: 24px;
+    }
+}
