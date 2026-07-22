@@ -276,8 +276,9 @@ export async function renderKineticScene({
 
   const plan = buildKineticScenePlan({ scene, platform, style, duration, intensity, productionPlan });
   const pan = plan.panExpression;
+  const isVideoInput = [".mp4", ".mov", ".mkv", ".webm", ".avi"].includes(path.extname(inputPath).toLowerCase());
 
-  const filterChain = [
+  const imageFilterChain = [
     `scale=${plan.width}:${plan.height}:force_original_aspect_ratio=increase`,
     `crop=${plan.width}:${plan.height}`,
     `zoompan=z='${plan.zoomExpression}':x='${pan.x}':y='${pan.y}':d=${plan.frames}:s=${plan.width}x${plan.height}`,
@@ -286,17 +287,22 @@ export async function renderKineticScene({
     `fps=${plan.fps}`,
     `format=yuv420p`,
   ].join(",");
+  const videoFilterChain = [
+    `scale=${plan.width}:${plan.height}:force_original_aspect_ratio=increase`,
+    `crop=${plan.width}:${plan.height}`,
+    `fps=${plan.fps}`,
+    `format=yuv420p`,
+  ].join(",");
 
   console.log("🎞️ Rendering Hollywood kinetic scene:", scene?.id || "unknown", plan.cinematicIntent);
 
   await runFFmpeg([
     "-y",
-    "-loop",
-    "1",
+    ...(isVideoInput ? ["-stream_loop", "-1"] : ["-loop", "1"]),
     "-i",
     inputPath,
     "-vf",
-    filterChain,
+    isVideoInput ? videoFilterChain : imageFilterChain,
     "-t",
     String(plan.duration),
     "-r",

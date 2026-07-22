@@ -34,6 +34,7 @@ function formatDateTime(value) {
 
 export default function OperatorDashboard() {
   const apiUrl = useMemo(() => getApiUrl(), []);
+  const requestOptions = useMemo(() => ({ headers:{ Authorization:`Bearer ${localStorage.getItem("astramind_token") || ""}` } }), []);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,6 +42,7 @@ export default function OperatorDashboard() {
   const [error, setError] = useState("");
 
   const [platformHealth, setPlatformHealth] = useState(null);
+  const [readiness, setReadiness] = useState(null);
   const [summary, setSummary] = useState(null);
   const [workflowsByAgent, setWorkflowsByAgent] = useState([]);
   const [workflowsByKey, setWorkflowsByKey] = useState([]);
@@ -65,7 +67,7 @@ export default function OperatorDashboard() {
       return;
     }
 
-    const response = await fetch(`${apiUrl}/api/platform/projects/${projectId}`);
+    const response = await fetch(`${apiUrl}/api/platform/projects/${projectId}`,requestOptions);
     const data = await readJson(response);
 
     setSelectedProject(data?.project || null);
@@ -83,11 +85,11 @@ export default function OperatorDashboard() {
       workflowsRes,
       sourcesRes,
     ] = await Promise.all([
-      fetch(`${apiUrl}/api/platform/health`),
-      fetch(`${apiUrl}/api/platform/summary`),
-      fetch(`${apiUrl}/api/platform/projects?limit=20`),
-      fetch(`${apiUrl}/api/platform/workflows/recent?limit=20`),
-      fetch(`${apiUrl}/api/platform/sources/recent?limit=20`),
+      fetch(`${apiUrl}/api/platform/health`,requestOptions),
+      fetch(`${apiUrl}/api/platform/summary`,requestOptions),
+      fetch(`${apiUrl}/api/platform/projects?limit=20`,requestOptions),
+      fetch(`${apiUrl}/api/platform/workflows/recent?limit=20`,requestOptions),
+      fetch(`${apiUrl}/api/platform/sources/recent?limit=20`,requestOptions),
     ]);
 
     const [
@@ -122,6 +124,13 @@ export default function OperatorDashboard() {
     );
     setSources(Array.isArray(sourcesData?.sources) ? sourcesData.sources : []);
 
+    try {
+      const readinessResponse = await fetch(`${apiUrl}/api/readiness`,requestOptions);
+      setReadiness(await readJson(readinessResponse));
+    } catch (readinessError) {
+      setReadiness({ status: "blocked", score: 0, checks: [], contracts: [], providers: [], error: readinessError.message });
+    }
+
     return {
       projects: Array.isArray(projectsData?.projects) ? projectsData.projects : [],
     };
@@ -139,7 +148,7 @@ export default function OperatorDashboard() {
         workflowUrl.searchParams.set("workflowKey", selectedWorkflowKey);
       }
 
-      const response = await fetch(workflowUrl.toString());
+      const response = await fetch(workflowUrl.toString(),requestOptions);
       const data = await readJson(response);
 
       setWorkflowRuns(Array.isArray(data?.workflowRuns) ? data.workflowRuns : []);
@@ -157,7 +166,7 @@ export default function OperatorDashboard() {
     setError("");
 
     try {
-      const response = await fetch(`${apiUrl}/api/platform/workflows/recent?limit=20`);
+      const response = await fetch(`${apiUrl}/api/platform/workflows/recent?limit=20`,requestOptions);
       const data = await readJson(response);
       setWorkflowRuns(Array.isArray(data?.workflowRuns) ? data.workflowRuns : []);
     } catch (err) {
@@ -253,6 +262,37 @@ export default function OperatorDashboard() {
       </div>
 
       {error ? <div className="op-error-banner">{error}</div> : null}
+
+      <section className={`op-readiness-realm is-${readiness?.status || "loading"}`}>
+        <div className="op-readiness-orbit" aria-hidden="true"><span /><span /><span /></div>
+        <div className="op-readiness-copy">
+          <div className="op-readiness-eyebrow">UNIFIED PRE-LAUNCH READINESS</div>
+          <h2>{readiness?.status === "ready" ? "Launch systems aligned" : readiness?.status === "degraded" ? "Launch systems need attention" : "Launch gate blocked"}</h2>
+          <p>{readiness?.error || `${readiness?.contracts?.filter((item) => item.status === "ready").length || 0} of ${readiness?.contracts?.length || 0} customer contracts are wired through their route, capability, and Kernel authority.`}</p>
+          <div className="op-readiness-actions">
+            <a className="op-btn op-btn-primary" href="/content/video">Open Promotional Video Gate</a>
+            <span>{readiness?.release?.version || "AstraMind beta"} · {readiness?.generatedAt ? formatDateTime(readiness.generatedAt) : "auditing"}</span>
+          </div>
+        </div>
+        <div className="op-readiness-score">
+          <strong>{readiness?.score ?? "—"}</strong><span>readiness score</span>
+        </div>
+        <div className="op-readiness-checks">
+          {(readiness?.checks || []).map((item) => (
+            <div key={item.id} className={`op-readiness-check is-${item.status}`}>
+              <span className="op-readiness-dot" />
+              <div><strong>{item.label}</strong><small>{item.detail}</small></div>
+            </div>
+          ))}
+        </div>
+        <div className="op-provider-strip">
+          {(readiness?.providers || []).map((provider) => (
+            <span key={provider.id} className={provider.configured ? "is-ready" : "is-optional"}>
+              {provider.name}<b>{provider.configured ? "ONLINE" : "NOT CONFIGURED"}</b>
+            </span>
+          ))}
+        </div>
+      </section>
 
       <div className="op-stats-grid">
         <DashboardStatCard

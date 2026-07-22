@@ -19,13 +19,13 @@ const navGroups = [
     title: "Finance OS",
     items: [
       { to: "/finance", label: "Finance Hub", icon: "💸" },
-      { to: "/finance/income", label: "Income", icon: "📈" },
-      { to: "/finance/expenses", label: "Expenses", icon: "📉" },
-      { to: "/finance/savings", label: "Savings", icon: "🏦" },
+      { to: "/finance/income", label: "Trip Planner", icon: "✈️" },
+      { to: "/finance/expenses", label: "Pro Markets", icon: "📊" },
+      { to: "/finance/savings", label: "Wealth + Retirement", icon: "🧭" },
     ],
   },
   {
-    title: "Content Creation OS",
+    title: "Creator Studio",
     items: [
       { to: "/content", label: "Content Creator", icon: "🎬" },
       { to: "/content-lab/latest", label: "Content Lab", icon: "🧪" },
@@ -38,7 +38,7 @@ const navGroups = [
   },
   {
     title: "System",
-    items: [{ to: "/settings", label: "Settings", icon: "⚙️" }],
+    items: [{ to: "/pricing", label: "Plans & Credits", icon: "✦" }, { to: "/settings", label: "Settings", icon: "⚙️" }],
   },
 ];
 
@@ -141,6 +141,8 @@ export default function Sidebar() {
                 <SidebarLink
                   key={item.to}
                   {...item}
+                  to={item.to === "/content-lab/latest" ? "/content-lab" : item.to}
+                  label={item.to === "/content" ? "Creator Studio" : item.label}
                   collapsed={collapsed}
                 />
               ))}
@@ -159,7 +161,7 @@ export default function Sidebar() {
 
               <div className="sidebar-user-info">
                 <strong>{user?.name || "Ivan Perez"}</strong>
-                <span>{user?.plan || "starter"} plan</span>
+                <span>Creator · {user?.plan || "starter"} plan</span>
               </div>
             </div>
 

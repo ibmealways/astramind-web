@@ -1,41 +1,9 @@
 import express from "express";
-import {
-  storeSemanticMemory,
-  searchSemanticMemory,
-} from "../memory/semanticMemory.js";
+import requireAuth from "../middleware/requireAuth.js";
+import { storeMemory, recallMemory } from "../../services/memoryService.js";
 
-const router = express.Router();
-
-/**
- * STORE MEMORY
- */
-router.post("/store", async (req, res) => {
-  try {
-    const { content } = req.body;
-
-    await storeSemanticMemory(content);
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("MEMORY STORE ERROR:", err);
-    res.status(500).json({ error: "Failed to store memory" });
-  }
-});
-
-/**
- * SEARCH MEMORY
- */
-router.post("/search", async (req, res) => {
-  try {
-    const { query } = req.body;
-
-    const results = await searchSemanticMemory(query);
-
-    res.json(results);
-  } catch (err) {
-    console.error("MEMORY SEARCH ERROR:", err);
-    res.status(500).json({ error: "Failed to search memory" });
-  }
-});
-
+const router=express.Router();
+router.use(requireAuth);
+router.post("/store",(req,res)=>{const content=String(req.body?.content||"").trim();if(!content)return res.status(400).json({ok:false,error:"content is required."});storeMemory({userId:req.user.id,content,type:req.body?.type||"semantic",tags:req.body?.tags||[]});res.status(201).json({ok:true});});
+router.post("/search",(req,res)=>{const query=String(req.body?.query?.topic||req.body?.query||"").trim();if(!query)return res.status(400).json({ok:false,error:"query is required."});res.json(recallMemory(query,req.user.id));});
 export default router;

@@ -1,4 +1,4 @@
-export function generatePlatformPack({ content, prompt, type }) {
+export function generatePlatformPack({ content, prompt }) {
   const baseText = content?.toString().slice(0, 500) || prompt;
 
   return {

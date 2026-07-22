@@ -182,17 +182,6 @@ export default function FinanceTradePilot() {
     setMentorForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const syncMentorWithRouteProfile = () => {
-    setMentorForm((prev) => ({
-      ...prev,
-      accountSize: form.startingCapital,
-      weeklyDeposit: form.weeklyDeposit,
-      riskTolerance: form.riskTolerance,
-      experience: form.experience,
-      subscriptionTier: form.subscriptionTier,
-    }));
-  };
-
   const generateRoute = async (overrideForm = null) => {
     const activeForm = overrideForm || form;
 
@@ -211,7 +200,7 @@ export default function FinanceTradePilot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-subscription-tier": payload.subscriptionTier,
+          Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
         },
         body: JSON.stringify(payload),
       });
@@ -258,7 +247,7 @@ export default function FinanceTradePilot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-subscription-tier": payload.subscriptionTier,
+          Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
         },
         body: JSON.stringify(payload),
       });

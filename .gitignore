@@ -44,6 +44,7 @@ pids/
 .env
 .env.*
 !.env.example
+!.env.worker.example
 
 ############################
 # Operating System
@@ -150,7 +151,7 @@ generated-audio/
 # Local Memory
 ############################
 
-memory/
+/memory/
 sessions/
 conversation-cache/
 

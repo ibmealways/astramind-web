@@ -4,7 +4,9 @@ const DEFAULT_API_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function getApiUrl() {
-  return localStorage.getItem("astramind_api_url") || DEFAULT_API_URL;
+  return typeof localStorage !== "undefined"
+    ? localStorage.getItem("astramind_api_url") || DEFAULT_API_URL
+    : DEFAULT_API_URL;
 }
 
 async function readJson(response) {
@@ -20,7 +22,7 @@ async function runResearchSummaryWorkflow(input) {
     `${getApiUrl()}/api/agent-workflow/research-summary`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
       body: JSON.stringify({ input }),
     }
   );
@@ -33,7 +35,7 @@ async function runBusinessStrategyWorkflow(input) {
     `${getApiUrl()}/api/agent-workflow/business-strategy-scan`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
       body: JSON.stringify({ input }),
     }
   );
@@ -46,9 +48,9 @@ async function runSaasBuilderWorkflow({
   audience = "General audience",
   tone = "Bold",
 }) {
-  const response = await fetch(`${getApiUrl()}/api/agent-workflow/saas-builder`, {
+  const response = await fetch(`${getApiUrl()}/api/saas-builder/blueprint`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
     body: JSON.stringify({
       input,
       audience,
@@ -117,4 +119,17 @@ export async function runAutonomousWorkflow(input, options = {}) {
     intent,
     result: null,
   };
+}
+
+export async function runWorkflow(workflowType, input = {}) {
+  if (workflowType === "kernel.echo" || workflowType === "general") {
+    return { workflowType, input };
+  }
+  if (workflowType === "research_summary") return runResearchSummaryWorkflow(input);
+  if (workflowType === "business_strategy_scan") return runBusinessStrategyWorkflow(input);
+  if (workflowType === "saas_builder") return runSaasBuilderWorkflow({ input });
+  const error = new Error(`Unsupported workflow: ${workflowType}`);
+  error.code = "WORKFLOW_NOT_FOUND";
+  error.status = 404;
+  throw error;
 }

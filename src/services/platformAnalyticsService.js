@@ -1,6 +1,6 @@
 import { getPlatformDb } from "../server/db/platformDb.js";
 
-export async function getPlatformSummary() {
+export async function getPlatformSummary(userId = "system") {
   const db = await getPlatformDb();
 
   const [
@@ -11,22 +11,24 @@ export async function getPlatformSummary() {
     latestWorkflowRow,
     latestProjectRow,
   ] = await Promise.all([
-    db.get(`SELECT COUNT(*) AS count FROM platform_projects`),
-    db.get(`SELECT COUNT(*) AS count FROM workflow_runs`),
-    db.get(`SELECT COUNT(*) AS count FROM research_sources`),
-    db.get(`SELECT COUNT(*) AS count FROM book_chapters`),
+    db.get(`SELECT COUNT(*) AS count FROM platform_projects WHERE user_id=?`,userId),
+    db.get(`SELECT COUNT(*) AS count FROM workflow_runs WHERE user_id=?`,userId),
+    db.get(`SELECT COUNT(*) AS count FROM research_sources WHERE user_id=?`,userId),
+    db.get(`SELECT COUNT(*) AS count FROM book_chapters c WHERE EXISTS (SELECT 1 FROM platform_projects p WHERE p.id=c.project_id AND p.user_id=?)`,userId),
     db.get(`
       SELECT created_at
       FROM workflow_runs
+      WHERE user_id=?
       ORDER BY created_at DESC
       LIMIT 1
-    `),
+    `,userId),
     db.get(`
       SELECT updated_at
       FROM platform_projects
+      WHERE user_id=?
       ORDER BY updated_at DESC
       LIMIT 1
-    `),
+    `,userId),
   ]);
 
   return {
@@ -39,7 +41,7 @@ export async function getPlatformSummary() {
   };
 }
 
-export async function getWorkflowCountsByAgent() {
+export async function getWorkflowCountsByAgent(userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(`
@@ -47,9 +49,10 @@ export async function getWorkflowCountsByAgent() {
       primary_agent AS agent,
       COUNT(*) AS count
     FROM workflow_runs
+    WHERE user_id=?
     GROUP BY primary_agent
     ORDER BY count DESC, agent ASC
-  `);
+  `,userId);
 
   return rows.map((row) => ({
     agent: row.agent,
@@ -57,7 +60,7 @@ export async function getWorkflowCountsByAgent() {
   }));
 }
 
-export async function getWorkflowCountsByKey() {
+export async function getWorkflowCountsByKey(userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(`
@@ -65,9 +68,10 @@ export async function getWorkflowCountsByKey() {
       workflow_key AS workflowKey,
       COUNT(*) AS count
     FROM workflow_runs
+    WHERE user_id=?
     GROUP BY workflow_key
     ORDER BY count DESC, workflowKey ASC
-  `);
+  `,userId);
 
   return rows.map((row) => ({
     workflowKey: row.workflowKey,
@@ -79,11 +83,12 @@ export async function getFilteredWorkflowRuns({
   limit = 25,
   agent = "",
   workflowKey = "",
+  userId = "system",
 } = {}) {
   const db = await getPlatformDb();
 
-  const conditions = [];
-  const params = [];
+  const conditions = ["user_id = ?"];
+  const params = [userId];
 
   if (agent) {
     conditions.push(`primary_agent = ?`);
@@ -127,11 +132,12 @@ export async function getFilteredWorkflowRuns({
 export async function getFilteredResearchSources({
   limit = 25,
   topic = "",
+  userId = "system",
 } = {}) {
   const db = await getPlatformDb();
 
-  const conditions = [];
-  const params = [];
+  const conditions = ["user_id = ?"];
+  const params = [userId];
 
   if (topic) {
     conditions.push(`topic LIKE ?`);

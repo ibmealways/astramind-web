@@ -28,6 +28,7 @@ export async function createPersistentProject(payload = {}) {
   const audience = String(payload.audience || "").trim();
   const intensity = String(payload.intensity || "medium").trim();
   const metadata = payload.metadata || {};
+  const userId = String(payload.userId || "system");
   const book = payload.book || {};
   const createdAt = nowIso();
   const updatedAt = createdAt;
@@ -46,9 +47,10 @@ export async function createPersistentProject(payload = {}) {
         metadata_json,
         book_json,
         created_at,
-        updated_at
+        updated_at,
+        user_id
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       id,
@@ -63,6 +65,7 @@ export async function createPersistentProject(payload = {}) {
       safeJson(book, {}),
       createdAt,
       updatedAt,
+      userId,
     ]
   );
 
@@ -241,6 +244,7 @@ export async function saveWorkflowRun(payload = {}) {
   const structuredOutput = payload.structuredOutput || {};
   const sources = Array.isArray(payload.sources) ? payload.sources : [];
   const createdAt = nowIso();
+  const userId = String(payload.userId || "system");
 
   if (!workflowKey) {
     throw new Error("saveWorkflowRun requires workflowKey.");
@@ -260,9 +264,10 @@ export async function saveWorkflowRun(payload = {}) {
         result_text,
         structured_output_json,
         sources_json,
-        created_at
+        created_at,
+        user_id
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
       projectId,
@@ -273,6 +278,7 @@ export async function saveWorkflowRun(payload = {}) {
       safeJson(structuredOutput, {}),
       safeJson(sources, []),
       createdAt,
+      userId,
     ]
   );
 
@@ -296,6 +302,7 @@ export async function saveResearchSource(payload = {}) {
   const snippet = String(payload.snippet || "");
   const notes = String(payload.notes || "");
   const createdAt = nowIso();
+  const userId = String(payload.userId || "system");
 
   const result = await db.run(
     `
@@ -307,11 +314,12 @@ export async function saveResearchSource(payload = {}) {
         source_name,
         snippet,
         notes,
-        created_at
+        created_at,
+        user_id
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
-    [category, topic, title, url, sourceName, snippet, notes, createdAt]
+    [category, topic, title, url, sourceName, snippet, notes, createdAt, userId]
   );
 
   return {
@@ -325,17 +333,18 @@ export async function saveResearchSource(payload = {}) {
   };
 }
 
-export async function getPersistentProjects(limit = 25) {
+export async function getPersistentProjects(limit = 25, userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(
     `
       SELECT *
       FROM platform_projects
+      WHERE user_id = ?
       ORDER BY updated_at DESC
       LIMIT ?
     `,
-    [Number(limit) || 25]
+    [userId, Number(limit) || 25]
   );
 
   return rows.map((row) => ({
@@ -354,16 +363,16 @@ export async function getPersistentProjects(limit = 25) {
   }));
 }
 
-export async function getPersistentProjectById(projectId) {
+export async function getPersistentProjectById(projectId, userId = "system") {
   const db = await getPlatformDb();
 
   const row = await db.get(
     `
       SELECT *
       FROM platform_projects
-      WHERE id = ?
+      WHERE id = ? AND user_id = ?
     `,
-    [projectId]
+    [projectId, userId]
   );
 
   if (!row) {
@@ -386,18 +395,18 @@ export async function getPersistentProjectById(projectId) {
   };
 }
 
-export async function getProjectWorkflowRuns(projectId, limit = 20) {
+export async function getProjectWorkflowRuns(projectId, limit = 20, userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(
     `
       SELECT *
       FROM workflow_runs
-      WHERE project_id = ?
+      WHERE project_id = ? AND user_id = ?
       ORDER BY created_at DESC
       LIMIT ?
     `,
-    [projectId, Number(limit) || 20]
+    [projectId, userId, Number(limit) || 20]
   );
 
   return rows.map((row) => ({
@@ -413,17 +422,17 @@ export async function getProjectWorkflowRuns(projectId, limit = 20) {
   }));
 }
 
-export async function getProjectChapters(projectId) {
+export async function getProjectChapters(projectId, userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(
     `
       SELECT *
       FROM book_chapters
-      WHERE project_id = ?
+      WHERE project_id = ? AND EXISTS (SELECT 1 FROM platform_projects p WHERE p.id=book_chapters.project_id AND p.user_id=?)
       ORDER BY chapter_number ASC
     `,
-    [projectId]
+    [projectId, userId]
   );
 
   return rows.map((row) => ({
@@ -441,17 +450,18 @@ export async function getProjectChapters(projectId) {
   }));
 }
 
-export async function getRecentWorkflowRuns(limit = 25) {
+export async function getRecentWorkflowRuns(limit = 25, userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(
     `
       SELECT *
       FROM workflow_runs
+      WHERE user_id = ?
       ORDER BY created_at DESC
       LIMIT ?
     `,
-    [Number(limit) || 25]
+    [userId, Number(limit) || 25]
   );
 
   return rows.map((row) => ({
@@ -467,17 +477,18 @@ export async function getRecentWorkflowRuns(limit = 25) {
   }));
 }
 
-export async function getRecentResearchSources(limit = 25) {
+export async function getRecentResearchSources(limit = 25, userId = "system") {
   const db = await getPlatformDb();
 
   const rows = await db.all(
     `
       SELECT *
       FROM research_sources
+      WHERE user_id = ?
       ORDER BY created_at DESC
       LIMIT ?
     `,
-    [Number(limit) || 25]
+    [userId, Number(limit) || 25]
   );
 
   return rows.map((row) => ({
@@ -491,4 +502,10 @@ export async function getRecentResearchSources(limit = 25) {
     notes: row.notes,
     createdAt: row.created_at,
   }));
+}
+
+export async function deletePersistentProject(projectId, userId = "system") {
+  const db=await getPlatformDb();
+  const result=await db.run("DELETE FROM platform_projects WHERE id=? AND user_id=?",[projectId,userId]);
+  return Boolean(result.changes);
 }

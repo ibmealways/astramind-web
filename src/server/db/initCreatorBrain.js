@@ -2,6 +2,19 @@ import db from "./sqlite.js";
 
 export function initCreatorBrainTables() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS creator_profiles (
+      user_id TEXT PRIMARY KEY,
+      display_name TEXT DEFAULT '',
+      primary_identity TEXT DEFAULT '',
+      mission TEXT DEFAULT '',
+      writing_tone TEXT DEFAULT '',
+      preferred_platforms TEXT DEFAULT '[]',
+      businesses TEXT DEFAULT '[]',
+      active_goals TEXT DEFAULT '[]',
+      preferences TEXT DEFAULT '{}',
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS creator_profile (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       display_name TEXT DEFAULT '',
@@ -37,6 +50,17 @@ export function initCreatorBrainTables() {
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
+  `);
+
+  for (const table of ["creator_projects", "creator_memory_entries"]) {
+    try {
+      db.prepare(`ALTER TABLE ${table} ADD COLUMN user_id TEXT NOT NULL DEFAULT 'legacy'`).run();
+    } catch {}
+  }
+
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_creator_projects_user ON creator_projects(user_id, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_creator_memory_user ON creator_memory_entries(user_id, updated_at DESC);
   `);
 
   const existing = db

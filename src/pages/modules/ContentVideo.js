@@ -4,12 +4,16 @@ import { useOSMode } from "../../context/ModeContext.js";
 import { OS_MODES } from "../../core/os/modes.js";
 import { runVideoEngine } from "../../core/content/videoEngine.js";
 import { checkVisionHealth } from "../../core/video/visionClient.js";
+import "../../styles/video-studio-realm.css";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const LAST_VIDEO_KEY = "astramind_last_video_url";
 const LAST_RENDER_KEY = "astramind_last_video_render_response";
 const LAST_ENGINE_KEY = "astramind_last_video_engine";
+const LAST_JOB_KEY = "astramind_last_full_video_job";
+
+const ASTRAMIND_PROMO_MISSION = `Create a cinematic pre-release introductory and promotional film for AstraMind Technologies OS. Reveal one continuous intelligence realm where creators can chat with persistent memory, orchestrate missions, conduct source-aware research, create scripts, images, books, music and cinematic video, plan finances and journeys, explore markets responsibly, and manage projects, subscriptions and credit usage. Show the interdimensional AstraMind interface as the product itself generates the campaign. Use confident, inspiring narration, elegant transitions, clear capability proof, and a final invitation to enter AstraMind.`;
 
 function buildBrowserUrl(url) {
   if (!url) return "";
@@ -199,7 +203,11 @@ export default function ContentVideo() {
     () => loadJson(LAST_RENDER_KEY) || null
   );
   const [visionHealth, setVisionHealth] = useState(null);
+  const [preflight, setPreflight] = useState(null);
+  const [checkingPreflight, setCheckingPreflight] = useState(false);
   const [renderProgress, setRenderProgress] = useState(null);
+  const [currentJobId, setCurrentJobId] = useState(() => localStorage.getItem(LAST_JOB_KEY) || "");
+  const [fullVideoJob, setFullVideoJob] = useState(null);
 
   const [notice, setNotice] = useState(
     () =>
@@ -213,8 +221,62 @@ export default function ContentVideo() {
   }, [setMode]);
 
   useEffect(() => {
+    const handoff = loadJson("astramind_handoff");
+    if (handoff?.path !== "/content/video" || handoff?.source !== "audio-studio") return;
+    setTopic(handoff.prompt || "");
+    setPlatform(handoff.platform || "YouTube");
+    setStyle(handoff.style || "cinematic synchronized music video");
+    setDurationTarget(Math.min(600, Math.max(30, Number(handoff.audioSession?.durationSeconds) || 150)));
+    setSoundtrack(true);
+    setSoundtrackMood(handoff.audioSession?.mood || "cinematic");
+    setNotice(`Music Studio handoff loaded: ${handoff.audioSession?.title || "matching song"}. Review the visual brief, then generate the video package.`);
+    localStorage.removeItem("astramind_handoff");
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(LAST_ENGINE_KEY, renderEngine);
   }, [renderEngine]);
+
+  useEffect(() => {
+    if (!currentJobId) return undefined;
+    let stopped = false;
+    let timer = null;
+    const poll = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/cinematic-video/jobs/${currentJobId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
+        });
+        const data = await response.json();
+        if (!response.ok || !data?.job || stopped) return;
+        const job = data.job;
+        setFullVideoJob(job);
+        setRenderProgress({ status:job.status, percent:job.progress || 0, stage:job.stage || "Rendering", message:job.error || `Continuity Render Graph: ${job.status}` });
+        const rawUrl = extractVideoUrl(job.result);
+        if (rawUrl) {
+          const finalUrl = addCache(buildBrowserUrl(rawUrl));
+          setVideoUrl(finalUrl);
+          setRenderResponse(job.result);
+          localStorage.setItem(LAST_VIDEO_KEY, finalUrl);
+          localStorage.setItem(LAST_RENDER_KEY, JSON.stringify(job.result));
+        }
+        if (["completed", "degraded", "failed", "interrupted", "cancelled"].includes(job.status)) {
+          setRendering(false);
+          setNotice(job.status === "completed"
+            ? "Full video complete. Preview, open, or download it below."
+            : job.status === "degraded"
+            ? "The production package completed, but no final MP4 was returned. Resume after provider checks pass."
+            : `Full video ${job.status}. ${job.error || "Resume this durable job when ready."}`);
+          return;
+        }
+        setRendering(true);
+        timer = setTimeout(poll, 3000);
+      } catch {
+        if (!stopped) timer = setTimeout(poll, 5000);
+      }
+    };
+    poll();
+    return () => { stopped = true; if (timer) clearTimeout(timer); };
+  }, [currentJobId]);
 
   const videoData = result?.data || null;
   const artifact = result?.artifact || null;
@@ -270,6 +332,40 @@ export default function ContentVideo() {
     } finally {
       setCheckingHealth(false);
     }
+  };
+
+  const runProviderPreflight = async () => {
+    setCheckingPreflight(true);
+    try {
+      const query = new URLSearchParams({
+        durationTarget: String(durationTarget),
+        voiceover: String(voiceover),
+      });
+      const response = await fetch(`${API_URL}/api/readiness/promotional-video?${query}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.ok) throw new Error(data?.error || "Promotional video preflight failed.");
+      setPreflight(data);
+      setNotice(data.canRender ? `Preflight passed. ${data.estimatedCredits} credits estimated.` : "Preflight blocked. Resolve the required checks before rendering.");
+      return data;
+    } catch (error) {
+      const blocked = { ok: false, status: "blocked", canRender: false, estimatedCredits: 0, checks: [], error: error.message };
+      setPreflight(blocked);
+      setNotice(`Preflight unavailable. ${error.message}`);
+      return blocked;
+    } finally {
+      setCheckingPreflight(false);
+    }
+  };
+
+  const loadPromotionalMission = () => {
+    setTopic(ASTRAMIND_PROMO_MISSION);
+    setPlatform("YouTube");
+    setStyle("interdimensional cinematic technology reveal, premium, luminous, human-centered");
+    setDurationTarget(90);
+    setRenderEngine("vision");
+    setNotice("AstraMind pre-launch mission loaded. Run preflight before generating the film.");
   };
 
   const generateVideoPlan = async (event) => {
@@ -337,6 +433,7 @@ export default function ContentVideo() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
       },
       body: JSON.stringify(payload),
     });
@@ -357,29 +454,32 @@ export default function ContentVideo() {
       throw new Error("Enter a video topic first.");
     }
 
-    const response = await fetch(`${API_URL}/api/cinematic-video/render`, {
+    const token = localStorage.getItem("astramind_token") || "";
+    const productionOptions = {
+      voiceover, voiceId: voiceId.trim() || undefined, soundtrack, soundtrackMood,
+      subtitles, avatarPresenter, avatarImagePath: avatarImagePath.trim(), useTransitions,
+      transitionStyle, preferGPU, quality, motionEffect, createSocialPackage,
+    };
+    const basePayload = { topic: cleanTopic, platform, style, durationTarget };
+    const preflightResponse = await fetch(`${API_URL}/api/cinematic-video/render`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ ...basePayload, options: { ...productionOptions, preflightOnly: true } }),
+    });
+    const pipelinePreflight = await preflightResponse.json();
+    if (!preflightResponse.ok || !pipelinePreflight?.ok) {
+      throw new Error(pipelinePreflight?.error || "Vision pipeline preflight failed.");
+    }
+
+    const response = await fetch(`${API_URL}/api/cinematic-video/jobs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        topic: cleanTopic,
-        platform,
-        style,
-        durationTarget,
-        voiceover,
-        voiceId: voiceId.trim() || undefined,
-        soundtrack,
-        soundtrackMood,
-        subtitles,
-        avatarPresenter,
-        avatarImagePath: avatarImagePath.trim(),
-        useTransitions,
-        transitionStyle,
-        preferGPU,
-        quality,
-        motionEffect,
-        createSocialPackage,
+        ...basePayload,
+        options: { ...productionOptions, preflightApproved: true },
       }),
     });
 
@@ -399,12 +499,13 @@ export default function ContentVideo() {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/cinematic-video/progress/${projectId}`
+        `${API_URL}/api/cinematic-video/progress/${projectId}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` } }
       );
       const data = await response.json();
 
       if (data?.ok) {
-        setRenderProgress(data.progress);
+        setRenderProgress(data.progress || data.render || data.status);
       }
     } catch (err) {
       console.warn("Progress load failed:", err.message);
@@ -444,7 +545,12 @@ export default function ContentVideo() {
     localStorage.removeItem(LAST_VIDEO_KEY);
     localStorage.removeItem(LAST_RENDER_KEY);
 
+    let backgroundAccepted = false;
     try {
+      if (renderEngine === "vision") {
+        const gate = await runProviderPreflight();
+        if (!gate.canRender) throw new Error("Promotional video preflight is blocked. Review the readiness checks.");
+      }
       const data =
         renderEngine === "vision"
           ? await renderVisionMP4()
@@ -452,31 +558,25 @@ export default function ContentVideo() {
 
       console.log("🎬 VIDEO RENDER RESPONSE:", data);
 
+      if (data?.accepted && data?.projectId) {
+        backgroundAccepted = true;
+        setCurrentJobId(data.projectId);
+        setFullVideoJob(data.job || null);
+        localStorage.setItem(LAST_JOB_KEY, data.projectId);
+        setRenderResponse(data);
+        setRenderProgress({ status:"queued", percent:1, stage:"Mission accepted", message:"The durable Continuity Render Graph is running. You may leave this page and return." });
+        setNotice("Full video job accepted. AstraMind will preserve its progress and restore it here.");
+        scrollToResults();
+        return;
+      }
+
 /*
 ============================================
 ADVANCED VIDEO URL EXTRACTION
 ============================================
 */
 
-const rawVideoUrl =
-  data?.videoUrl ||
-  data?.downloadUrl ||
-  data?.renderUrl ||
-  data?.url ||
-  data?.outputPath ||
-  data?.render?.videoUrl ||
-  data?.render?.downloadUrl ||
-  data?.render?.outputPath ||
-  data?.output?.videoUrl ||
-  data?.output?.outputPath ||
-  data?.pipeline?.videoUrl ||
-  data?.pipeline?.outputPath ||
-  data?.result?.videoUrl ||
-  data?.result?.outputPath ||
-  data?.data?.videoUrl ||
-  data?.data?.outputPath ||
-  data?.finalVideoUrl ||
-  null;
+const rawVideoUrl = extractVideoUrl(data);
 
 console.log(
   "🎬 FULL BACKEND RESPONSE:",
@@ -596,7 +696,7 @@ if (!rawVideoUrl) {
         message: err.message || "Render failed.",
       });
     } finally {
-      setRendering(false);
+      if (!backgroundAccepted) setRendering(false);
     }
   };
 
@@ -637,6 +737,42 @@ if (!rawVideoUrl) {
     downloadFile("astramind-captions.vtt", buildVtt(captions), "text/vtt");
   };
 
+  const resumeFullVideoJob = async () => {
+    if (!currentJobId) return;
+    setRendering(true);
+    setNotice("Resuming the durable render from its saved project identity...");
+    try {
+      const response = await fetch(`${API_URL}/api/cinematic-video/jobs/${currentJobId}/resume`, {
+        method:"POST",
+        headers:{ Authorization:`Bearer ${localStorage.getItem("astramind_token") || ""}` },
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.ok) throw new Error(data?.error || "Resume failed.");
+      setCurrentJobId("");
+      setTimeout(() => setCurrentJobId(data.projectId), 0);
+    } catch (error) {
+      setRendering(false);
+      setNotice(`Unable to resume: ${error.message}`);
+    }
+  };
+
+  const cancelFullVideoJob = async () => {
+    if (!currentJobId) return;
+    setNotice("Cancelling the active native generation task...");
+    try {
+      const response = await fetch(`${API_URL}/api/cinematic-video/jobs/${currentJobId}/cancel`, {
+        method:"POST",
+        headers:{ Authorization:`Bearer ${localStorage.getItem("astramind_token") || ""}` },
+      });
+      const data = await response.json();
+      if (!response.ok || !data?.ok) throw new Error(data?.error || "Cancellation failed.");
+      setFullVideoJob(data.job || fullVideoJob);
+      setNotice("Cancellation accepted. AstraMind is stopping the active worker task and preserving completed artifacts.");
+    } catch (error) {
+      setNotice(`Unable to cancel: ${error.message}`);
+    }
+  };
+
   const clearStudio = () => {
     setTopic("");
     setResult(null);
@@ -645,14 +781,18 @@ if (!rawVideoUrl) {
     setRenderProgress(null);
     setNotice("");
     setVisionHealth(null);
+    setPreflight(null);
     localStorage.removeItem(LAST_VIDEO_KEY);
     localStorage.removeItem(LAST_RENDER_KEY);
+    localStorage.removeItem(LAST_JOB_KEY);
+    setCurrentJobId("");
+    setFullVideoJob(null);
   };
 
   return (
-    <div className="min-h-screen p-6 text-white bg-gradient-to-br from-[#050816] via-[#090d1f] to-[#140b2d]">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 md:p-8 shadow-[0_0_35px_rgba(99,102,241,0.18)]">
+    <div className="video-realm">
+      <div className="video-realm-shell">
+        <section className="video-realm-hero">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-purple-300 text-sm font-medium mb-4">
@@ -660,7 +800,7 @@ if (!rawVideoUrl) {
               </div>
 
               <h1 className="text-4xl font-extrabold tracking-tight mb-3">
-                Video Generation Studio
+                Cinematic Creation Realm
               </h1>
 
               <p className="text-gray-300 text-lg max-w-3xl">
@@ -734,8 +874,8 @@ if (!rawVideoUrl) {
           </div>
         </section>
 
-        <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          <div className="xl:col-span-1 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+        <section className="video-realm-grid">
+          <div className="video-mission-console">
             <h2 className="text-2xl font-bold mb-4">🧠 Video Mission</h2>
 
             <label className="block text-sm text-gray-300 mb-2">
@@ -749,6 +889,10 @@ if (!rawVideoUrl) {
               placeholder="Example: Make me a cinematic video showing AstraMind building apps, generating content, and automating business workflows..."
             />
 
+            <button type="button" onClick={loadPromotionalMission} className="video-promo-button">
+              Load AstraMind Pre-Launch Mission
+            </button>
+
             <label className="block text-sm text-gray-300 mt-4 mb-2">
               Platform
             </label>
@@ -761,6 +905,7 @@ if (!rawVideoUrl) {
               <option className="text-black">TikTok</option>
               <option className="text-black">Instagram Reels</option>
               <option className="text-black">YouTube Shorts</option>
+              <option className="text-black">YouTube</option>
               <option className="text-black">Facebook Reels</option>
               <option className="text-black">X Video</option>
             </select>
@@ -784,6 +929,7 @@ if (!rawVideoUrl) {
               onChange={(e) => setDurationTarget(Number(e.target.value))}
               className="bg-black/40 border border-cyan-500 text-white px-2 py-1 rounded"
             >
+              {![20,30,45,60,90,120,180,300].includes(Number(durationTarget))&&<option value={durationTarget}>{durationTarget} seconds (song length)</option>}
               <option value={20}>20 seconds</option>
               <option value={30}>30 seconds</option>
               <option value={45}>45 seconds</option>
@@ -934,6 +1080,14 @@ if (!rawVideoUrl) {
             <div className="mt-5 grid grid-cols-1 gap-3">
               <button
                 type="button"
+                onClick={runProviderPreflight}
+                disabled={checkingPreflight || rendering}
+                className="video-preflight-button"
+              >
+                {checkingPreflight ? "Auditing Providers..." : "Run Provider Preflight"}
+              </button>
+              <button
+                type="button"
                 onClick={generateVideoPlan}
                 disabled={loading || rendering}
                 className="w-full rounded-2xl bg-purple-600 hover:bg-purple-700 disabled:opacity-60 px-5 py-3 font-bold transition active:scale-95"
@@ -974,11 +1128,27 @@ if (!rawVideoUrl) {
                 {notice}
               </div>
             )}
+
+            {preflight && (
+              <div className={`video-preflight-panel is-${preflight.status}`}>
+                <div className="video-preflight-heading">
+                  <strong>{preflight.canRender ? "Launch gate open" : "Launch gate blocked"}</strong>
+                  <span>{preflight.estimatedCredits} credits</span>
+                </div>
+                {preflight.error ? <p className="video-preflight-error">{preflight.error}</p> : null}
+                {preflight.checks.map((item) => (
+                  <div key={item.id} className={`video-preflight-check is-${item.status}`}>
+                    <span>{item.status === "ready" ? "✓" : item.status === "blocked" ? "×" : "!"}</span>
+                    <div><strong>{item.label}</strong><small>{item.detail}</small></div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div
             ref={resultRef}
-            className="xl:col-span-2 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
+            className="video-output-vault"
           >
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
@@ -1033,6 +1203,30 @@ if (!rawVideoUrl) {
                 </div>
               )}
             </div>
+
+            {fullVideoJob && (
+              <div className="mb-5 rounded-3xl border border-cyan-400/20 bg-cyan-500/5 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300">Continuity Render Graph</p>
+                    <h3 className="mt-1 text-xl font-black text-white">Durable full-video mission</h3>
+                    <p className="mt-2 text-sm text-gray-300">Project {fullVideoJob.id} · {fullVideoJob.plan?.graph?.shots?.length || 0} provider-sized shots · {fullVideoJob.plan?.durationSeconds || durationTarget}s</p>
+                  </div>
+                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-xs font-bold uppercase text-cyan-200">{fullVideoJob.status}</span>
+                </div>
+                <p className="mt-3 text-sm text-gray-400">Stage: {fullVideoJob.stage}. Completed shots and provider task identity remain attached to this project across page reloads.</p>
+                {["failed", "degraded", "interrupted"].includes(fullVideoJob.status) && (
+                  <button type="button" onClick={resumeFullVideoJob} disabled={rendering} className="mt-4 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-black text-black disabled:opacity-50">
+                    Resume saved render
+                  </button>
+                )}
+                {["queued", "running"].includes(fullVideoJob.status) && (
+                  <button type="button" onClick={cancelFullVideoJob} className="mt-4 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm font-black text-red-200 hover:bg-red-500/20">
+                    Cancel native render
+                  </button>
+                )}
+              </div>
+            )}
 
             {videoUrl && (
               <div className="mt-8 rounded-3xl border border-cyan-500/20 bg-black/40 p-6 mb-5">
@@ -1217,4 +1411,12 @@ if (!rawVideoUrl) {
       </div>
     </div>
   );
+}
+
+function extractVideoUrl(data) {
+  return data?.videoUrl || data?.downloadUrl || data?.renderUrl || data?.url || data?.outputPath ||
+    data?.render?.videoUrl || data?.render?.downloadUrl || data?.render?.outputPath ||
+    data?.result?.videoUrl || data?.result?.outputPath || data?.result?.render?.videoUrl ||
+    data?.result?.render?.downloadUrl || data?.result?.render?.outputPath ||
+    data?.output?.videoUrl || data?.output?.outputPath || data?.finalVideoUrl || null;
 }

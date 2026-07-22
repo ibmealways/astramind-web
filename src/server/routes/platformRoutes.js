@@ -28,9 +28,9 @@ router.get("/health", async (req, res) => {
 router.get("/summary", async (req, res) => {
   try {
     const [summary, workflowsByAgent, workflowsByKey] = await Promise.all([
-      getPlatformSummary(),
-      getWorkflowCountsByAgent(),
-      getWorkflowCountsByKey(),
+      getPlatformSummary(req.user.id),
+      getWorkflowCountsByAgent(req.user.id),
+      getWorkflowCountsByKey(req.user.id),
     ]);
 
     return res.json({
@@ -52,7 +52,7 @@ router.get("/summary", async (req, res) => {
 router.get("/projects", async (req, res) => {
   try {
     const limit = Number(req.query.limit || 25);
-    const projects = await getPersistentProjects(limit);
+    const projects = await getPersistentProjects(limit, req.user.id);
 
     return res.json({
       ok: true,
@@ -71,7 +71,7 @@ router.get("/projects", async (req, res) => {
 
 router.get("/projects/:id", async (req, res) => {
   try {
-    const project = await getPersistentProjectById(req.params.id);
+    const project = await getPersistentProjectById(req.params.id, req.user.id);
 
     if (!project) {
       return res.status(404).json({
@@ -81,8 +81,8 @@ router.get("/projects/:id", async (req, res) => {
     }
 
     const [chapters, workflowRuns] = await Promise.all([
-      getProjectChapters(req.params.id),
-      getProjectWorkflowRuns(req.params.id, 50),
+      getProjectChapters(req.params.id, req.user.id),
+      getProjectWorkflowRuns(req.params.id, 50, req.user.id),
     ]);
 
     return res.json({
@@ -103,7 +103,7 @@ router.get("/projects/:id", async (req, res) => {
 
 router.get("/projects/:id/chapters", async (req, res) => {
   try {
-    const chapters = await getProjectChapters(req.params.id);
+    const chapters = await getProjectChapters(req.params.id, req.user.id);
 
     return res.json({
       ok: true,
@@ -123,7 +123,7 @@ router.get("/projects/:id/chapters", async (req, res) => {
 router.get("/projects/:id/workflows", async (req, res) => {
   try {
     const limit = Number(req.query.limit || 25);
-    const workflowRuns = await getProjectWorkflowRuns(req.params.id, limit);
+    const workflowRuns = await getProjectWorkflowRuns(req.params.id, limit, req.user.id);
 
     return res.json({
       ok: true,
@@ -143,7 +143,7 @@ router.get("/projects/:id/workflows", async (req, res) => {
 router.get("/workflows/recent", async (req, res) => {
   try {
     const limit = Number(req.query.limit || 25);
-    const workflowRuns = await getRecentWorkflowRuns(limit);
+    const workflowRuns = await getRecentWorkflowRuns(limit, req.user.id);
 
     return res.json({
       ok: true,
@@ -170,6 +170,7 @@ router.get("/workflows/filter", async (req, res) => {
       limit,
       agent,
       workflowKey,
+      userId: req.user.id,
     });
 
     return res.json({
@@ -190,7 +191,7 @@ router.get("/workflows/filter", async (req, res) => {
 router.get("/sources/recent", async (req, res) => {
   try {
     const limit = Number(req.query.limit || 25);
-    const sources = await getRecentResearchSources(limit);
+    const sources = await getRecentResearchSources(limit, req.user.id);
 
     return res.json({
       ok: true,
@@ -215,6 +216,7 @@ router.get("/sources/filter", async (req, res) => {
     const sources = await getFilteredResearchSources({
       limit,
       topic,
+      userId: req.user.id,
     });
 
     return res.json({

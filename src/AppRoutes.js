@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import ProtectedRoute from "./components/ProtectedRoute.js";
 
@@ -8,6 +8,7 @@ import Chat from "./pages/Chat.js";
 import Finance from "./pages/Finance.js";
 import ContentCreation from "./pages/ContentCreation.js";
 import ContentLab from "./pages/ContentLab.js";
+import ExperimentLab from "./pages/ExperimentLab.js";
 import ResearchWorkspace from "./pages/ResearchWorkspace.js";
 import Settings from "./pages/Settings.js";
 
@@ -29,23 +30,8 @@ import OperatorDashboard from "./pages/OperatorDashboard.js";
 
 import Login from "./pages/Login.js";
 import Signup from "./pages/Signup.js";
-
-const CONTENT_LAB_KEY = "astramind_content_lab_projects";
-
-function LatestContentLabRedirect() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(CONTENT_LAB_KEY)) || [];
-    const latestProject = Array.isArray(saved) ? saved[0] : null;
-
-    if (latestProject?.id) {
-      return <Navigate to={`/content-lab/${latestProject.id}`} replace />;
-    }
-  } catch (err) {
-    console.error("Latest Content Lab redirect failed:", err);
-  }
-
-  return <Navigate to="/content" replace />;
-}
+import Pricing from "./pages/Pricing.js";
+import BillingResult from "./pages/BillingResult.js";
 
 export default function AppRoutes() {
   return (
@@ -54,6 +40,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/pricing" element={<Pricing />} />
 
       {/* CORE */}
       <Route
@@ -140,7 +127,7 @@ export default function AppRoutes() {
         path="/content-lab"
         element={
           <ProtectedRoute>
-            <LatestContentLabRedirect />
+            <ExperimentLab />
           </ProtectedRoute>
         }
       />
@@ -149,7 +136,7 @@ export default function AppRoutes() {
         path="/content-lab/latest"
         element={
           <ProtectedRoute>
-            <LatestContentLabRedirect />
+            <ExperimentLab />
           </ProtectedRoute>
         }
       />
@@ -224,6 +211,8 @@ export default function AppRoutes() {
       />
 
       {/* SETTINGS */}
+      <Route path="/billing/success" element={<ProtectedRoute><BillingResult /></ProtectedRoute>} />
+      <Route path="/billing/cancelled" element={<ProtectedRoute><BillingResult cancelled /></ProtectedRoute>} />
       <Route
         path="/settings"
         element={

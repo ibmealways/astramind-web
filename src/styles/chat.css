@@ -205,7 +205,14 @@
     display: flex;
     flex-direction: column;
     gap: 18px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
 }
+
+.astrachat-main::-webkit-scrollbar { width: 8px; }
+.astrachat-main::-webkit-scrollbar-track { background: transparent; }
+.astrachat-main::-webkit-scrollbar-thumb { background: rgba(45, 212, 191, 0.34); border-radius: 999px; }
 
 .astrachat-header {
     border-radius: 28px;
@@ -287,8 +294,8 @@
 }
 
 .astrachat-panel {
-    flex: 1;
-    min-height: 0;
+    flex: 0 0 min(680px, 72vh);
+    min-height: 520px;
     border-radius: 28px;
     display: flex;
     flex-direction: column;
@@ -628,4 +635,281 @@
     .astrachat-clear-btn {
         flex: 1;
     }
+}
+
+.astrachat-mission-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #bae6fd;
+}
+
+.astrachat-intent-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.28);
+    color: #fde68a;
+}
+
+.astrachat-context-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid rgba(45, 212, 191, 0.26);
+    color: #99f6e4;
+}
+
+.astrachat-memory-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+    background: rgba(244, 114, 182, 0.1);
+    border: 1px solid rgba(244, 114, 182, 0.25);
+    color: #fbcfe8;
+}
+
+.astrachat-plan-pill {
+    border-radius: 999px;
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 850;
+    line-height: 1;
+    background: rgba(129, 140, 248, 0.11);
+    border: 1px solid rgba(129, 140, 248, 0.28);
+    color: #c7d2fe;
+}
+
+.astrachat-citations {
+    display: grid;
+    gap: 7px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.astrachat-citations strong {
+    color: #bae6fd;
+    font-size: 12px;
+}
+
+.astrachat-citations a {
+    color: #7dd3fc;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.astrachat-citations a:hover {
+    text-decoration: underline;
+}
+
+.astrachat-approval-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 14px;
+    padding: 12px;
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 14px;
+    background: rgba(251, 191, 36, 0.06);
+}
+
+.astrachat-approval-controls div {
+    display: grid;
+    gap: 3px;
+    margin-right: auto;
+}
+
+.astrachat-approval-controls strong { color: #fde68a; }
+.astrachat-approval-controls span { color: #cbd5e1; font-size: 11px; }
+.astrachat-approval-controls button {
+    border: 1px solid rgba(34, 197, 94, 0.28);
+    border-radius: 10px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #bbf7d0;
+    padding: 8px 11px;
+    cursor: pointer;
+}
+.astrachat-approval-controls button.reject {
+    border-color: rgba(248, 113, 113, 0.28);
+    background: rgba(248, 113, 113, 0.08);
+    color: #fca5a5;
+}
+
+.astrachat-artifact-notice {
+    margin-top: 10px;
+    border-radius: 12px;
+    background: rgba(129, 140, 248, 0.08);
+    color: #c7d2fe;
+    padding: 9px 11px;
+    font-size: 12px;
+}
+
+.astrachat-mission-panel {
+    border: 1px solid rgba(56, 189, 248, 0.16);
+    border-radius: 22px;
+    background: rgba(3, 10, 24, 0.72);
+    padding: 16px;
+}
+
+.astrachat-memory-manager {
+    border: 1px solid rgba(244, 114, 182, 0.16);
+    border-radius: 22px;
+    background: rgba(20, 7, 18, 0.56);
+    padding: 16px;
+}
+
+.astrachat-memory-policy,
+.astrachat-memory-item > div {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.astrachat-memory-policy {
+    color: #cbd5e1;
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.astrachat-memory-policy span {
+    border-radius: 999px;
+    background: rgba(244, 114, 182, 0.08);
+    padding: 6px 9px;
+}
+
+.astrachat-memory-policy button,
+.astrachat-memory-item button {
+    margin-left: auto;
+    border: 1px solid rgba(248, 113, 113, 0.28);
+    border-radius: 10px;
+    background: rgba(248, 113, 113, 0.08);
+    color: #fca5a5;
+    padding: 6px 9px;
+    cursor: pointer;
+}
+
+.astrachat-memory-list {
+    display: grid;
+    gap: 8px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.astrachat-memory-item {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 14px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.astrachat-memory-item strong {
+    color: #fbcfe8;
+    text-transform: capitalize;
+}
+
+.astrachat-memory-item time {
+    color: #64748b;
+    font-size: 10px;
+}
+
+.astrachat-memory-item p {
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 8px 0;
+    word-break: break-word;
+}
+
+.astrachat-mission-heading,
+.astrachat-mission-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.astrachat-mission-heading {
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.astrachat-mission-heading h2 {
+    margin: 2px 0 0;
+    font-size: 18px;
+}
+
+.astrachat-mission-refresh {
+    border: 1px solid rgba(56, 189, 248, 0.26);
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.08);
+    color: #bae6fd;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+.astrachat-mission-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 9px;
+}
+
+.astrachat-mission-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.025);
+    padding: 11px;
+}
+
+.astrachat-mission-summary {
+    flex-wrap: wrap;
+    font-size: 12px;
+}
+
+.astrachat-mission-summary time {
+    color: #64748b;
+    margin-left: auto;
+}
+
+.astrachat-mission-status {
+    border-radius: 999px;
+    padding: 4px 7px;
+    text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 900;
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+}
+
+.astrachat-mission-status.status-failed,
+.astrachat-mission-status.status-timed_out,
+.astrachat-mission-status.status-cancelled {
+    background: rgba(248, 113, 113, 0.12);
+    color: #fca5a5;
+}
+
+.astrachat-mission-plan {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 9px;
+}
+
+.astrachat-mission-plan span,
+.astrachat-mission-empty {
+    color: #94a3b8;
+    font-size: 11px;
 }

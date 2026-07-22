@@ -1,38 +1,42 @@
 // src/context/SubscriptionContext.js
 
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { DEFAULT_TIER, getCapsForTier, TIERS } from "../core/subscription/tierConfig.js";
-
-const STORAGE_KEY = "astramind_subscription_tier";
+import { useAuth } from "./AuthContext.js";
 
 const SubscriptionContext = createContext(null);
 
 export function SubscriptionProvider({ children }) {
+  const { token, isAuthenticated } = useAuth();
   const [tier, setTier] = useState(DEFAULT_TIER);
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const refresh = useCallback(async () => {
+    if (!isAuthenticated || !token) { setTier(DEFAULT_TIER); setSubscription(null); return; }
+    setLoading(true);
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw && Object.values(TIERS).includes(raw)) setTier(raw);
-    } catch {
-      // ignore
-    }
-  }, []);
+      const base = process.env.REACT_APP_API_URL || "http://localhost:5000";
+      const response = await fetch(`${base}/api/billing/me`, { headers:{ Authorization:`Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Subscription lookup failed.");
+      const nextTier = String(data.subscription?.planId || "free").toUpperCase();
+      setTier(Object.values(TIERS).includes(nextTier) ? nextTier : DEFAULT_TIER);
+      setSubscription(data.subscription || null);
+    } catch { setTier(DEFAULT_TIER); setSubscription(null); }
+    finally { setLoading(false); }
+  }, [isAuthenticated, token]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, tier);
-    } catch {
-      // ignore
-    }
-  }, [tier]);
+  useEffect(() => { refresh(); }, [refresh]);
 
   const caps = useMemo(() => getCapsForTier(tier), [tier]);
 
   const value = useMemo(() => {
     return {
       tier,
-      setTier,
+      subscription,
+      loading,
+      refresh,
       caps,
       hasExport: !!caps.canExport,
       hasBundles: !!caps.canExportBundles,
@@ -40,7 +44,7 @@ export function SubscriptionProvider({ children }) {
       hasBrandKit: !!caps.canUseBrandKit,
       hasConnectors: !!caps.canUseConnectors,
     };
-  }, [tier, caps]);
+  }, [tier, caps, subscription, loading, refresh]);
 
   return (
     <SubscriptionContext.Provider value={value}>

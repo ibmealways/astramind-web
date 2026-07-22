@@ -8,7 +8,6 @@ import {
 
 import {
   runAutonomousResearch,
-  buildResearchEnhancedTopic,
 } from "../../services/webSearchService.js";
 
 import {
@@ -78,6 +77,8 @@ import {
 import {
   enqueueRender,
 } from "./renderQueue.js";
+import { buildBoundedResearchContext, createMissionPreflight, evaluateMissionContinuity, filterRelevantResearch } from "../mission/MissionIntegrityEngine.js";
+import { generateAIVideoClips } from "./aiVideoGenerationBuilder.js";
 
 const ENGINE_VERSION =
   "AstraMind Pipeline Orchestrator v2 Production Hardened";
@@ -141,16 +142,8 @@ function safeArray(value) {
     : [];
 }
 
-function buildProjectId() {
-
-  if (
-    process.env.NODE_ENV !==
-    "production"
-  ) {
-    return "astramind-dev";
-  }
-
-  return crypto.randomUUID();
+function buildProjectId(requestedProjectId = null) {
+  return clean(requestedProjectId) || crypto.randomUUID();
 }
 
 function buildExecutionId() {
@@ -395,6 +388,7 @@ function buildPipelineContext({
   researchBrief = null,
   viralAngle = null,
   baseClassification = null,
+  projectId = null,
 }) {
   const classification =
     baseClassification ||
@@ -406,7 +400,7 @@ function buildPipelineContext({
 
   return {
     projectId:
-      buildProjectId(),
+      buildProjectId(projectId),
 
     executionId:
       buildExecutionId(),
@@ -1614,6 +1608,9 @@ export async function orchestrateCinematicPipeline({
   style = "cinematic",
   platform = "TikTok",
   durationTarget = 60,
+  preflightOnly = false,
+  preflightApproved = false,
+  projectId = null,
 } = {}) {
   let pipelineContext =
     null;
@@ -1655,24 +1652,18 @@ export async function orchestrateCinematicPipeline({
           platform: baseClassification.platform || input.platform,
         });
 
-      viralAngle =
-        buildViralAngleFromResearch({
-          researchBrief,
-          classification: baseClassification,
-          platform: baseClassification.platform || input.platform,
-          topic: input.topic,
-        });
+      researchBrief = filterRelevantResearch(input.topic, researchBrief);
 
-      if (researchBrief?.ok) {
+      const hasRelevantResearch = researchBrief?.ok && (researchBrief.results?.length || 0) > 0;
+      viralAngle = hasRelevantResearch
+        ? buildViralAngleFromResearch({ researchBrief, classification: baseClassification, platform: baseClassification.platform || input.platform, topic: input.topic })
+        : null;
+
+      if (hasRelevantResearch) {
         input.originalTopic = input.topic;
         input.researchBrief = researchBrief;
         input.viralAngle = viralAngle;
-        input.topic =
-          buildResearchEnhancedTopic({
-            originalTopic: input.originalTopic,
-            researchBrief,
-            viralAngle,
-          });
+        input.topic = buildBoundedResearchContext(input.originalTopic, researchBrief);
 
         console.log(
           "✅ AUTONOMOUS RESEARCH BRIEF READY",
@@ -1684,6 +1675,7 @@ export async function orchestrateCinematicPipeline({
           }
         );
       } else {
+        researchBrief = { ...(researchBrief || {}), ok: false, reason: "No mission-relevant research sources survived integrity filtering." };
         console.warn(
           "⚠️ AUTONOMOUS RESEARCH FAILED OR EMPTY:",
           researchBrief?.error || researchBrief?.reason || "Unknown research issue. Continuing with original prompt."
@@ -1710,6 +1702,7 @@ export async function orchestrateCinematicPipeline({
         viralAngle,
 
         baseClassification,
+        projectId,
       });
 
     activePipelines.set(
@@ -1765,6 +1758,32 @@ const storyboard =
 
     viralAngle,
   });
+
+const continuity = evaluateMissionContinuity(input.originalTopic || input.topic, { topic: input.topic, storyboard });
+const preflight = createMissionPreflight({ originalMission: input.originalTopic || input.topic, researchBrief, storyboard, continuity });
+
+if (!continuity.ok) {
+  return {
+    ok: false,
+    stage: "mission-integrity-blocked",
+    error: continuity.reason,
+    diagnostics: { failedStage: "mission-integrity", continuity },
+    partialArtifacts: { researchBrief, storyboard, preflight },
+  };
+}
+
+if (preflightOnly && !preflightApproved) {
+  releasePipelineLease(pipelineContext.projectId);
+  activePipelines.delete(pipelineContext.projectId);
+  return {
+    ok: true,
+    stage: "preflight-ready",
+    projectId: pipelineContext.projectId,
+    requiresApproval: true,
+    preflight,
+    partialArtifacts: { researchBrief, storyboard },
+  };
+}
 
 console.log(
   "🎬 STORYBOARD GENERATED",
@@ -1937,7 +1956,7 @@ if (
 
 }
 
-      const sceneAssets =
+const sceneAssets =
   await generateSceneVisuals({
     projectId:
       pipelineContext.projectId,
@@ -1962,13 +1981,36 @@ if (
       input.platform,
   });
 
+const generatedMotion = await generateAIVideoClips({
+  scenes: timeline?.scenes || storyboard?.scenes || [],
+  visuals: sceneAssets,
+  storyboard,
+  directorPlan: motion,
+  topic: input.topic,
+  platform: input.platform,
+  style: input.style,
+  projectId: pipelineContext.projectId,
+  provider: input.videoProvider || input.options?.provider || process.env.AI_VIDEO_PROVIDER || "astramind-native",
+  allowFallback: true,
+  signal: input.signal,
+  onTaskCreated: input.onNativeTaskCreated,
+});
+
+const finalSceneAssets = generatedMotion.clips.map((clip, index) => ({
+  ...sceneAssets[index],
+  ...clip,
+  imagePath: sceneAssets[index]?.imagePath || sceneAssets[index]?.outputPath || null,
+  outputPath: clip.outputPath,
+  videoPath: clip.outputPath,
+}));
+
   console.log(
   "🎨 Scene Asset Count:",
   sceneAssets?.length || 0
 );
 
 pipelineContext.sceneAssets =
-  sceneAssets;
+  finalSceneAssets;
 
       console.log(
   "🎥 SCENE ASSET DIAGNOSTICS",
@@ -1983,7 +2025,7 @@ pipelineContext.sceneAssets =
       captions?.captions?.length,
 
     sceneAssets:
-      sceneAssets?.length || 0
+      finalSceneAssets?.length || 0
   }
 );
 
@@ -1995,7 +2037,7 @@ pipelineContext.sceneAssets =
     voiceover,
     subtitles,
     transitions,
-    sceneAssets,
+    sceneAssets: finalSceneAssets,
     pipelineContext,
     input,
   });
@@ -2078,6 +2120,7 @@ pipelineContext.sceneAssets =
         subtitles,
         transitionPlan,
         transitions,
+        generatedMotion,
         render,
         queueRegistration,
       },

@@ -49,7 +49,9 @@ function detectNarrativeMode(text = "") {
 }
 
 function detectResearchIntent({ topic = "", style = "", platform = "" } = {}) {
-  const text = lower(`${topic} ${style} ${platform}`);
+  // Defaults such as style="viral" and platform="TikTok" describe the output,
+  // not the user's evidence needs. Only the mission text can require research.
+  const text = lower(topic);
   const requestedPlatform = detectPlatform(text, platform || "TikTok");
 
   const asksForVideo =

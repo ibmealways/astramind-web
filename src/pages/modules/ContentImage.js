@@ -1,18 +1,17 @@
-// src/pages/modules/ContentImage.js
-import React, { useEffect } from "react";
-import { useOSMode } from "../../context/ModeContext.js";
-import { OS_MODES } from "../../core/os/modes.js";
+import React,{useEffect,useState} from "react";
+import {useOSMode} from "../../context/ModeContext.js";
+import {OS_MODES} from "../../core/os/modes.js";
+import {apiFetch,getApiUrl} from "../../services/apiClient.js";
+import "../../styles/creative-realm.css";
 
-export default function ContentImage() {
-  const { setMode } = useOSMode();
-  useEffect(() => setMode(OS_MODES.CONTENT), [setMode]);
-
-  return (
-    <div className="os-panel os-page-enter os-breathe w-full h-full p-6 text-white">
-      <div className="max-w-5xl mx-auto bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-        <h1 className="text-3xl font-extrabold text-purple-200 mb-2">🖼️ Image Editor</h1>
-        <p className="text-sm text-gray-300">Active placeholder — wire upload/editor next.</p>
-      </div>
-    </div>
-  );
+export default function ContentImage(){
+  const {setMode}=useOSMode();const [prompt,setPrompt]=useState("");const [canvas,setCanvas]=useState("16:9 Cinematic");const [reality,setReality]=useState("Interdimensional");const [result,setResult]=useState(null);const [loading,setLoading]=useState(false);const [error,setError]=useState("");
+  useEffect(()=>setMode(OS_MODES.CONTENT),[setMode]);
+  const generate=async()=>{setLoading(true);setError("");try{const data=await apiFetch("/api/ai-image/scene-visuals",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:prompt,platform:"Creator Studio",style:`${reality}, ${canvas}`,scenes:[{id:"image-studio-1",title:prompt,visual:prompt,caption:prompt}]})});setResult(data.visuals?.[0]||null);}catch(reason){setError(reason.message);}finally{setLoading(false);}};
+  const imageUrl=result?.publicUrl||result?.imageUrl||"";const resolved=imageUrl.startsWith("http")?imageUrl:`${getApiUrl()}${imageUrl}`;
+  return <main className="creative-realm realm-image"><Atmosphere/><section className="creative-shell"><header className="creative-header"><div><small>CREATOR STUDIO · VISUAL DIMENSION</small><h1><span>◈</span> Image Studio</h1><p>Translate imagination into campaign visuals, cinematic worlds, characters, products, and presentation art.</p></div><div className="creative-signal"><i/> VISION ENGINE READY</div></header><div className="creative-workspace">
+    <section className="creative-console"><div className="console-label">VISUAL TRANSMISSION</div><label>Describe the world you want to reveal</label><textarea value={prompt} onChange={(e)=>setPrompt(e.target.value)} placeholder="Subject, environment, light, atmosphere, lens, composition..."/><div className="creative-control-grid"><label>Canvas<select value={canvas} onChange={(e)=>setCanvas(e.target.value)}><option>16:9 Cinematic</option><option>1:1 Square</option><option>9:16 Portrait</option><option>4:5 Campaign</option></select></label><label>Reality mode<select value={reality} onChange={(e)=>setReality(e.target.value)}><option>Interdimensional</option><option>Photoreal</option><option>Editorial</option><option>Illustrated</option></select></label></div><button onClick={generate} disabled={!prompt.trim()||loading}>{loading?"Opening portal...":"Open the vision portal"} <span>→</span></button>{error&&<p role="alert">{error}</p>}</section>
+    <section className="creative-canvas image-canvas">{result?<><small>GENERATED REALM</small>{imageUrl&&<img style={{maxWidth:"100%",maxHeight:430,borderRadius:22}} src={resolved} alt={result.prompt||prompt}/>}<p>{result.prompt||prompt}</p></>:<><div className="image-prism"><i/><i/><i/></div><small>UNRENDERED REALM</small><h2>Your visual universe awaits.</h2><p>Generated variations and approved assets will materialize here.</p><div className="dimension-steps"><article><b>01</b><span>Generate</span></article><article><b>02</b><span>Transform</span></article><article><b>03</b><span>Handoff</span></article></div></>}</section>
+  </div></section></main>;
 }
+function Atmosphere(){return <><div className="creative-aurora"/><div className="creative-grid"/><div className="creative-stars"/></>;}

@@ -38,6 +38,11 @@
     "dev": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:kernel": "node --test --test-isolation=none tests/kernel.test.js",
+    "dev:grant-plan": "node scripts/grant-development-plan.js",
+    "native:worker:start": "powershell -ExecutionPolicy Bypass -File scripts/start-native-video-worker.ps1",
+    "native:worker:check": "powershell -ExecutionPolicy Bypass -File scripts/check-native-video-worker.ps1",
+    "verify": "npm run test:kernel && npm run build",
     "eject": "react-scripts eject"
   },
   "browserslist": {

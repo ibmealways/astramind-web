@@ -1,7 +1,19 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { loadProjects, saveProjects } from "../core/content/contentProjectStore.js";
 
 const ProjectContext = createContext(null);
+
+function persistProjects(nextProjects) {
+  try {
+    saveProjects(nextProjects);
+    localStorage.setItem(
+      "astramind_content_lab_projects",
+      JSON.stringify(nextProjects)
+    );
+  } catch (err) {
+    console.error("Failed to save projects:", err);
+  }
+}
 
 export function ProjectProvider({ children }) {
   const [projects, setProjects] = useState(() => {
@@ -14,19 +26,7 @@ export function ProjectProvider({ children }) {
     }
   });
 
-  const persistProjects = (nextProjects) => {
-    try {
-      saveProjects(nextProjects);
-      localStorage.setItem(
-        "astramind_content_lab_projects",
-        JSON.stringify(nextProjects)
-      );
-    } catch (err) {
-      console.error("Failed to save projects:", err);
-    }
-  };
-
-  const addProject = (project) => {
+  const addProject = useCallback((project) => {
     setProjects((prev) => {
       const cleanPrev = Array.isArray(prev) ? prev : [];
       const withoutDuplicate = cleanPrev.filter((p) => p.id !== project.id);
@@ -36,9 +36,9 @@ export function ProjectProvider({ children }) {
 
       return nextProjects;
     });
-  };
+  }, []);
 
-  const updateProject = (updated) => {
+  const updateProject = useCallback((updated) => {
     setProjects((prev) => {
       const cleanPrev = Array.isArray(prev) ? prev : [];
       const nextProjects = cleanPrev.map((p) =>
@@ -49,9 +49,9 @@ export function ProjectProvider({ children }) {
 
       return nextProjects;
     });
-  };
+  }, []);
 
-  const removeProject = (projectId) => {
+  const removeProject = useCallback((projectId) => {
     setProjects((prev) => {
       const cleanPrev = Array.isArray(prev) ? prev : [];
       const nextProjects = cleanPrev.filter((p) => p.id !== projectId);
@@ -60,12 +60,12 @@ export function ProjectProvider({ children }) {
 
       return nextProjects;
     });
-  };
+  }, []);
 
-  const clearProjects = () => {
+  const clearProjects = useCallback(() => {
     setProjects([]);
     persistProjects([]);
-  };
+  }, []);
 
   const value = useMemo(
     () => ({
@@ -75,7 +75,7 @@ export function ProjectProvider({ children }) {
       removeProject,
       clearProjects,
     }),
-    [projects]
+    [addProject, clearProjects, projects, removeProject, updateProject]
   );
 
   return (

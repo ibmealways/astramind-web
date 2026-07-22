@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import apiFetch from "../services/apiClient.js";
 import "./ResearchEngine.css";
 
 export default function ResearchEngine() {
@@ -21,24 +22,21 @@ export default function ResearchEngine() {
     setSources([]);
 
     try {
-      const response = await fetch("http://localhost:5000/api/research", {
+      const data = await apiFetch("/api/agent-workflow/research-summary", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          query,
-          mode,
+          input: `${query}\n\nResearch mode: ${mode}`,
         }),
       });
 
-      const data = await response.json();
-
-      if (!data.success) {
+      if (!data.ok) {
         throw new Error(data.error || "Research request failed.");
       }
 
-      setSummary(data.summary || "");
+      setSummary(data.reply || "");
       setSources(data.sources || []);
     } catch (err) {
       setError(err.message || "Something went wrong while researching.");

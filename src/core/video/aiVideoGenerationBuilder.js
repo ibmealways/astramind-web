@@ -7,6 +7,7 @@ import ffmpegPath from "ffmpeg-static";
 import dotenv from "dotenv";
 import RunwayML, { TaskFailedError } from "@runwayml/sdk";
 import mime from "mime";
+import { generateNativeVideoClip, getNativeVideoHealth } from "./AstraMindNativeVideoProvider.js";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ const GOOGLE_API_KEY =
 const AI_VIDEO_PROVIDER =
   process.env.AI_VIDEO_PROVIDER ||
   process.env.ASTRAMIND_VIDEO_PROVIDER ||
-  "fallback-motion";
+  "astramind-native";
 
 const RUNWAY_MODEL =
   process.env.RUNWAY_MODEL ||
@@ -134,6 +135,12 @@ function getRunwayRatio(platform = "TikTok") {
   }
 
   return "1280:720";
+}
+
+function getNativeDimensions(platform = "TikTok") {
+  return getRunwayRatio(platform) === "720:1280"
+    ? { width: 720, height: 1280 }
+    : { width: 1280, height: 720 };
 }
 
 function normalizeProvider(provider = "") {
@@ -398,8 +405,39 @@ async function tryProvider({
   storyboard,
   directorPlan,
   outputPath,
+  signal,
+  onTaskCreated,
 }) {
   const finalProvider = normalizeProvider(provider);
+
+  if (["astramind-native", "native", "ltx", "wan"].includes(finalProvider)) {
+    const prompt = buildRunwayPrompt({ scene, topic, platform, style, storyboard, directorPlan });
+    const dimensions = getNativeDimensions(platform);
+    const nativeResult = await generateNativeVideoClip({
+      prompt,
+      imagePath: getVisualPath(visual),
+      outputPath,
+      duration: scene.duration,
+      ...dimensions,
+      continuity: {
+        sceneId: scene.id,
+        note: scene.continuityNote || directorPlan?.character?.mainCharacter || storyboard?.characterBible || "",
+        camera: scene.cameraNote || directorPlan?.visual?.camera || "",
+        style,
+      },
+      settings: finalProvider === "ltx" || finalProvider === "wan" ? { backend: finalProvider } : {},
+      signal,
+      onTaskCreated,
+    });
+    return {
+      provider: "astramind-native",
+      model: nativeResult.model,
+      prompt,
+      outputPath: nativeResult.outputPath,
+      taskId: nativeResult.taskId,
+      raw: nativeResult.raw,
+    };
+  }
 
   if (finalProvider === "runway") {
     const prompt = buildRunwayPrompt({
@@ -461,12 +499,11 @@ async function tryProvider({
 }
 
 function getAutoProviderOrder() {
-  const order = [];
-
-  if (GOOGLE_API_KEY) order.push("veo");
-  if (RUNWAY_API_KEY) order.push("runway");
-
-  if (!order.length) order.push("fallback-motion");
+  const order = ["astramind-native"];
+  const externalEnabled = process.env.ASTRAMIND_ALLOW_PAID_VIDEO_PROVIDERS === "true";
+  if (externalEnabled && GOOGLE_API_KEY) order.push("veo");
+  if (externalEnabled && RUNWAY_API_KEY) order.push("runway");
+  order.push("fallback-motion");
 
   return order;
 }
@@ -483,6 +520,8 @@ export async function generateAIVideoClip({
   index = 0,
   provider = AI_VIDEO_PROVIDER,
   allowFallback = true,
+  signal,
+  onTaskCreated,
 } = {}) {
   ensureDir(OUTPUT_DIR);
   ensureDir(AI_VIDEO_DIR);
@@ -521,6 +560,8 @@ export async function generateAIVideoClip({
         storyboard,
         directorPlan,
         outputPath,
+        signal,
+        onTaskCreated,
       });
 
       return {
@@ -537,6 +578,7 @@ export async function generateAIVideoClip({
         liveAction: true,
         fallbackUsed: false,
         remoteUrl: result.remoteUrl,
+        taskId: result.taskId || null,
         providerAttempts,
       };
     } catch (error) {
@@ -549,6 +591,7 @@ export async function generateAIVideoClip({
         `⚠️ AI live-action provider failed for scene ${index + 1} (${providerName}):`,
         error.message
       );
+      if (signal?.aborted) throw signal.reason || error;
     }
   }
 
@@ -611,6 +654,8 @@ export async function generateAIVideoClips({
   projectId = `ai_video_${Date.now()}`,
   provider = AI_VIDEO_PROVIDER,
   allowFallback = true,
+  signal,
+  onTaskCreated,
 } = {}) {
   const finalScenes =
     Array.isArray(scenes) && scenes.length
@@ -638,6 +683,8 @@ export async function generateAIVideoClips({
       index,
       provider,
       allowFallback,
+      signal,
+      onTaskCreated: onTaskCreated ? (taskId) => onTaskCreated(taskId, index) : undefined,
     });
 
     clips.push(clip);
@@ -645,7 +692,7 @@ export async function generateAIVideoClips({
 
   return {
     ok: true,
-    engine: "AstraMind AI Video Generation Builder v4 Director + Auto Provider Ready",
+    engine: "AstraMind AI Video Generation Builder v5 Native First",
     provider,
     providerOrder: provider === "auto" ? getAutoProviderOrder() : [provider],
     runwayModel: RUNWAY_MODEL,
@@ -663,10 +710,11 @@ export async function generateAIVideoClips({
   };
 }
 
-export function getAIVideoGenerationHealth() {
+export async function getAIVideoGenerationHealth() {
+  const native = await getNativeVideoHealth();
   return {
     ok: true,
-    engine: "AstraMind AI Video Generation Builder v4 Director + Auto Provider Ready",
+    engine: "AstraMind AI Video Generation Builder v5 Native First",
     provider: AI_VIDEO_PROVIDER,
     providerOrder: AI_VIDEO_PROVIDER === "auto" ? getAutoProviderOrder() : [AI_VIDEO_PROVIDER],
     runwayModel: RUNWAY_MODEL,
@@ -675,9 +723,19 @@ export function getAIVideoGenerationHealth() {
     googleKeyLoaded: Boolean(GOOGLE_API_KEY),
     providers: {
       auto: {
-        configured: Boolean(RUNWAY_API_KEY || GOOGLE_API_KEY),
+        configured: native.ready || Boolean(RUNWAY_API_KEY || GOOGLE_API_KEY),
         enabled: AI_VIDEO_PROVIDER === "auto",
         order: getAutoProviderOrder(),
+      },
+      astramindNative: {
+        configured: Boolean(native.ready),
+        enabled: ["astramind-native", "native", "ltx", "wan", "auto"].includes(AI_VIDEO_PROVIDER),
+        backend: native.backend,
+        model: native.model,
+        endpoint: native.endpoint,
+        status: native.ready ? "ready" : "worker-unavailable",
+        error: native.error || null,
+        supportedModes: ["text-to-video", "image-to-video"],
       },
       runway: {
         configured: Boolean(RUNWAY_API_KEY),

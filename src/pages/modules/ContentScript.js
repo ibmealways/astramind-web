@@ -1,18 +1,15 @@
-// src/pages/modules/ContentScript.js
-import React, { useEffect } from "react";
-import { useOSMode } from "../../context/ModeContext.js";
-import { OS_MODES } from "../../core/os/modes.js";
+import React,{useEffect,useState} from "react";
+import {useOSMode} from "../../context/ModeContext.js";
+import {OS_MODES} from "../../core/os/modes.js";
+import {apiFetch} from "../../services/apiClient.js";
+import "../../styles/creative-realm.css";
 
-export default function ContentScript() {
-  const { setMode } = useOSMode();
-  useEffect(() => setMode(OS_MODES.CONTENT), [setMode]);
-
-  return (
-    <div className="os-panel os-page-enter os-breathe w-full h-full p-6 text-white">
-      <div className="max-w-5xl mx-auto bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl">
-        <h1 className="text-3xl font-extrabold text-purple-200 mb-2">📝 Script Generator</h1>
-        <p className="text-sm text-gray-300">Active placeholder — wire prompt templates next.</p>
-      </div>
-    </div>
-  );
+export default function ContentScript(){
+  const {setMode}=useOSMode();const [format,setFormat]=useState("Cinematic video");const [tone,setTone]=useState("Visionary");const [brief,setBrief]=useState("");const [script,setScript]=useState("");const [loading,setLoading]=useState(false);const [error,setError]=useState("");useEffect(()=>setMode(OS_MODES.CONTENT),[setMode]);
+  const generate=async()=>{setLoading(true);setError("");try{const data=await apiFetch("/api/content/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"script",topic:brief,audience:"General audience",goal:`Create a ${format} script`,tone,platform:format})});setScript(data.result||"");}catch(reason){setError(reason.message);}finally{setLoading(false);}};
+  return <main className="creative-realm realm-script"><Atmosphere/><section className="creative-shell"><header className="creative-header"><div><small>CREATOR STUDIO · NARRATIVE DIMENSION</small><h1><span>✍</span> Script Writer</h1><p>Turn an idea into hooks, beats, scenes, dialogue, and emotional momentum.</p></div><div className="creative-signal"><i/> NARRATIVE ENGINE READY</div></header><div className="creative-workspace">
+    <section className="creative-console"><div className="console-label">SCRIPT TRANSMISSION</div><label>What should this story make the audience feel?</label><textarea value={brief} onChange={(e)=>setBrief(e.target.value)} placeholder="Describe the concept, audience, objective, and essential message..."/><div className="creative-control-grid"><label>Format<select value={format} onChange={(e)=>setFormat(e.target.value)}><option>Cinematic video</option><option>Presentation</option><option>Podcast</option><option>Advertisement</option><option>Short-form social</option></select></label><label>Tone<select value={tone} onChange={(e)=>setTone(e.target.value)}><option>Visionary</option><option>Emotional</option><option>Bold</option><option>Educational</option></select></label></div><button onClick={generate} disabled={!brief.trim()||loading}>{loading?"Awakening...":"Awaken the narrative"} <span>→</span></button>{error&&<p role="alert">{error}</p>}</section>
+    <section className="creative-canvas">{script?<><small>STORY TRANSMISSION COMPLETE</small><h2>Your narrative has materialized.</h2><pre style={{whiteSpace:"pre-wrap",textAlign:"left",maxHeight:500,overflow:"auto"}}>{script}</pre></>:<><div className="canvas-orb">✦</div><small>STORYSPACE</small><h2>Your narrative will materialize here.</h2><p>AstraMind will map the hook, dramatic spine, scene progression, voice direction, and production handoff.</p><div className="dimension-steps"><article><b>01</b><span>Hook field</span></article><article><b>02</b><span>Scene constellation</span></article><article><b>03</b><span>Version timeline</span></article></div></>}</section>
+  </div></section></main>;
 }
+function Atmosphere(){return <><div className="creative-aurora"/><div className="creative-grid"/><div className="creative-stars"/></>;}

@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter, useLocation } from "react-router-dom";
 
 import AppRoutes from "./AppRoutes.js";
 
@@ -23,6 +23,15 @@ import VoiceListener from "./components/VoiceListener.js";
 import "./styles/index.css";
 import "./styles/App.css";
 
+function RouteScrollReset() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    document.querySelector(".main-scroll-area")?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter
@@ -38,6 +47,7 @@ export default function App() {
               <SchedulerProvider>
                 <PluginProvider>
                   <ModeSync />
+                  <RouteScrollReset />
                   <CommandPalette />
                   <FloatingChappy />
                   <VoiceListener />

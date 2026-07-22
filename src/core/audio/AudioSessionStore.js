@@ -1,0 +1,7 @@
+export default class AudioSessionStore {
+  constructor({ db } = {}) { if (!db) throw new Error("AudioSessionStore requires a database connection."); this.db = db; this.db.prepare(`CREATE TABLE IF NOT EXISTS audio_sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, title TEXT NOT NULL, session_json TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)`).run(); this.db.prepare("CREATE INDEX IF NOT EXISTS idx_audio_sessions_user ON audio_sessions(user_id, updated_at DESC)").run(); }
+  save(session, userId) { this.db.prepare(`INSERT INTO audio_sessions (id,user_id,title,session_json,created_at,updated_at) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET title=excluded.title,session_json=excluded.session_json,updated_at=excluded.updated_at`).run(session.id,userId,session.title,JSON.stringify(session),session.createdAt,session.updatedAt); return session; }
+  get(id,userId) { const row=this.db.prepare("SELECT session_json FROM audio_sessions WHERE id=? AND user_id=?").get(id,userId); return row?JSON.parse(row.session_json):null; }
+  list(userId,limit=30) { return this.db.prepare("SELECT session_json FROM audio_sessions WHERE user_id=? ORDER BY updated_at DESC LIMIT ?").all(userId,Math.min(Math.max(Number(limit)||30,1),100)).map((row)=>JSON.parse(row.session_json)); }
+  delete(id,userId) { return this.db.prepare("DELETE FROM audio_sessions WHERE id=? AND user_id=?").run(id,userId).changes>0; }
+}
