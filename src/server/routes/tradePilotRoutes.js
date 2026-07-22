@@ -9,27 +9,24 @@ import {
 import { generateWealthRoute } from "../../services/wealthRouteEngine.js";
 import { generateMarketMentorReply } from "../../services/marketMentorEngine.js";
 import { getIntradayCandles } from "../../services/marketDataService.js";
+import { getCryptoSnapshot, getIpoCalendar, getMarketSnapshot } from "../../services/marketIntelligenceService.js";
+import requireAuth from "../middleware/requireAuth.js";
+import { subscriptionStore } from "../../services/subscriptionService.js";
 
 const router = express.Router();
+router.use(requireAuth);
 
 /* ===============================
    SUBSCRIPTION GUARD
 =============================== */
 function requireFinancePro(req, res, next) {
-  const subscriptionTier =
-    req.headers["x-subscription-tier"] ||
-    req.body?.subscriptionTier ||
-    req.query?.subscriptionTier ||
-    "free";
-
-  const allowed = ["finance_pro", "premium", "admin"];
-
-  if (!allowed.includes(String(subscriptionTier).toLowerCase())) {
+  const subscription = subscriptionStore.ensure(req.user.id);
+  if (!["pro", "elite"].includes(subscription.planId)) {
     return res.status(403).json({
       success: false,
       upgradeRequired: true,
-      requiredTier: "finance_pro",
-      message: "Upgrade to AstraMind Finance Pro to unlock this feature.",
+      requiredTier: "pro",
+      message: "Upgrade to AstraMind Pro or Elite to unlock live market intelligence.",
     });
   }
 
@@ -191,6 +188,17 @@ router.get("/market-data/:ticker", requireFinancePro, async (req, res) => {
       error: error.message,
     });
   }
+});
+
+router.get("/market-snapshot", requireFinancePro, async (req, res) => {
+  const symbols = String(req.query.symbols || "").split(",").filter(Boolean);
+  const [market, crypto] = await Promise.all([getMarketSnapshot(symbols.length ? symbols : undefined), getCryptoSnapshot()]);
+  res.json({ success: true, ...market, crypto });
+});
+
+router.get("/ipo-calendar", requireFinancePro, async (_req, res) => {
+  const result = await getIpoCalendar();
+  res.json({ success: true, ...result });
 });
 
 export default router;

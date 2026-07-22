@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/chat.css";
+import { persistContentLabExperiment } from "../services/contentLabExperimentService.js";
 
 import { useOSMode } from "../context/ModeContext.js";
 import { APP_MODES } from "../config/modeConfig.js";
@@ -12,10 +13,12 @@ import {
 } from "../core/adaptive/adaptiveEngine.js";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const authenticatedHeaders = (extra={}) => ({...extra,Authorization:`Bearer ${localStorage.getItem("astramind_token")||""}`});
 
 const HANDOFF_KEY = "astramind_handoff";
 const CHAT_STORE_KEY = "astramind_saved_chats";
 const ACTIVE_CHAT_KEY = "astramind_active_chat_id";
+const MEMORY_USER_KEY = "astramind_memory_user_id";
 
 const DEFAULT_MESSAGE = {
   role: "assistant",
@@ -30,10 +33,15 @@ const WORKSPACE_MAP = {
     description: "This request is best continued in the Book Writer workspace.",
   },
   content: {
-    label: "Content Creator",
+    label: "Creator Studio",
     path: "/content",
     description:
-      "This request is best continued in the Content Creation workspace.",
+      "This request is best continued in Creator Studio.",
+  },
+  experiment: {
+    label: "Content Lab",
+    path: "/content-lab",
+    description: "Continue this governed product experiment in Content Lab.",
   },
   research: {
     label: "Research Workspace",
@@ -72,6 +80,14 @@ function saveChats(chats) {
   localStorage.setItem(CHAT_STORE_KEY, JSON.stringify(chats));
 }
 
+function getMemoryUserId() {
+  const existing = localStorage.getItem(MEMORY_USER_KEY);
+  if (existing) return existing;
+  const id = globalThis.crypto?.randomUUID?.() || `anonymous_${Date.now()}`;
+  localStorage.setItem(MEMORY_USER_KEY, id);
+  return id;
+}
+
 function makeChatTitle(text = "") {
   const clean = String(text).replace(/\s+/g, " ").trim();
   if (!clean) return "New Chat";
@@ -81,15 +97,34 @@ function makeChatTitle(text = "") {
 function normalizeAssistantReply(data) {
   if (typeof data === "string") return data;
 
-  return (
+  const reply = (
     data?.reply ||
     data?.script ||
     data?.content ||
     data?.analysis ||
     data?.result ||
-    data?.message ||
-    "⚠️ No response generated."
+    data?.message
   );
+  if (reply) return reply;
+  if (data?.suggestedNextStep?.path) {
+    return data.suggestedNextStep.reason || "Your request is ready to continue in the suggested AstraMind workspace.";
+  }
+  return "AstraMind completed the request but did not receive displayable output. Check Mission Control for execution details.";
+}
+
+function compactHistoryForApi(history = []) {
+  return history
+    .filter((message) => ["user", "assistant", "system"].includes(message?.role))
+    .slice(-12)
+    .map((message) => ({
+      role: message.role,
+      content: String(message.content || "").replace(/\s+/g, " ").trim().slice(0, 6000),
+    }))
+    .filter(({ content }) => content);
+}
+
+function normalizeWorkspaceLabel(label, fallback = "Workspace") {
+  return String(label || fallback).replace(/^open\s+/i, "").trim() || fallback;
 }
 
 function resolveWorkspaceFromRoute(data) {
@@ -98,6 +133,10 @@ function resolveWorkspaceFromRoute(data) {
 
   if (route.includes("book") || path.includes("/content/book")) {
     return WORKSPACE_MAP.book;
+  }
+
+  if (route.includes("content lab") || path.includes("/content-lab")) {
+    return WORKSPACE_MAP.experiment;
   }
 
   if (
@@ -132,6 +171,10 @@ function buildHandoffPayload({ userPrompt, assistantReply, data, workspace }) {
       data?.financeMode || data?.suggestedNextStep?.targetSection || null,
     targetSection:
       data?.suggestedNextStep?.targetSection || data?.financeMode || null,
+    research: data?.research || null,
+    citations: data?.citations || [],
+    artifact: data?.artifact || null,
+    contentLabExperiment: data?.contentLabExperiment || null,
     createdAt: new Date().toISOString(),
   };
 }
@@ -165,6 +208,10 @@ export default function Chat() {
   const navigate = useNavigate();
   const { setMode } = useOSMode();
   const creator = useMemo(() => loadCreatorMemory?.() || null, []);
+  const memoryUserId = useMemo(
+    () => creator?.userId || creator?.id || getMemoryUserId(),
+    [creator]
+  );
   const listRef = useRef(null);
 
   const [status, setStatus] = useState("CONNECTED");
@@ -173,6 +220,12 @@ export default function Chat() {
   const [stickToBottom, setStickToBottom] = useState(true);
   const [selectedOutputMode, setSelectedOutputMode] = useState("AUTO");
   const [notice, setNotice] = useState("");
+  const [missionHistory, setMissionHistory] = useState([]);
+  const [missionHistoryLoading, setMissionHistoryLoading] = useState(false);
+  const [memoryManagerOpen, setMemoryManagerOpen] = useState(false);
+  const [memories, setMemories] = useState([]);
+  const [memoryLoading, setMemoryLoading] = useState(false);
+  const [memoryRetentionDays, setMemoryRetentionDays] = useState(90);
 
   const [chats, setChats] = useState(() => {
     const saved = loadSavedChats();
@@ -200,7 +253,107 @@ export default function Chat() {
     return chats.find((chat) => chat.id === activeChatId) || chats[0] || null;
   }, [chats, activeChatId]);
 
-  const messages = activeChat?.messages || [DEFAULT_MESSAGE];
+  const messages = useMemo(
+    () => activeChat?.messages || [DEFAULT_MESSAGE],
+    [activeChat]
+  );
+
+  const refreshMissionHistory = useCallback(async () => {
+    setMissionHistoryLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/chat/missions?limit=6`,{headers:authenticatedHeaders()});
+      if (!response.ok) return;
+      const data = await response.json();
+      setMissionHistory(Array.isArray(data?.missions) ? data.missions : []);
+    } catch {
+      // Chat remains usable when mission history is temporarily unavailable.
+    } finally {
+      setMissionHistoryLoading(false);
+    }
+  }, []);
+
+  const refreshMemories = useCallback(async () => {
+    setMemoryLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/chat/memory?limit=30`, {
+        headers: authenticatedHeaders({ "x-memory-user-id": memoryUserId }),
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      setMemories(Array.isArray(data?.memories) ? data.memories : []);
+      setMemoryRetentionDays(data?.retentionDays || 90);
+    } finally {
+      setMemoryLoading(false);
+    }
+  }, [memoryUserId]);
+
+  const deleteMemory = async (memoryId) => {
+    await fetch(`${API_URL}/api/chat/memory/${memoryId}`, {
+      method: "DELETE",
+      headers: authenticatedHeaders({ "x-memory-user-id": memoryUserId }),
+    });
+    await refreshMemories();
+  };
+
+  const clearMemories = async () => {
+    if (!window.confirm("Delete all persistent conversation memories?")) return;
+    await fetch(`${API_URL}/api/chat/memory`, {
+      method: "DELETE",
+      headers: authenticatedHeaders({ "x-memory-user-id": memoryUserId }),
+    });
+    await refreshMemories();
+  };
+
+  const decideMission = async (approvalId, decision) => {
+    setThinking(true);
+    setStatus(decision === "approve" ? "EXECUTING" : "CONNECTED");
+    try {
+      const response = await fetch(`${API_URL}/api/chat/approvals/${approvalId}/${decision}`, {
+        method: "POST",
+        headers: authenticatedHeaders({ "Content-Type": "application/json", "x-memory-user-id": memoryUserId }),
+        body: JSON.stringify({ reason: decision === "reject" ? "Rejected by user" : undefined }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "Mission decision failed.");
+      if (data?.contentLabExperiment) persistContentLabExperiment(data.contentLabExperiment);
+      const content = decision === "reject" ? "Mission rejected. No research actions were executed." : normalizeAssistantReply(data);
+      const workspace = decision === "approve" ? resolveWorkspaceFromRoute(data) : null;
+      const approvalMessageIndex = messages.findIndex((message) => message.meta?.approval?.id === approvalId);
+      const userPrompt = [...messages.slice(0, approvalMessageIndex)].reverse().find((message) => message.role === "user")?.content || data?.research?.query || "";
+      const handoffPayload = workspace ? buildHandoffPayload({ userPrompt, assistantReply: content, data, workspace }) : null;
+      updateActiveChatMessages((prev) => [...prev.map((message) =>
+        message.meta?.approval?.id === approvalId
+          ? { ...message, meta: { ...message.meta, awaitingApproval: false, approvalDecision: decision } }
+          : message
+      ), {
+        role: "assistant",
+        content,
+        meta: {
+          source: decision === "reject" ? "MISSION CONTROL" : data?.route || "ASTRAMIND",
+          missionId: data?.missionId,
+          executionId: data?.executionId,
+          planning: data?.planning,
+          citations: data?.citations,
+          research: data?.research,
+          artifact: data?.artifact,
+          workspace,
+          handoffPayload,
+          approvalDecision: decision,
+        },
+      }]);
+      await refreshMissionHistory();
+      setStatus(data?.awaitingApproval ? "AWAITING_APPROVAL" : "CONNECTED");
+    } catch (error) {
+      setNotice(`Mission Control: ${error.message}`);
+      setStatus("ERROR");
+    } finally {
+      setThinking(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshMissionHistory();
+  }, [refreshMissionHistory]);
 
   useEffect(() => {
     setMode(APP_MODES.EXECUTION);
@@ -331,12 +484,12 @@ export default function Chat() {
 
       const res = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authenticatedHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           message: text,
-          history: nextHistory.slice(-20),
+          conversationId: activeChat.id,
+          userId: memoryUserId,
+          history: compactHistoryForApi(nextHistory),
           mode: "CHAT",
           outputMode: selectedOutputMode,
           creator,
@@ -356,10 +509,10 @@ export default function Chat() {
 
       const suggestedWorkspace = data?.suggestedNextStep
         ? {
-            label:
-              data.suggestedNextStep.label ||
-              resolveWorkspaceFromRoute(data)?.label ||
-              "Workspace",
+            label: normalizeWorkspaceLabel(
+              data.suggestedNextStep.label,
+              resolveWorkspaceFromRoute(data)?.label || "Workspace"
+            ),
             path:
               data.suggestedNextStep.path ||
               resolveWorkspaceFromRoute(data)?.path ||
@@ -389,12 +542,24 @@ export default function Chat() {
           source: data?.route || "ASTRAMIND",
           route: data?.route,
           outputMode: data?.outputMode,
+          missionId: data?.missionId,
+          executionId: data?.executionId,
+          classification: data?.classification,
+          adaptiveContext: data?.adaptiveContext,
+          memory: data?.memory,
+          planning: data?.planning,
+          citations: data?.citations,
+          research: data?.research,
+          approval: data?.approval,
+          awaitingApproval: data?.awaitingApproval,
+          artifact: data?.artifact,
           workspace,
           handoffPayload,
         },
       };
 
       updateActiveChatMessages((prev) => [...prev, assistantMsg]);
+      await refreshMissionHistory();
 
       if (workspace && shouldAutoPromptWorkspace(workspace)) {
         setTimeout(() => {
@@ -412,7 +577,7 @@ export default function Chat() {
         }, 250);
       }
 
-      setStatus("CONNECTED");
+      setStatus(data?.awaitingApproval ? "AWAITING_APPROVAL" : "CONNECTED");
     } catch (error) {
       console.error("Chat error:", error);
 
@@ -552,6 +717,100 @@ export default function Chat() {
 
           {notice && <div className="astrachat-notice">{notice}</div>}
 
+          <section className="astrachat-mission-panel" aria-label="Mission history">
+            <div className="astrachat-mission-heading">
+              <div>
+                <p className="astrachat-eyebrow">Kernel lifecycle</p>
+                <h2>Recent Missions</h2>
+              </div>
+              <button
+                type="button"
+                className="astrachat-mission-refresh"
+                onClick={refreshMissionHistory}
+                disabled={missionHistoryLoading}
+              >
+                {missionHistoryLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+
+            {missionHistory.length === 0 ? (
+              <p className="astrachat-mission-empty">
+                Send a message to create the first persisted Kernel mission.
+              </p>
+            ) : (
+              <div className="astrachat-mission-list">
+                {missionHistory.map((mission) => (
+                  <article className="astrachat-mission-card" key={mission.id}>
+                    <div className="astrachat-mission-summary">
+                      <span className={`astrachat-mission-status status-${mission.status}`}>
+                        {mission.status}
+                      </span>
+                      <strong>{mission.name}</strong>
+                      <time dateTime={mission.updatedAt}>
+                        {new Date(mission.updatedAt).toLocaleString()}
+                      </time>
+                    </div>
+                    <div className="astrachat-mission-plan">
+                      {(mission.plan || []).map((step, index) => (
+                        <span key={step.id || `${mission.id}-${index}`}>
+                          {index + 1}. {step.capability} · {step.status}
+                        </span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="astrachat-memory-manager" aria-label="Memory controls">
+            <div className="astrachat-mission-heading">
+              <div>
+                <p className="astrachat-eyebrow">Memory governance</p>
+                <h2>Persistent Memory</h2>
+              </div>
+              <button
+                type="button"
+                className="astrachat-mission-refresh"
+                onClick={async () => {
+                  const next = !memoryManagerOpen;
+                  setMemoryManagerOpen(next);
+                  if (next) await refreshMemories();
+                }}
+              >
+                {memoryManagerOpen ? "Close" : "Manage"}
+              </button>
+            </div>
+
+            {memoryManagerOpen && (
+              <div className="astrachat-memory-content">
+                <div className="astrachat-memory-policy">
+                  <span>{memoryRetentionDays}-day retention</span>
+                  <span>Sensitive values are redacted before storage</span>
+                  <button type="button" onClick={clearMemories} disabled={!memories.length}>Clear all</button>
+                </div>
+                {memoryLoading ? (
+                  <p className="astrachat-mission-empty">Loading memories...</p>
+                ) : memories.length === 0 ? (
+                  <p className="astrachat-mission-empty">No persistent memories stored.</p>
+                ) : (
+                  <div className="astrachat-memory-list">
+                    {memories.map((memory) => (
+                      <article key={memory.id} className="astrachat-memory-item">
+                        <div>
+                          <strong>{memory.role}</strong>
+                          <time dateTime={memory.createdAt}>{new Date(memory.createdAt).toLocaleString()}</time>
+                        </div>
+                        <p>{memory.content}</p>
+                        <button type="button" onClick={() => deleteMemory(memory.id)}>Delete</button>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
           <div className="astrachat-panel">
             <div
               className="astrachat-messages"
@@ -592,6 +851,42 @@ export default function Chat() {
                           </span>
                         )}
 
+                        {message.meta?.missionId && (
+                          <span className="astrachat-mission-pill">
+                            Mission {message.meta.missionId.slice(0, 8)}
+                          </span>
+                        )}
+
+                        {message.meta?.classification?.intent?.primaryAgent && (
+                          <span className="astrachat-intent-pill">
+                            Intent: {message.meta.classification.intent.primaryAgent}
+                            {Number.isFinite(message.meta.classification.intent.confidence)
+                              ? ` · ${Math.round(message.meta.classification.intent.confidence * 100)}%`
+                              : ""}
+                          </span>
+                        )}
+
+                        {message.meta?.adaptiveContext?.stats && (
+                          <span className="astrachat-context-pill">
+                            Context: {message.meta.adaptiveContext.stats.recentMessages} recent
+                            {message.meta.adaptiveContext.stats.compressedMessages > 0
+                              ? ` · ${message.meta.adaptiveContext.stats.compressedMessages} compressed`
+                              : ""}
+                          </span>
+                        )}
+
+                        {message.meta?.memory && (
+                          <span className="astrachat-memory-pill">
+                            Memory: {message.meta.memory.recalled} recalled · {message.meta.memory.stored} stored
+                          </span>
+                        )}
+
+                        {message.meta?.planning?.template && (
+                          <span className="astrachat-plan-pill">
+                            Plan: {message.meta.planning.template}
+                          </span>
+                        )}
+
                         {message.meta?.workspace && (
                           <span className="astrachat-workspace-pill">
                             Suggested: {message.meta.workspace.label}
@@ -602,6 +897,34 @@ export default function Chat() {
                       <div className="astrachat-bubble-content">
                         {message.content}
                       </div>
+
+                      {message.meta?.citations?.length > 0 && (
+                        <div className="astrachat-citations">
+                          <strong>Validated sources</strong>
+                          {message.meta.citations.map((citation, citationIndex) => (
+                            <a key={`${citation.url}-${citationIndex}`} href={citation.url} target="_blank" rel="noreferrer">
+                              {citation.title} · {citation.publisher}
+                            </a>
+                          ))}
+                        </div>
+                      )}
+
+                      {message.meta?.awaitingApproval && message.meta?.approval?.id && (
+                        <div className="astrachat-approval-controls">
+                          <div>
+                            <strong>Approval required</strong>
+                            <span>{message.meta.approval.reason || message.meta.approval.planning?.approval?.reason}</span>
+                          </div>
+                          <button type="button" onClick={() => decideMission(message.meta.approval.id, "approve")}>Approve & run</button>
+                          <button type="button" className="reject" onClick={() => decideMission(message.meta.approval.id, "reject")}>Reject</button>
+                        </div>
+                      )}
+
+                      {message.meta?.artifact?.id && (
+                        <div className="astrachat-artifact-notice">
+                          Research artifact saved: {message.meta.artifact.title}
+                        </div>
+                      )}
 
                       {message.meta?.workspace &&
                         message.meta.workspace.path !== "/chat" && (

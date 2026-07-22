@@ -28,7 +28,7 @@ export default function LiveSignalPanel({
 
       const res = await fetch(url, {
         headers: {
-          "x-subscription-tier": subscriptionTier,
+          Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
         },
       });
 
@@ -92,7 +92,7 @@ export default function LiveSignalPanel({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-subscription-tier": subscriptionTier,
+          Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
         },
         body: JSON.stringify({
           question,

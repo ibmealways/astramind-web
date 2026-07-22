@@ -526,3 +526,8 @@ body {
     height: calc(100vh - 28px);
   }
 }
+
+.creator-preflight { margin-top: 18px; padding: 16px; border: 1px solid rgba(251,191,36,.28); border-radius: 16px; background: rgba(251,191,36,.06); color: #e2e8f0; }
+.creator-preflight h3 { margin: 0 0 10px; color: #fde68a; }.creator-preflight p { color: #cbd5e1; font-size: 12px; line-height: 1.5; }
+.creator-preflight > div { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.06); font-size: 12px; }
+.creator-preflight button { margin-top: 10px; border: 1px solid rgba(34,197,94,.3); border-radius: 12px; background: rgba(34,197,94,.14); color: #bbf7d0; padding: 10px 14px; font-weight: 800; cursor: pointer; }

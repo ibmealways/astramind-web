@@ -10,7 +10,7 @@ function cleanText(value = "") {
 async function postJson(endpoint, payload) {
   const response = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` },
     body: JSON.stringify(payload),
   });
 

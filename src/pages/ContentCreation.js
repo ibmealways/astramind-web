@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { useOSMode } from "../context/ModeContext.js";
 import { OS_MODES } from "../core/os/modes.js";
 
-import { useProjects } from "../context/ProjectContext.js";
 import { useSubscription } from "../context/SubscriptionContext.js";
 
 import { runVideoEngine } from "../core/content/videoEngine.js";
@@ -23,6 +22,9 @@ import { routeTool } from "../core/router/toolRouter.js";
 import { generatePlatformPack } from "../core/content/contentPackager.js";
 
 import { canAccess } from "../core/subscription/accessControl.js";
+import { normalizeBackendMediaUrl, resolveCinematicRenderResponse } from "../services/cinematicRenderService.js";
+import "../styles/creator-studio-realm.css";
+const API_URL=process.env.REACT_APP_API_URL||"http://localhost:5000";
 
 const TOOL_ORDER = [
   "video",
@@ -59,12 +61,6 @@ export default function ContentCreation() {
 
   const { currentMode } =
     useOSMode();
-
-  const {
-    activeProject,
-    projects,
-    createProject,
-  } = useProjects();
 
   const { tier } =
     useSubscription();
@@ -117,14 +113,10 @@ export default function ContentCreation() {
   ] = useState(null);
 
   const [
-    diagnostics,
-    setDiagnostics,
-  ] = useState(null);
-
-  const [
     renderHealth,
     setRenderHealth,
   ] = useState(null);
+  const [preflight, setPreflight] = useState(null);
 
   const availableTools =
     useMemo(() => {
@@ -153,7 +145,7 @@ export default function ContentCreation() {
     selectedTool,
   ]);
 
-  async function renderMP4() {
+  async function renderMP4(preflightApproved = false) {
     try {
       setLoading(true);
 
@@ -174,6 +166,10 @@ export default function ContentCreation() {
           Number(
             durationTarget
           ) || 45,
+        options: {
+          preflightOnly: !preflightApproved,
+          preflightApproved,
+        },
       };
 
       console.log(
@@ -183,13 +179,14 @@ export default function ContentCreation() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/cinematic-video/render",
+          `${API_URL}/api/cinematic-video/render`,
           {
             method: "POST",
 
             headers: {
               "Content-Type":
                 "application/json",
+              Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
             },
 
             body: JSON.stringify(
@@ -216,6 +213,19 @@ try {
     `Backend returned non-JSON response: ${responseText}`
   );
 }
+
+      if (!response.ok || data?.ok === false) {
+        setGeneratedPackage(data?.partialArtifacts || data);
+        resolveCinematicRenderResponse(data, response.ok);
+      }
+
+      if (data?.requiresApproval && data?.preflight) {
+        setPreflight(data.preflight);
+        setGeneratedPackage(data.partialArtifacts || data);
+        return;
+      }
+
+      setPreflight(null);
 
       console.log(
         "🎬 VIDEO RENDER RESPONSE:",
@@ -246,6 +256,8 @@ ADVANCED VIDEO URL EXTRACTION
         data?.data
           ?.videoUrl ||
         data?.finalVideoUrl ||
+        data?.renderOutput?.videoUrl ||
+        data?.renderOutput?.downloadUrl ||
         null;
 
       console.log(
@@ -266,12 +278,7 @@ ADVANCED VIDEO URL EXTRACTION
         );
       }
 
-      const normalizedVideoUrl =
-        rawVideoUrl.startsWith(
-          "http"
-        )
-          ? rawVideoUrl
-          : `http://localhost:5000${rawVideoUrl}`;
+      const normalizedVideoUrl = normalizeBackendMediaUrl(rawVideoUrl);
 
       setGeneratedVideoUrl(
         normalizedVideoUrl
@@ -305,7 +312,8 @@ ADVANCED VIDEO URL EXTRACTION
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/cinematic-video/render-queue"
+          `${API_URL}/api/cinematic-video/health`,
+          {headers:{Authorization:`Bearer ${localStorage.getItem("astramind_token")||""}`}}
         );
 
       const responseText =
@@ -370,7 +378,7 @@ try {
         selectedTool
       ) {
         case "video":
-          await renderMP4();
+          await renderMP4(false);
           return;
 
         case "design":
@@ -449,13 +457,13 @@ try {
 
   return (
     <div
-      className="min-h-screen text-white p-6"
+      className="creator-studio-realm"
       style={{
         background:
           "radial-gradient(circle at top, #09111f 0%, #050816 45%, #02030a 100%)",
       }}
     >
-      <div className="max-w-7xl mx-auto">
+      <div className="creator-studio-shell">
         <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="text-5xl font-black">
@@ -699,6 +707,19 @@ try {
                   2
                 )}
               </pre>
+            )}
+
+            {preflight && (
+              <div className="creator-preflight">
+                <h3>Mission Integrity Preflight</h3>
+                <p>{preflight.continuity?.reason}</p>
+                <div><span>Continuity</span><strong>{Math.round((preflight.continuity?.score || 0) * 100)}%</strong></div>
+                <div><span>Accepted sources</span><strong>{preflight.research?.acceptedSources || 0}</strong></div>
+                <div><span>Rejected sources</span><strong>{preflight.research?.rejectedSources || 0}</strong></div>
+                <div><span>Storyboard scenes</span><strong>{preflight.storyboard?.scenes || 0}</strong></div>
+                <p>Paid stages: {(preflight.estimatedPaidStages || []).join(", ")}</p>
+                <button type="button" onClick={() => renderMP4(true)} disabled={loading}>Approve & render</button>
+              </div>
             )}
 
             {!generatedPackage &&

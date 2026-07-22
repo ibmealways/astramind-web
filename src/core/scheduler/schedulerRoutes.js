@@ -16,6 +16,7 @@ router.post("/schedule", (req, res) => {
       platforms,
     },
     createdAt: new Date().toISOString(),
+    userId: req.user.id,
   };
 
   addJob(job);
@@ -24,7 +25,7 @@ router.post("/schedule", (req, res) => {
 });
 
 router.get("/jobs", (req, res) => {
-  res.json(getJobs());
+  res.json(getJobs(req.user.id));
 });
 
 export default router;

@@ -7,6 +7,7 @@ import { recallRelevantMemory } from "../memory/memoryEngine.js";
 
 const DEFAULT_API_URL =
   process.env.REACT_APP_API_URL || "http://localhost:5000";
+const authHeaders = () => ({ "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` });
 
 // ============================
 // 🧠 SEMANTIC MEMORY
@@ -17,7 +18,7 @@ export async function storeSemantic(content) {
     if (!content) return;
     await fetch(`${DEFAULT_API_URL}/api/memory/store`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ content }),
     });
   } catch (err) {
@@ -29,7 +30,7 @@ export async function getSemanticContext(query) {
   try {
     const res = await fetch(`${DEFAULT_API_URL}/api/memory/search`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: authHeaders(),
       body: JSON.stringify({ query }),
     });
 
@@ -101,7 +102,7 @@ async function callCloudAI({ apiUrl, payload, timeoutMs, retries = 1 }) {
         `${apiUrl}/api/chat`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify(payload),
         },
         timeoutMs
@@ -260,9 +261,7 @@ export async function saveResearchSource(source) {
   try {
     await fetch(`${DEFAULT_API_URL}/api/research/save`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: authHeaders(),
       body: JSON.stringify(source),
     });
   } catch (err) {
@@ -275,23 +274,21 @@ export async function saveResearchSource(source) {
 // ============================
 
 export async function fetchBookProjects() {
-  const res = await fetch(`${DEFAULT_API_URL}/api/books`);
+  const res = await fetch(`${DEFAULT_API_URL}/api/book-projects`,{headers:authHeaders()});
   if (!res.ok) throw new Error("Failed to fetch projects");
   return res.json();
 }
 
 export async function fetchBookProject(id) {
-  const res = await fetch(`${DEFAULT_API_URL}/api/books/${id}`);
+  const res = await fetch(`${DEFAULT_API_URL}/api/book-project/${id}`,{headers:authHeaders()});
   if (!res.ok) throw new Error("Failed to fetch project");
   return res.json();
 }
 
 export async function createBookProject(data) {
-  const res = await fetch(`${DEFAULT_API_URL}/api/books`, {
+  const res = await fetch(`${DEFAULT_API_URL}/api/book-project/create`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -300,11 +297,9 @@ export async function createBookProject(data) {
 }
 
 export async function draftBookChapter(payload) {
-  const res = await fetch(`${DEFAULT_API_URL}/api/books/draft`, {
+  const res = await fetch(`${DEFAULT_API_URL}/api/book-project/${payload.projectId}/chapter-draft`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: authHeaders(),
     body: JSON.stringify(payload),
   });
 
@@ -313,8 +308,9 @@ export async function draftBookChapter(payload) {
 }
 
 export async function deleteBookProject(id) {
-  const res = await fetch(`${DEFAULT_API_URL}/api/books/${id}`, {
+  const res = await fetch(`${DEFAULT_API_URL}/api/book-project/${id}`, {
     method: "DELETE",
+    headers: authHeaders(),
   });
 
   if (!res.ok) throw new Error("Failed to delete project");

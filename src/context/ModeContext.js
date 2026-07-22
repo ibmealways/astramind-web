@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -39,7 +40,7 @@ export function ModeProvider({ children }) {
     }
   }, [mode]);
 
-  const setMode = (nextMode) => {
+  const setMode = useCallback((nextMode) => {
     const config = getModeConfig(nextMode);
 
     if (!config) {
@@ -49,26 +50,26 @@ export function ModeProvider({ children }) {
 
     setPreviousMode(mode);
     setModeState(nextMode);
-  };
+  }, [mode]);
 
-  const resetMode = () => {
+  const resetMode = useCallback(() => {
     setPreviousMode(mode);
     setModeState(APP_MODES.CREATOR);
-  };
+  }, [mode]);
 
-  const toggleExecutionMode = () => {
+  const toggleExecutionMode = useCallback(() => {
     setPreviousMode(mode);
     setModeState((currentMode) =>
       currentMode === APP_MODES.EXECUTION
         ? APP_MODES.CREATOR
         : APP_MODES.EXECUTION
     );
-  };
+  }, [mode]);
 
-  const restorePreviousMode = () => {
+  const restorePreviousMode = useCallback(() => {
     if (!previousMode) return;
     setModeState(previousMode);
-  };
+  }, [previousMode]);
 
   const value = useMemo(() => {
     const activeModeConfig = getModeConfig(mode);
@@ -98,7 +99,7 @@ export function ModeProvider({ children }) {
       isExecutionMode: mode === APP_MODES.EXECUTION,
       isDeepWorkMode: mode === APP_MODES.DEEP_WORK,
     };
-  }, [mode, previousMode]);
+  }, [mode, previousMode, resetMode, restorePreviousMode, setMode, toggleExecutionMode]);
 
   return <ModeContext.Provider value={value}>{children}</ModeContext.Provider>;
 }

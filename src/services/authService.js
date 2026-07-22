@@ -6,7 +6,15 @@ import {
   sanitizeUser,
 } from "./userService.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "astramind_dev_secret_change_me";
+const DEVELOPMENT_SECRET = "astramind_dev_secret_change_me";
+function resolveJwtSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("JWT_SECRET is required when NODE_ENV=production.");
+  }
+  return DEVELOPMENT_SECRET;
+}
+const JWT_SECRET = resolveJwtSecret();
 const JWT_EXPIRES_IN = "7d";
 
 export async function registerUser({ name, email, password }) {
@@ -37,7 +45,7 @@ export async function registerUser({ name, email, password }) {
     name: cleanName,
     email: cleanEmail,
     passwordHash,
-    plan: "starter",
+    plan: "free",
   });
 
   const token = jwt.sign(

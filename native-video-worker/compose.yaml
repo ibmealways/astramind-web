@@ -1,0 +1,29 @@
+services:
+  astramind-native-video:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8189:8189"
+    environment:
+      ASTRAMIND_NATIVE_VIDEO_HOST: 0.0.0.0
+      ASTRAMIND_NATIVE_VIDEO_PORT: 8189
+      ASTRAMIND_NATIVE_VIDEO_TOKEN: ${ASTRAMIND_NATIVE_VIDEO_TOKEN:?Set ASTRAMIND_NATIVE_VIDEO_TOKEN}
+      ASTRAMIND_NATIVE_VIDEO_BACKEND: ${ASTRAMIND_NATIVE_VIDEO_BACKEND:-ltx}
+      ASTRAMIND_NATIVE_VIDEO_MODEL: ${ASTRAMIND_NATIVE_VIDEO_MODEL:-Lightricks/LTX-Video}
+      ASTRAMIND_NATIVE_VIDEO_STEPS: ${ASTRAMIND_NATIVE_VIDEO_STEPS:-30}
+      ASTRAMIND_NATIVE_VIDEO_OUTPUT_DIR: /worker/native-video-output
+      HF_HOME: /models/huggingface
+    volumes:
+      - astramind-models:/models/huggingface
+      - astramind-native-video-output:/worker/native-video-output
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  astramind-models:
+  astramind-native-video-output:

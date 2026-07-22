@@ -15,6 +15,8 @@ import { canAccess } from "../core/subscription/accessControl.js";
 
 const STORAGE_KEY = "astramind_content_lab_projects";
 const PLATFORMS = ["TikTok", "Instagram", "YouTube", "X", "Facebook"];
+const API_URL=process.env.REACT_APP_API_URL||"http://localhost:5000";
+const authHeaders=(extra={})=>({...extra,Authorization:`Bearer ${localStorage.getItem("astramind_token")||""}`});
 
 export default function ContentLab() {
   const params = useParams();
@@ -33,7 +35,7 @@ export default function ContentLab() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/scheduler/jobs");
+      const res = await fetch(`${API_URL}/api/scheduler/jobs`,{headers:authHeaders()});
       const data = await res.json();
       setJobs(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -106,11 +108,9 @@ export default function ContentLab() {
     }
 
     try {
-      await fetch("http://localhost:5000/api/scheduler/schedule", {
+      await fetch(`${API_URL}/api/scheduler/schedule`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders({"Content-Type":"application/json"}),
         body: JSON.stringify({
           videoUrl: latest.videoUrl || null,
           caption: latest.content,
@@ -140,11 +140,9 @@ export default function ContentLab() {
     }
 
     try {
-      await fetch("http://localhost:5000/api/scheduler/schedule", {
+      await fetch(`${API_URL}/api/scheduler/schedule`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders({"Content-Type":"application/json"}),
         body: JSON.stringify({
           videoUrl: latest?.videoUrl || null,
           caption: latest?.content || "",

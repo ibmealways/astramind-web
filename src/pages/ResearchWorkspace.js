@@ -20,7 +20,13 @@ function loadLocalResearch() {
 }
 
 function saveLocalResearch(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    return true;
+  } catch (error) {
+    console.warn("Research persistence unavailable:", error.message);
+    return false;
+  }
 }
 
 export default function ResearchWorkspace() {

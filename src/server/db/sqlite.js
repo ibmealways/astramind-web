@@ -27,12 +27,13 @@ db.prepare(`
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    plan TEXT NOT NULL DEFAULT 'starter',
+    plan TEXT NOT NULL DEFAULT 'free',
     status TEXT NOT NULL DEFAULT 'active',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )
 `).run();
+db.prepare("UPDATE users SET plan='free' WHERE plan='starter'").run();
 
 // 🧠 MEMORY TABLE (🔥 THIS FIXES YOUR ERROR)
 db.prepare(`

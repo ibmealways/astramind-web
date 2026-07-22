@@ -1,5 +1,6 @@
 const API_BASE =
-  process.env.REACT_APP_ASTRAMIND_API_BASE || "http://localhost:5000";
+  process.env.REACT_APP_API_URL || process.env.REACT_APP_ASTRAMIND_API_BASE || "http://localhost:5000";
+const headers=()=>({"Content-Type":"application/json",Authorization:`Bearer ${localStorage.getItem("astramind_token")||""}`});
 
 async function handleResponse(response) {
   const contentType = response.headers.get("content-type") || "";
@@ -27,9 +28,7 @@ async function handleResponse(response) {
 export async function sendChatMessage(message, context = {}) {
   const response = await fetch(`${API_BASE}/api/chat`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headers(),
     body: JSON.stringify({
       message,
       context,
@@ -42,9 +41,7 @@ export async function sendChatMessage(message, context = {}) {
 export async function generateContent(payload) {
   const response = await fetch(`${API_BASE}/api/content/generate`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headers(),
     body: JSON.stringify(payload),
   });
 
@@ -54,9 +51,7 @@ export async function generateContent(payload) {
 export async function runFinanceAnalysis(payload) {
   const response = await fetch(`${API_BASE}/api/finance/analyze`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headers(),
     body: JSON.stringify(payload),
   });
 
@@ -64,11 +59,9 @@ export async function runFinanceAnalysis(payload) {
 }
 
 export async function generateBookContent(payload) {
-  const response = await fetch(`${API_BASE}/api/content/book`, {
+  const response = await fetch(`${API_BASE}/api/content/book-full`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: headers(),
     body: JSON.stringify(payload),
   });
 

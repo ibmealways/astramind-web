@@ -19,7 +19,7 @@ export function findUserById(id) {
   return db.prepare(`SELECT * FROM users WHERE id = ?`).get(id);
 }
 
-export function createUser({ name, email, passwordHash, plan = "starter" }) {
+export function createUser({ name, email, passwordHash, plan = "free" }) {
   const id = createUserId();
   const createdAt = nowIso();
   const updatedAt = createdAt;

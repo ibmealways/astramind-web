@@ -8,7 +8,19 @@
 
 .creator-dashboard-header {
   margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
 }
+
+.creator-dashboard-header .creator-btn { width: auto; min-width: 150px; color: white; }
+.creator-dashboard-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.creator-stat { display: grid; gap: 6px; padding: 20px; border-radius: 16px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.09); }
+.creator-stat strong { font-size: 30px; color: #67e8f9; }
+.creator-stat span { color: #aeb9d0; font-size: 13px; }
+.creator-empty { display: grid; gap: 7px; padding: 28px; border: 1px dashed rgba(148,163,184,.25); border-radius: 14px; text-align: center; color: #aeb9d0; }
+.creator-list-item time { color: #94a3b8; font-size: 12px; }
 
 .creator-dashboard-header h1 {
   margin: 0 0 8px;
@@ -148,4 +160,5 @@
   .creator-dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .creator-dashboard-stats { grid-template-columns: repeat(2, 1fr); }
 }

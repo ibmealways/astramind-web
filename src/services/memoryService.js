@@ -1,4 +1,5 @@
 import db from "../server/db/sqlite.js";
+import { randomUUID } from "crypto";
 
 // ============================
 // 🧠 STORE MEMORY
@@ -6,7 +7,7 @@ import db from "../server/db/sqlite.js";
 export function storeMemory({ userId = "global", content, type = "general", tags = [] }) {
   if (!content) return;
 
-  const id = Date.now().toString();
+  const id = randomUUID();
 
   db.prepare(`
     INSERT INTO memory (id, user_id, type, content, tags, created_at)

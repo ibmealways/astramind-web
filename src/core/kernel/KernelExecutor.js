@@ -24,11 +24,7 @@
  */
 
 import KernelRegistry from "./KernelRegistry.js";
-import IDGenerator from "../system/IDGenerator.js";
-import SystemClock from "../system/SystemClock.js";
-import SystemEvents from "../system/SystemEvents.js";
-import PolicyEngine from "../policy/PolicyEngine.js";
-import ExecutionStrategyResolver from "../execution/ExecutionStrategyResolver.js";
+import EventBus from "../events/EventBus.js";
 
 export const EXECUTION_STATUS = Object.freeze({
 
@@ -64,7 +60,7 @@ class ExecutionContext {
 
     }) {
 
-        this.requestId = IDGenerator.requestId();
+        this.requestId = crypto.randomUUID();
 
         this.authority = authority;
 
@@ -128,25 +124,25 @@ export default class KernelExecutor {
 
             policyEngine ||
 
-            PolicyEngine.create();
+            null;
 
         this.events =
 
             eventBus ||
 
-            SystemEvents.create();
+            EventBus;
 
         this.clock =
 
             clock ||
 
-            SystemClock.create();
+            { now: () => Date.now() };
 
         this.strategyResolver =
 
             strategyResolver ||
 
-            ExecutionStrategyResolver.create();
+            { resolve: () => ({ type: "direct" }) };
 
         /*
          * =====================================================
@@ -302,7 +298,9 @@ export default class KernelExecutor {
 
         payload = {},
 
-        metadata = {}
+        metadata = {},
+
+        signal = null
 
     }) {
 
@@ -484,9 +482,9 @@ export default class KernelExecutor {
          * =====================================================
          */
 
-        const policyResult =
+        const policyResult = this.policyEngine
 
-            await this.policyEngine.evaluate({
+            ? await this.policyEngine.evaluate({
 
                 authority,
 
@@ -496,9 +494,11 @@ export default class KernelExecutor {
 
                 metadata
 
-            });
+            })
 
-        if (!policyResult.allowed) {
+            : { allowed: true };
+
+        if (policyResult?.allowed === false || policyResult?.state === "denied") {
 
             context.status =
 
@@ -694,9 +694,9 @@ export default class KernelExecutor {
 
         try {
 
-            const result =
+            if (signal?.aborted) throw signal.reason || new Error("Execution aborted.");
 
-                await executable.execute({
+            const executionPromise = executable.execute({
 
                     requestId:
 
@@ -728,9 +728,37 @@ export default class KernelExecutor {
 
                     executor:
 
-                        this
+                        this,
+
+                    signal
 
                 });
+
+            let abortHandler;
+
+            const abortPromise = signal
+
+                ? new Promise((resolve, reject) => {
+
+                    abortHandler = () => reject(signal.reason || new Error("Execution aborted."));
+
+                    signal.addEventListener("abort", abortHandler, { once: true });
+
+                })
+
+                : null;
+
+            let result;
+
+            try {
+
+                result = abortPromise ? await Promise.race([executionPromise, abortPromise]) : await executionPromise;
+
+            } finally {
+
+                if (signal && abortHandler) signal.removeEventListener("abort", abortHandler);
+
+            }
 
             /*
              * ===============================================
@@ -968,81 +996,21 @@ export default class KernelExecutor {
 
             );
 
-            return {
+            error.execution = {
 
-                success: false,
-
-                requestId:
-
-                    context.requestId,
+                requestId: context.requestId,
 
                 authority,
 
                 action,
 
-                status:
+                status: context.status,
 
-                    context.status,
-
-                strategy:
-
-                    context.strategy,
-
-                executionTime:
-
-                    context.executionTime,
-
-                startedAt:
-
-                    context.startedAt,
-
-                completedAt:
-
-                    context.completedAt,
-
-                timestamp:
-
-                    Date.now(),
-
-                data: null,
-
-                diagnostics: {
-
-                    kernel:
-
-                        "KernelExecutor",
-
-                    activeExecutions:
-
-                        this.activeCount()
-
-                },
-
-                warnings: [],
-
-                errors: [
-
-                    {
-
-                        message:
-
-                            error.message,
-
-                        stack:
-
-                            process.env.NODE_ENV ===
-
-                            "development"
-
-                                ? error.stack
-
-                                : undefined
-
-                    }
-
-                ]
+                executionTime: context.executionTime
 
             };
+
+            throw error;
 
         }
 

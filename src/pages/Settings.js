@@ -3,11 +3,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useOSMode } from "../context/ModeContext.js";
 import { OS_MODES } from "../core/os/modes.js";
 import { useSubscription } from "../context/SubscriptionContext.js";
-import { TIERS, TIER_LABELS, getCapsForTier } from "../core/subscription/tierConfig.js";
+import { getCapsForTier } from "../core/subscription/tierConfig.js";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const { setMode } = useOSMode();
-  const { tier, setTier } = useSubscription();
+  const { tier, subscription } = useSubscription();
+  const navigate = useNavigate();
 
   const [integrations, setIntegrations] = useState(() => {
     try {
@@ -46,16 +48,8 @@ export default function Settings() {
               Tier controls lock/unlock exports, bundles, remix depth, and future connectors.
             </div>
 
-            <select
-              className="os-select w-full"
-              value={tier}
-              onChange={(e) => setTier(e.target.value)}
-            >
-              <option value={TIERS.FREE}>{TIER_LABELS[TIERS.FREE]}</option>
-              <option value={TIERS.CREATOR}>{TIER_LABELS[TIERS.CREATOR]}</option>
-              <option value={TIERS.PRO}>{TIER_LABELS[TIERS.PRO]}</option>
-              <option value={TIERS.ELITE}>{TIER_LABELS[TIERS.ELITE]}</option>
-            </select>
+            <div className="os-select w-full">{subscription?.plan?.name || "Free"} · {subscription?.creditsBalance ?? 0} credits</div>
+            <button type="button" className="creator-btn primary" onClick={() => navigate("/pricing")}>Manage plan and credits</button>
 
             <div className="mt-4 text-[12px] text-gray-300 bg-black/20 border border-white/10 rounded-xl p-4">
               <div className="font-semibold text-gray-200 mb-2">Unlocked on this tier</div>
@@ -73,7 +67,7 @@ export default function Settings() {
 
           <SettingCard title="🧩 Integration Controls">
             <div className="text-[12px] text-gray-300 mb-3">
-              Let subscribers decide how deeply AstraMind modules integrate with each other.
+              Let Creators decide how deeply AstraMind modules integrate with each other.
             </div>
 
             <ToggleRow

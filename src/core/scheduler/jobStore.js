@@ -13,8 +13,8 @@ export function addJob(job) {
   return job;
 }
 
-export function getJobs() {
-  return jobs;
+export function getJobs(userId = null) {
+  return userId ? jobs.filter((job)=>job.userId===userId) : jobs;
 }
 
 export function updateJob(id, updates) {

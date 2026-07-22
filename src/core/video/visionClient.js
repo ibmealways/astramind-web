@@ -14,6 +14,7 @@ function getApiUrl() {
     ) || DEFAULT_API_URL
   );
 }
+function authHeaders(extra = {}) { return { ...extra, Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` }; }
 
 function clean(value = "") {
   return String(value || "")
@@ -216,6 +217,7 @@ export async function renderVisionVideo({
         headers: {
           "Content-Type":
             "application/json",
+          Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
         },
 
         body: JSON.stringify({
@@ -292,7 +294,8 @@ export async function getRenderDiagnostics(
 ) {
   const response =
     await fetch(
-      `${getApiUrl()}/api/cinematic-video/diagnostics/${projectId}`
+      `${getApiUrl()}/api/cinematic-video/diagnostics/${projectId}`,
+      { headers: authHeaders() }
     );
 
   const data =
@@ -321,7 +324,8 @@ export async function getRenderDiagnostics(
 export async function getRenderQueueStatus() {
   const response =
     await fetch(
-      `${getApiUrl()}/api/cinematic-video/render-queue`
+      `${getApiUrl()}/api/cinematic-video/render-queue`,
+      { headers: authHeaders() }
     );
 
   const data =
@@ -355,6 +359,7 @@ export async function retryFailedRender(
       `${getApiUrl()}/api/cinematic-video/retry/${projectId}`,
       {
         method: "POST",
+        headers: authHeaders(),
       }
     );
 
@@ -422,7 +427,8 @@ export async function checkVisionHealth() {
 export async function getPipelineHealth() {
   const response =
     await fetch(
-      `${getApiUrl()}/api/cinematic-video/pipeline-health`
+      `${getApiUrl()}/api/cinematic-video/pipeline-health`,
+      { headers: authHeaders() }
     );
 
   const data =
@@ -451,7 +457,8 @@ export async function getPipelineHealth() {
 export async function getCreatorBrainHealth() {
   const response =
     await fetch(
-      `${getApiUrl()}/api/creator-brain/health`
+      `${getApiUrl()}/api/creator-brain/health`,
+      { headers: authHeaders() }
     );
 
   const data =
@@ -485,7 +492,8 @@ export async function getProjectRenderStatus(
 ) {
   const response =
     await fetch(
-      `${getApiUrl()}/api/cinematic-video/status/${projectId}`
+      `${getApiUrl()}/api/cinematic-video/status/${projectId}`,
+      { headers: authHeaders() }
     );
 
   const data =

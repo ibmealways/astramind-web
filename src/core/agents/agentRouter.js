@@ -4,6 +4,13 @@ function hasAny(text, patterns) {
   return patterns.some((pattern) => text.includes(pattern));
 }
 
+function hasWholeTerm(text, patterns) {
+  return patterns.some((pattern) => {
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(?:^|\\W)${escaped}(?:$|\\W)`, "i").test(text);
+  });
+}
+
 export function detectAgentIntent(input = "") {
   const text = String(input || "").toLowerCase().trim();
 
@@ -161,7 +168,7 @@ export function detectAgentIntent(input = "") {
   }
 
   if (
-    hasAny(text, ["saas", "app", "software"]) &&
+    hasWholeTerm(text, ["saas", "app", "software"]) &&
     hasAny(text, ["build", "create", "launch"])
   ) {
     return {
@@ -243,7 +250,7 @@ export function detectAgentIntent(input = "") {
     };
   }
 
-  if (hasAny(text, saasPatterns)) {
+  if (hasWholeTerm(text, saasPatterns)) {
     return {
       primaryAgent: AGENT_TYPES.SAAS,
       workflow: null,

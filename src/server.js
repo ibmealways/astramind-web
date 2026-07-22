@@ -17,6 +17,11 @@ import financeRoutes from "./server/routes/financeRoutes.js";
 import billingRoutes from "./server/routes/billingRoutes.js";
 import aiImageRoutes from "./server/routes/aiImageRoutes.js";
 import developerApiRoutes from "./server/routes/developerApiRoutes.js";
+import workflowRoutes from "./server/routes/workflowRoutes.js";
+import memoryRoutes from "./server/routes/memoryRoutes.js";
+import researchRoutes from "./server/routes/researchRoutes.js";
+import requireAuth from "./server/middleware/requireAuth.js";
+import { meterOperation, requireEntitlement } from "./server/middleware/subscriptionAccess.js";
 
 import { initPlatformCoreTables } from "./server/db/initPlatformCore.js";
 import {
@@ -25,20 +30,33 @@ import {
   saveWorkflowRun,
   saveResearchSource,
   saveBookChapter,
+  getPersistentProjects,
+  getPersistentProjectById,
+  getProjectChapters,
+  deletePersistentProject,
 } from "./services/projectPersistenceService.js";
 import schedulerRoutes from "./core/scheduler/schedulerRoutes.js";
 import { startExecutionEngine } from "./core/scheduler/executionEngine.js";
 import tradePilotRoutes from "./server/routes/tradePilotRoutes.js";
 import videoRenderRoutes from "./server/routes/videorenderRoutes.js";
 import cinematicVideoRoutes from "./server/routes/cinematicVideoRoutes.js";
+import audioStudioRoutes from "./server/routes/audioStudioRoutes.js";
+import readinessRoutes from "./server/routes/readinessRoutes.js";
+import creatorBrainRoutes from "./server/routes/creatorBrainRoutes.js";
+import { initCreatorBrainTables } from "./server/db/initCreatorBrain.js";
 
 startExecutionEngine();
 
 const app = express();
+const allowedOrigins = String(process.env.FRONTEND_ORIGINS || process.env.FRONTEND_URL || "http://localhost:3000")
+  .split(",").map((value)=>value.trim()).filter(Boolean);
 
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origin is not allowed by AstraMind CORS policy."));
+    },
     credentials: true,
   })
 );
@@ -46,17 +64,23 @@ app.use(
 // Stripe webhook needs raw body, so billing mounts before express.json()
 app.use("/api/billing", billingRoutes);
 
-app.use(express.json());
-app.use("/api/scheduler", schedulerRoutes);
-app.use("/api/platform", platformRoutes);
+app.use(express.json({ limit: "256kb" }));
+app.use("/api/scheduler", requireAuth, requireEntitlement("automation"), schedulerRoutes);
+app.use("/api/platform", requireAuth, platformRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/finance", financeRoutes);
+app.use("/api/chat", requireAuth, meterOperation({operation:"chat.generate",amount:1,paths:["/"]}), chatRoutes);
+app.use("/api/finance", requireAuth, financeRoutes);
 app.use("/api/tradepilot", tradePilotRoutes);
-app.use("/api/video", videoRenderRoutes);
+app.use("/api/video", requireAuth, meterOperation({operation:"video.render.standard",amount:(req)=>Math.max(20,(req.body?.scenes?.length||1)*10),entitlement:"video",paths:["/render"]}), videoRenderRoutes);
 app.use("/api/cinematic-video", cinematicVideoRoutes);
+app.use("/api/audio-studio", audioStudioRoutes);
+app.use("/api/readiness", readinessRoutes);
+app.use("/api/creator-brain", creatorBrainRoutes);
 app.use("/api/ai-image", aiImageRoutes);
 app.use("/api/developer", developerApiRoutes);
+app.use("/api/workflows", requireAuth, meterOperation({operation:"workflow.execute",amount:(req)=>req.body?.mission==="promotional_campaign"?15:3,paths:["/run"]}), workflowRoutes);
+app.use("/api/memory", memoryRoutes);
+app.use("/api/research", researchRoutes);
 
 import path from "path";
 
@@ -93,6 +117,14 @@ const PORT = process.env.BACKEND_PORT || 5000;
    IN-MEMORY STORE
 =============================== */
 const bookProjectStore = new Map();
+
+async function loadBookProject(projectId,userId){
+  const cached=bookProjectStore.get(projectId);if(cached?.userId===userId)return cached;
+  const stored=await getPersistentProjectById(projectId,userId);if(!stored||stored.type!=="book")return null;
+  const chapters=await getProjectChapters(projectId,userId);
+  const hydrated={id:stored.id,userId,topic:stored.topic,title:stored.title,genre:stored.book?.genre||"Nonfiction",tone:stored.tone,audience:stored.audience,chapterCount:stored.book?.chapterCount||10,includeResearch:Boolean(stored.book?.includeResearch),intensity:stored.intensity,outline:stored.book?.outline||"",storyBible:stored.book?.storyBible||{},chapters,createdAt:stored.createdAt,updatedAt:stored.updatedAt};
+  bookProjectStore.set(projectId,hydrated);return hydrated;
+}
 
 /* ===============================
    OPENAI CALL WRAPPER
@@ -445,6 +477,7 @@ function makeFallbackOutline({
 async function persistProjectCreation(project) {
   try {
     await createPersistentProject({
+      userId: project.userId,
       id: project.id,
       type: "book",
       title: project.title,
@@ -522,6 +555,7 @@ async function persistBookChapterAndWorkflow(project, chapterRecord) {
 
   try {
     await saveWorkflowRun({
+      userId: project.userId,
       projectId: project.id,
       workflowKey: "book_chapter_draft",
       primaryAgent: "book",
@@ -630,6 +664,7 @@ async function createBookProjectInternal(body = {}) {
 
   const project = {
     id: projectId,
+    userId: String(body.userId || "system"),
     topic,
     title: storyBible.title || topic,
     genre,
@@ -654,17 +689,13 @@ async function createBookProjectInternal(body = {}) {
 /* ===============================
    PLATFORM ROUTES
 =============================== */
-app.use("/api/platform", platformRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/finance", financeRoutes); // ✅ ADD THIS
 
 /* ===============================
    PROJECT CREATION
 =============================== */
-app.post("/api/book-project/create", async (req, res) => {
+app.post("/api/book-project/create", requireAuth, requireEntitlement("books"), meterOperation({operation:"book.create",amount:5}), async (req, res) => {
   try {
-    const project = await createBookProjectInternal(req.body);
+    const project = await createBookProjectInternal({ ...req.body, userId:req.user.id });
 
     return res.json({
       ok: true,
@@ -683,9 +714,10 @@ app.post("/api/book-project/create", async (req, res) => {
 /* ===============================
    LIST PROJECTS
 =============================== */
-app.get("/api/book-projects", async (req, res) => {
+app.get("/api/book-projects", requireAuth, async (req, res) => {
   try {
-    const projects = Array.from(bookProjectStore.values()).sort((a, b) => {
+    const persisted=await getPersistentProjects(100,req.user.id);
+    const projects = persisted.filter((item)=>item.type==="book").map((item)=>({id:item.id,userId:req.user.id,topic:item.topic,title:item.title,genre:item.book?.genre||"",tone:item.tone,audience:item.audience,chapterCount:item.book?.chapterCount||0,includeResearch:Boolean(item.book?.includeResearch),intensity:item.intensity,outline:item.book?.outline||"",storyBible:item.book?.storyBible||{},chapters:[],createdAt:item.createdAt,updatedAt:item.updatedAt})).sort((a, b) => {
       return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
@@ -706,11 +738,11 @@ app.get("/api/book-projects", async (req, res) => {
 /* ===============================
    GET SINGLE PROJECT
 =============================== */
-app.get("/api/book-project/:id", async (req, res) => {
+app.get("/api/book-project/:id", requireAuth, async (req, res) => {
   try {
-    const project = bookProjectStore.get(req.params.id);
+    const project = await loadBookProject(req.params.id,req.user.id);
 
-    if (!project) {
+    if (!project || project.userId !== req.user.id) {
       return res.status(404).json({
         ok: false,
         error: "Book project not found.",
@@ -734,11 +766,11 @@ app.get("/api/book-project/:id", async (req, res) => {
 /* ===============================
    UPDATE PROJECT
 =============================== */
-app.patch("/api/book-project/:id", async (req, res) => {
+app.patch("/api/book-project/:id", requireAuth, async (req, res) => {
   try {
-    const project = bookProjectStore.get(req.params.id);
+    const project = await loadBookProject(req.params.id,req.user.id);
 
-    if (!project) {
+    if (!project || project.userId !== req.user.id) {
       return res.status(404).json({
         ok: false,
         error: "Book project not found.",
@@ -804,9 +836,10 @@ app.patch("/api/book-project/:id", async (req, res) => {
 /* ===============================
    DELETE PROJECT
 =============================== */
-app.delete("/api/book-project/:id", async (req, res) => {
+app.delete("/api/book-project/:id", requireAuth, async (req, res) => {
   try {
-    const exists = bookProjectStore.has(req.params.id);
+    const existing = await loadBookProject(req.params.id,req.user.id);
+    const exists = existing?.userId === req.user.id;
 
     if (!exists) {
       return res.status(404).json({
@@ -816,6 +849,7 @@ app.delete("/api/book-project/:id", async (req, res) => {
     }
 
     bookProjectStore.delete(req.params.id);
+    await deletePersistentProject(req.params.id,req.user.id);
 
     return res.json({
       ok: true,
@@ -834,11 +868,11 @@ app.delete("/api/book-project/:id", async (req, res) => {
 /* ===============================
    DRAFT CHAPTER
 =============================== */
-app.post("/api/book-project/:id/chapter-draft", async (req, res) => {
+app.post("/api/book-project/:id/chapter-draft", requireAuth, requireEntitlement("books"), meterOperation({operation:"book.chapter",amount:8}), async (req, res) => {
   try {
-    const project = bookProjectStore.get(req.params.id);
+    const project = await loadBookProject(req.params.id,req.user.id);
 
-    if (!project) {
+    if (!project || project.userId !== req.user.id) {
       return res.status(404).json({
         ok: false,
         error: "Book project not found.",
@@ -968,7 +1002,7 @@ app.post("/api/book-project/:id/chapter-draft", async (req, res) => {
 /* ===============================
    AGENT WORKFLOW: RESEARCH SUMMARY
 =============================== */
-app.post("/api/agent-workflow/research-summary", async (req, res) => {
+app.post("/api/agent-workflow/research-summary", requireAuth, meterOperation({operation:"research.generate",amount:3}), async (req, res) => {
   try {
     const input = String(req.body?.input || "").trim();
 
@@ -1013,6 +1047,7 @@ app.post("/api/agent-workflow/research-summary", async (req, res) => {
     await Promise.all(
       (search.results || []).map((source) =>
         saveResearchSource({
+          userId: req.user.id,
           category: "research",
           topic: input,
           title: source.title || "",
@@ -1028,6 +1063,7 @@ app.post("/api/agent-workflow/research-summary", async (req, res) => {
 
     try {
       await saveWorkflowRun({
+        userId: req.user.id,
         workflowKey: "research_summary",
         primaryAgent: "research",
         inputText: input,
@@ -1059,7 +1095,7 @@ app.post("/api/agent-workflow/research-summary", async (req, res) => {
 /* ===============================
    AGENT WORKFLOW: BUSINESS STRATEGY SCAN
 =============================== */
-app.post("/api/agent-workflow/business-strategy-scan", async (req, res) => {
+app.post("/api/agent-workflow/business-strategy-scan", requireAuth, meterOperation({operation:"strategy.generate",amount:3}), async (req, res) => {
   try {
     const input = String(req.body?.input || "").trim();
 
@@ -1091,6 +1127,7 @@ app.post("/api/agent-workflow/business-strategy-scan", async (req, res) => {
 
     try {
       await saveWorkflowRun({
+        userId: req.user.id,
         workflowKey: "business_strategy_scan",
         primaryAgent: "strategy",
         inputText: input,
@@ -1122,7 +1159,7 @@ app.post("/api/agent-workflow/business-strategy-scan", async (req, res) => {
 /* ===============================
    SAAS BUILDER
 =============================== */
-app.post("/api/saas-builder/blueprint", async (req, res) => {
+app.post("/api/saas-builder/blueprint", requireAuth, requireEntitlement("automation"), meterOperation({operation:"saas.blueprint",amount:5}), async (req, res) => {
   try {
     const input = String(req.body?.input || "").trim();
     const audience = String(req.body?.audience || "General audience").trim();
@@ -1158,6 +1195,7 @@ app.post("/api/saas-builder/blueprint", async (req, res) => {
 
     try {
       saasProject = await createPersistentProject({
+        userId: req.user.id,
         type: "saas-blueprint",
         title: input,
         summary: "AI SaaS blueprint generated by AstraMind",
@@ -1175,6 +1213,7 @@ app.post("/api/saas-builder/blueprint", async (req, res) => {
 
     try {
       await saveWorkflowRun({
+        userId: req.user.id,
         projectId: saasProject?.id,
         workflowKey: "saas_builder",
         primaryAgent: "saas",
@@ -1210,7 +1249,7 @@ app.post("/api/saas-builder/blueprint", async (req, res) => {
 /* ===============================
    CONTENT GENERATOR
 =============================== */
-app.post("/api/content/generate", async (req, res) => {
+app.post("/api/content/generate", requireAuth, requireEntitlement("scripts"), meterOperation({operation:"content.generate",amount:3}), async (req, res) => {
   try {
     const type = String(req.body?.type || "campaign-plan").trim();
     const topic = String(req.body?.topic || "").trim();
@@ -1249,6 +1288,7 @@ app.post("/api/content/generate", async (req, res) => {
 
     try {
       await saveWorkflowRun({
+        userId: req.user.id,
         workflowKey: "content_generate",
         primaryAgent: "content",
         inputText: topic,
@@ -1284,7 +1324,7 @@ app.post("/api/content/generate", async (req, res) => {
 /* ===============================
    FULL BOOK PACKAGE
 =============================== */
-app.post("/api/content/book-full", async (req, res) => {
+app.post("/api/content/book-full", requireAuth, requireEntitlement("books"), meterOperation({operation:"book.package",amount:10}), async (req, res) => {
   try {
     const payload = normalizeProjectPayload(req.body);
 
@@ -1295,7 +1335,7 @@ app.post("/api/content/book-full", async (req, res) => {
       });
     }
 
-    const project = await createBookProjectInternal(payload);
+    const project = await createBookProjectInternal({ ...payload, userId:req.user.id });
 
     const result = await callOpenAIChat(
       [
@@ -1322,6 +1362,7 @@ app.post("/api/content/book-full", async (req, res) => {
 
     try {
       await saveWorkflowRun({
+        userId: req.user.id,
         projectId: project.id,
         workflowKey: "book_full",
         primaryAgent: "book",
@@ -1378,9 +1419,11 @@ app.get("/", (req, res) => {
 /* ===============================
    OPTIONAL: CLEAR ALL PROJECTS (DEV TOOL)
 =============================== */
-app.delete("/api/book-projects/clear", (req, res) => {
+app.delete("/api/book-projects/clear", requireAuth, async (req, res) => {
   try {
-    bookProjectStore.clear();
+    for (const [id, project] of bookProjectStore.entries()) if (project.userId === req.user.id) bookProjectStore.delete(id);
+    const projects=await getPersistentProjects(1000,req.user.id);
+    await Promise.all(projects.filter((item)=>item.type==="book").map((item)=>deletePersistentProject(item.id,req.user.id)));
 
     return res.json({
       ok: true,
@@ -1399,12 +1442,13 @@ app.delete("/api/book-projects/clear", (req, res) => {
 /* ===============================
    OPTIONAL: DEBUG VIEW (DEV TOOL)
 =============================== */
-app.get("/api/debug/store", (req, res) => {
+app.get("/api/debug/store", requireAuth, (req, res) => {
   try {
+    if (process.env.NODE_ENV === "production") return res.status(404).json({ok:false,error:"Route not found"});
     return res.json({
       ok: true,
       size: bookProjectStore.size,
-      data: Array.from(bookProjectStore.entries()),
+      data: Array.from(bookProjectStore.entries()).filter(([,project])=>project.userId===req.user.id),
     });
   } catch (error) {
     return res.status(500).json({
@@ -1428,9 +1472,18 @@ app.use((req, res) => {
    GLOBAL ERROR HANDLER
 =============================== */
 app.use((err, req, res, next) => {
+  if (err?.type === "entity.too.large") {
+    console.warn("[HTTP] Request rejected because its JSON payload exceeded 256kb.");
+    return res.status(413).json({
+      ok: false,
+      error: "This request is too large. Start a new chat or shorten the attached conversation context.",
+      code: "REQUEST_TOO_LARGE",
+      limit: "256kb",
+    });
+  }
   console.error("🔥 GLOBAL ERROR:", err);
 
-  res.status(500).json({
+  return res.status(500).json({
     ok: false,
     error: "Internal server error",
     details: err.message,
@@ -1443,6 +1496,7 @@ app.use((err, req, res, next) => {
 async function bootstrap() {
   try {
     await initPlatformCoreTables();
+    initCreatorBrainTables();
 
     app.listen(PORT, () => {
       console.log("======================================");

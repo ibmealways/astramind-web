@@ -1,12 +1,10 @@
-const SEARCH_ENABLED =
-  String(process.env.ENABLE_WEB_SEARCH || "true").toLowerCase() === "true";
-
-const SEARCH_PROVIDER =
-  process.env.WEB_SEARCH_PROVIDER ||
-  process.env.SEARCH_PROVIDER ||
-  "tavily";
-
-const TAVILY_API_KEY = process.env.TAVILY_API_KEY || "";
+// Read provider configuration at request time. ES module imports are evaluated
+// before server.js calls dotenv.config(), so module-level snapshots can be empty
+// even when the key is correctly present in .env.
+const searchEnabled = () => String(process.env.ENABLE_WEB_SEARCH || "true").toLowerCase() === "true";
+const searchProvider = () => process.env.WEB_SEARCH_PROVIDER || process.env.SEARCH_PROVIDER || "tavily";
+const tavilyApiKey = () => process.env.TAVILY_API_KEY || "";
+const newsApiKey = () => process.env.NEWS_API_KEY || "";
 
 function cleanText(value) {
   return String(value || "")
@@ -25,7 +23,8 @@ function normalizeResults(results = []) {
       title: cleanText(item.title),
       url: cleanText(item.url),
       snippet: cleanText(item.content || item.snippet || item.description),
-      publishedDate: cleanText(item.published_date || item.publishedDate || item.date),
+      publishedDate: cleanText(item.published_date || item.publishedDate || item.publishedAt || item.date),
+      sourceName: cleanText(item.sourceName || item.source?.name || item.publisher),
       score: Number(item.score || 0),
     }))
     .filter((item) => item.title || item.url || item.snippet);
@@ -65,11 +64,63 @@ export function shouldUseWebSearch(query = "") {
   return triggers.some((trigger) => text.includes(trigger));
 }
 
+async function searchTavily(cleanedQuery, options, fetchImpl, apiKey) {
+  if (!apiKey) return { ok: false, provider: "tavily", error: "Missing TAVILY_API_KEY.", results: [] };
+  try {
+    const response = await fetchImpl("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query: cleanedQuery,
+        search_depth: options.searchDepth || "advanced",
+        include_answer: Boolean(options.includeAnswer),
+        include_images: false,
+        include_raw_content: false,
+        max_results: options.maxResults || 5,
+        topic: options.topic || undefined,
+        days: options.days || undefined,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) return { ok: false, provider: "tavily", error: data?.error || data?.message || `Tavily search failed with status ${response.status}.`, results: [] };
+    const results = normalizeResults(data?.results || []);
+    return { ok: results.length > 0, provider: "tavily", query: cleanedQuery, answer: cleanText(data?.answer), results, error: results.length ? null : "Tavily returned no results." };
+  } catch (error) {
+    return { ok: false, provider: "tavily", query: cleanedQuery, error: error.message || "Unknown Tavily search error.", results: [] };
+  }
+}
+
+async function searchNewsApi(cleanedQuery, options, fetchImpl, apiKey) {
+  if (!apiKey) return { ok: false, provider: "newsapi", error: "Missing NEWS_API_KEY.", results: [] };
+  try {
+    const parameters = new URLSearchParams({
+      q: cleanedQuery.slice(0, 500),
+      language: options.language || "en",
+      sortBy: options.sortBy || "relevancy",
+      pageSize: String(Math.min(100, Math.max(1, Number(options.maxResults || 5)))),
+      page: "1",
+    });
+    const response = await fetchImpl(`https://newsapi.org/v2/everything?${parameters}`, {
+      headers: { "X-Api-Key": apiKey },
+    });
+    const data = await response.json();
+    if (!response.ok || data?.status !== "ok") {
+      return { ok: false, provider: "newsapi", error: data?.message || data?.code || `NewsAPI search failed with status ${response.status}.`, code: data?.code, results: [] };
+    }
+    const results = normalizeResults(data?.articles || []);
+    return { ok: results.length > 0, provider: "newsapi", query: cleanedQuery, results, error: results.length ? null : "NewsAPI returned no articles." };
+  } catch (error) {
+    return { ok: false, provider: "newsapi", query: cleanedQuery, error: error.message || "Unknown NewsAPI search error.", results: [] };
+  }
+}
+
 export async function runWebSearch(query, options = {}) {
-  if (!SEARCH_ENABLED) {
+  const configuredProvider = searchProvider();
+  if (!searchEnabled()) {
     return {
       ok: false,
-      provider: SEARCH_PROVIDER,
+      provider: configuredProvider,
       error: "Web search disabled.",
       results: [],
     };
@@ -80,77 +131,29 @@ export async function runWebSearch(query, options = {}) {
   if (!cleanedQuery) {
     return {
       ok: false,
-      provider: SEARCH_PROVIDER,
+      provider: configuredProvider,
       error: "Missing search query.",
       results: [],
     };
   }
 
-  if (SEARCH_PROVIDER === "tavily") {
-    if (!TAVILY_API_KEY) {
-      return {
-        ok: false,
-        provider: "tavily",
-        error: "Missing TAVILY_API_KEY.",
-        results: [],
-      };
-    }
+  const fetchImpl = options.fetchImpl || fetch;
+  const configuredOrder = Array.isArray(options.providerOrder) && options.providerOrder.length
+    ? options.providerOrder
+    : [configuredProvider, "tavily", "newsapi"];
+  const providerOrder = unique(configuredOrder.map((provider) => cleanText(provider).toLowerCase()));
+  const attempts = [];
 
-    try {
-      const response = await fetch("https://api.tavily.com/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          api_key: TAVILY_API_KEY,
-          query: cleanedQuery,
-          search_depth: options.searchDepth || "advanced",
-          include_answer: Boolean(options.includeAnswer),
-          include_images: false,
-          include_raw_content: false,
-          max_results: options.maxResults || 5,
-          topic: options.topic || undefined,
-          days: options.days || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          ok: false,
-          provider: "tavily",
-          error: data?.error || data?.message || "Search request failed.",
-          results: [],
-        };
-      }
-
-      return {
-        ok: true,
-        provider: "tavily",
-        query: cleanedQuery,
-        answer: cleanText(data?.answer),
-        results: normalizeResults(data?.results || []),
-      };
-    } catch (error) {
-      return {
-        ok: false,
-        provider: "tavily",
-        query: cleanedQuery,
-        error: error.message || "Unknown search error.",
-        results: [],
-      };
-    }
+  for (const provider of providerOrder) {
+    let result;
+    if (provider === "tavily") result = await searchTavily(cleanedQuery, options, fetchImpl, options.tavilyApiKey ?? tavilyApiKey());
+    else if (provider === "newsapi") result = await searchNewsApi(cleanedQuery, options, fetchImpl, options.newsApiKey ?? newsApiKey());
+    else result = { ok: false, provider, error: `Unsupported search provider: ${provider}`, results: [] };
+    attempts.push({ provider: result.provider, ok: result.ok, resultCount: result.results?.length || 0, error: result.error || null });
+    if (result.ok && result.results.length) return { ...result, fallbackUsed: attempts.length > 1, attempts };
   }
 
-  return {
-    ok: false,
-    provider: SEARCH_PROVIDER,
-    query: cleanedQuery,
-    error: `Unsupported search provider: ${SEARCH_PROVIDER}`,
-    results: [],
-  };
+  return { ok: false, provider: providerOrder[0] || configuredProvider, query: cleanedQuery, error: attempts.map(({ provider, error }) => `${provider}: ${error}`).join(" | ") || "All search providers failed.", results: [], attempts };
 }
 
 function buildResearchQueries({ query = "", intent = {}, platform = "TikTok" } = {}) {

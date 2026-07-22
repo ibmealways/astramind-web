@@ -67,6 +67,15 @@ export async function initPlatformCoreTables() {
     );
   `);
 
+  for (const table of ["platform_projects", "workflow_runs", "research_sources"]) {
+    try { await db.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT NOT NULL DEFAULT 'system'`); } catch {}
+  }
+  await db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_platform_projects_user ON platform_projects(user_id, updated_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_workflow_runs_user ON workflow_runs(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_research_sources_user ON research_sources(user_id, created_at DESC);
+  `);
+
   await db.exec(`
     CREATE INDEX IF NOT EXISTS idx_platform_projects_type
     ON platform_projects(type);

@@ -1,222 +1,134 @@
-/**
- * ============================================================================
- * AstraMind Technologies
- * AstraMind OS 3.0
- * ----------------------------------------------------------------------------
- * File: KernelBootstrap.js
- * Purpose:
- * Boots AstraMind OS by initializing the Kernel, registering core services,
- * verifying platform health, and exposing a singleton Kernel instance.
- * ----------------------------------------------------------------------------
- * Version: 3.0.0-alpha.1
- * Sprint: 1 - Kernel Foundation
- * ============================================================================
- */
-
 import AstraMindKernel from "./AstraMindKernel.js";
-import KernelRegistry from "./KernelRegistry.js";
-import EventBus from "./EventBus.js";
-import HealthMonitor from "./HealthMonitor.js";
-import DiagnosticsEngine from "./DiagnosticsEngine.js";
+import KernelExecutor from "./KernelExecutor.js";
+import KernelRegistry, { AUTHORITY_TYPES } from "./KernelRegistry.js";
+import EventBus from "../events/EventBus.js";
+import Diagnostics from "../diagnostics/DiagnosticsEngine.js";
+import HealthMonitor from "../diagnostics/HealthMonitor.js";
+import ManifestLoader from "../manifest/ManifestLoader.js";
+import defaultManifest from "../manifest/defaultManifest.js";
+import CapabilityRouter from "../capabilities/CapabilityRouter.js";
+import MissionRuntime from "../mission/MissionRuntime.js";
+import BoundedAutonomousRuntime from "../mission/BoundedAutonomousRuntime.js";
+import MissionStore from "../mission/MissionStore.js";
+import ProviderRegistry from "../providers/ProviderRegistry.js";
+import ProviderRouter from "../providers/ProviderRouter.js";
+import { AuthorityContract, CapabilityContract } from "../contracts/SystemContracts.js";
 
-class KernelBootstrap {
-  constructor() {
+export class KernelBootstrap {
+  constructor({ manifest = defaultManifest, workflowHandler = null, authorityFactories = {}, providerFactories = {}, missionStore = null } = {}) {
+    this.manifestSource = manifest;
+    this.workflowHandler = workflowHandler;
+    this.authorityFactories = { ...authorityFactories };
+    this.providerFactories = { ...providerFactories };
+    this.missionStore = missionStore;
     this.initialized = false;
-
+    this.bootPromise = null;
     this.kernel = null;
-    this.registry = null;
-    this.eventBus = null;
-    this.healthMonitor = null;
-    this.diagnostics = null;
   }
 
-  /**
-   * --------------------------------------------------------
-   * Boot AstraMind
-   * --------------------------------------------------------
-   */
+  configure({ manifest, workflowHandler, authorityFactories, providerFactories, missionStore } = {}) {
+    if (this.initialized || this.bootPromise) throw new Error("Cannot configure Kernel after boot has started.");
+    if (manifest) this.manifestSource = manifest;
+    if (workflowHandler) this.workflowHandler = workflowHandler;
+    if (authorityFactories) this.authorityFactories = { ...this.authorityFactories, ...authorityFactories };
+    if (providerFactories) this.providerFactories = { ...this.providerFactories, ...providerFactories };
+    if (missionStore) this.missionStore = missionStore;
+    return this;
+  }
+
   async boot() {
-    if (this.initialized) {
-      console.warn("⚠ AstraMind Kernel already initialized.");
-      return this.kernel;
-    }
-
-    console.group("🚀 AstraMind OS Boot");
-
-    try {
-      console.log("Initializing Event Bus...");
-      this.eventBus = new EventBus();
-
-      console.log("Initializing Diagnostics...");
-      this.diagnostics = new DiagnosticsEngine({
-        eventBus: this.eventBus,
-      });
-
-      console.log("Initializing Health Monitor...");
-      this.healthMonitor = new HealthMonitor({
-        diagnostics: this.diagnostics,
-      });
-
-      console.log("Initializing Capability Registry...");
-      this.registry = new KernelRegistry({
-        diagnostics: this.diagnostics,
-      });
-
-      console.log("Initializing Kernel...");
-      this.kernel = new AstraMindKernel({
-        registry: this.registry,
-        diagnostics: this.diagnostics,
-        eventBus: this.eventBus,
-        healthMonitor: this.healthMonitor,
-      });
-
-      await this.registerCoreCapabilities();
-
-      await this.healthCheck();
-
-      this.initialized = true;
-
-      console.log("✅ AstraMind Kernel ONLINE");
-
-      console.groupEnd();
-
-      return this.kernel;
-    } catch (err) {
-      console.error("❌ Kernel boot failed");
-
-      console.error(err);
-
-      console.groupEnd();
-
-      throw err;
-    }
+    if (this.initialized) return this.kernel;
+    if (this.bootPromise) return this.bootPromise;
+    this.bootPromise = this.initialize();
+    try { return await this.bootPromise; }
+    catch (error) { this.bootPromise = null; throw error; }
   }
 
-  /**
-   * --------------------------------------------------------
-   * Register Built-In Capabilities
-   * --------------------------------------------------------
-   */
-  async registerCoreCapabilities() {
-    console.log("Registering built-in capabilities...");
+  async initialize() {
+    const manifest = new ManifestLoader().load(this.manifestSource);
+    const registry = KernelRegistry.create({ kernelName: manifest.metadata.name });
+    const healthMonitor = new HealthMonitor({ diagnostics: Diagnostics });
+    const providerRegistry = new ProviderRegistry({ eventBus: EventBus });
+    const requiredProviders = new Set(manifest.boot.requiredProviders || []);
+    for (const provider of manifest.providers) {
+      if (provider.status !== "active") continue;
+      const factory = this.providerFactories[provider.id];
+      if (!factory) throw new Error(`No provider factory registered for manifest provider: ${provider.id}`);
+      const instance = await factory({ manifest, provider, diagnostics: Diagnostics, eventBus: EventBus });
+      providerRegistry.register({ ...provider, required: requiredProviders.has(provider.id) }, instance);
+    }
+    const providerRouter = new ProviderRouter({ registry: providerRegistry, eventBus: EventBus });
+    const workflowHandler = this.workflowHandler || (async ({ mission, input }) => ({ mission, input }));
+    const factories = {
+      workflow: () => ({
+        execute: ({ action, payload, metadata }) => {
+          if (action !== "run") throw new Error(`Unsupported workflow action: ${action}`);
+          return workflowHandler(payload, metadata);
+        },
+      }),
+      ...this.authorityFactories,
+    };
 
-    this.registry.register({
-      id: "conversation",
-      version: "1.0.0",
-      description: "Conversation Engine",
-      health: "unknown",
+    const createContractAuthority = (authority) => ({
+      execute: async ({ action, payload, metadata, requestId }) => ({
+        ok: true,
+        routed: true,
+        authority: authority.id,
+        capabilityAction: action,
+        requestId,
+        payload,
+        metadata,
+        executionBoundary: "contract",
+      }),
     });
 
-    this.registry.register({
-      id: "creatorBrain",
-      version: "1.0.0",
-      description: "Creator Intelligence",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "finance",
-      version: "1.0.0",
-      description: "Finance OS",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "research",
-      version: "1.0.0",
-      description: "Research OS",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "content",
-      version: "1.0.0",
-      description: "Content OS",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "business",
-      version: "1.0.0",
-      description: "Business OS",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "publishing",
-      version: "1.0.0",
-      description: "Publishing Layer",
-      health: "unknown",
-    });
-
-    this.registry.register({
-      id: "memory",
-      version: "1.0.0",
-      description: "Memory System",
-      health: "unknown",
-    });
-
-    console.log(
-      `Registered ${this.registry.getAll().length} capabilities`
-    );
-  }
-
-  /**
-   * --------------------------------------------------------
-   * Platform Health Verification
-   * --------------------------------------------------------
-   */
-  async healthCheck() {
-    console.log("Running Kernel health check...");
-
-    const report = await this.healthMonitor.run();
-
-    if (!report.healthy) {
-      console.warn("⚠ AstraMind booted with warnings.");
-    } else {
-      console.log("✓ All core systems healthy.");
+    for (const authority of manifest.authorities) {
+      if (authority.status !== "active") continue;
+      const factory = factories[authority.id] || (authority.entryPoint === "builtin-contract" ? () => createContractAuthority(authority) : null);
+      if (!factory) throw new Error(`No authority factory registered for manifest authority: ${authority.id}`);
+      const instance = await factory({ manifest, authority, registry, providerRegistry, providerRouter, diagnostics: Diagnostics, eventBus: EventBus });
+      AuthorityContract.assert(authority, instance);
+      registry.register({
+        id: authority.id,
+        name: authority.name,
+        type: authority.id === "workflow" ? AUTHORITY_TYPES.WORKFLOW : AUTHORITY_TYPES.AUTHORITY,
+        version: authority.version,
+        dependencies: authority.dependencies || [],
+        instance,
+        metadata: { entryPoint: authority.entryPoint, requiredCapabilities: authority.requiredCapabilities || [] },
+      });
     }
 
-    return report;
-  }
+    const executor = KernelExecutor.create({ registry, eventBus: EventBus });
+    const capabilityRouter = new CapabilityRouter({ registry });
+    for (const capability of manifest.capabilities) {
+      if (capability.status !== "active") continue;
+      CapabilityContract.assert(capability);
+      if (!capability.authority) throw new Error(`Active capability requires an authority route: ${capability.id}`);
+      capabilityRouter.register(capability.id, { authority: capability.authority, action: capability.action || "run" });
+    }
+    const missionStore = this.missionStore || new MissionStore({ limit: 500 });
+    const missionRuntime = new MissionRuntime({ executor, capabilityRouter, store: missionStore, eventBus: EventBus });
+    const autonomousRuntime = new BoundedAutonomousRuntime({ executor, capabilityRouter, store: missionStore, eventBus: EventBus });
+    healthMonitor
+      .register("manifest", () => ({ healthy: Object.isFrozen(manifest), version: manifest.metadata.manifestVersion }))
+      .register("registry", () => registry.health())
+      .register("executor", () => executor.health())
+      .register("capabilities", () => capabilityRouter.health())
+      .register("missions", () => missionRuntime.health())
+      .register("bounded-autonomy", () => autonomousRuntime.health());
+    healthMonitor.register("providers", () => providerRegistry.health());
 
-  /**
-   * --------------------------------------------------------
-   * Get Kernel
-   * --------------------------------------------------------
-   */
-  getKernel() {
+    this.kernel = new AstraMindKernel({ manifest, registry, executor, diagnostics: Diagnostics, eventBus: EventBus, healthMonitor, capabilityRouter, missionRuntime, autonomousRuntime, providerRegistry, providerRouter });
+    const health = await this.kernel.health();
+    if (!health.healthy) throw new Error("Kernel failed its startup health check.");
+    this.initialized = true;
+    EventBus.publish("kernel.initialized", this.kernel.info());
     return this.kernel;
   }
 
-  /**
-   * --------------------------------------------------------
-   * Diagnostics
-   * --------------------------------------------------------
-   */
-  getDiagnostics() {
-    return this.diagnostics;
-  }
-
-  /**
-   * --------------------------------------------------------
-   * Registry
-   * --------------------------------------------------------
-   */
-  getRegistry() {
-    return this.registry;
-  }
-
-  /**
-   * --------------------------------------------------------
-   * Event Bus
-   * --------------------------------------------------------
-   */
-  getEventBus() {
-    return this.eventBus;
-  }
+  getKernel() { return this.kernel; }
 }
 
 const bootstrap = new KernelBootstrap();
-
 export default bootstrap;

@@ -20,7 +20,7 @@ const navGroups = [
     ],
   },
   {
-    title: "Content Creation OS",
+    title: "Creator Studio",
     items: [
       { to: "/content", label: "Content Creator", icon: "🎬" },
       { to: "/content-lab", label: "Content Lab", icon: "🧪" },
@@ -111,7 +111,11 @@ export default function Sidebar() {
 
             <div className="sidebar-group-links">
               {group.items.map((item) => (
-                <SidebarLink key={item.to} {...item} />
+                <SidebarLink
+                  key={item.to}
+                  {...item}
+                  label={item.to === "/content" ? "Creator Studio" : item.label}
+                />
               ))}
             </div>
           </section>

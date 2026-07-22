@@ -98,14 +98,11 @@ function getRequestOrigin(req) {
 function isOwnerRequest(req) {
   const ownerSecret =
     process.env.ASTRAMIND_OWNER_SECRET ||
-    process.env.ADMIN_API_SECRET ||
-    process.env.JWT_SECRET;
+    process.env.ADMIN_API_SECRET;
 
   const supplied =
     req.headers["x-astramind-owner-secret"] ||
     req.headers["x-admin-secret"] ||
-    req.body?.ownerSecret ||
-    req.query?.ownerSecret ||
     "";
 
   return Boolean(ownerSecret && supplied && supplied === ownerSecret);
@@ -301,7 +298,7 @@ async function meteredHandler({
 /* PUBLIC                                                                     */
 /* -------------------------------------------------------------------------- */
 
-router.get("/health", (req, res) => {
+router.get("/health", async (req, res) => {
   res.json({
     ok: true,
     service: "AstraMind Developer API Platform",
@@ -315,7 +312,7 @@ router.get("/health", (req, res) => {
     queue: getQueueStats(),
     worker: getJobWorkerState(),
     cinematic: getCinematicHealth(),
-    videoProviders: getAIVideoGenerationHealth(),
+    videoProviders: await getAIVideoGenerationHealth(),
     timestamp: new Date().toISOString(),
   });
 });
@@ -905,7 +902,7 @@ router.get("/admin/worker/state", ownerOnly, (req, res) => {
 /* STATUS                                                                     */
 /* -------------------------------------------------------------------------- */
 
-router.get("/status", requireApiKey("developer:read"), (req, res) => {
+router.get("/status", requireApiKey("developer:read"), async (req, res) => {
   res.json({
     ok: true,
     platform: "AstraMind Developer API Platform",
@@ -914,7 +911,7 @@ router.get("/status", requireApiKey("developer:read"), (req, res) => {
     plan: req.astramindPlan,
     health: {
       cinematic: getCinematicHealth(),
-      videoProviders: getAIVideoGenerationHealth(),
+      videoProviders: await getAIVideoGenerationHealth(),
       queue: getQueueStats(),
       worker: getJobWorkerState(),
     },
