@@ -151,7 +151,7 @@ generated-audio/
 # Local Memory
 ############################
 
-memory/
+/memory/
 sessions/
 conversation-cache/
 
