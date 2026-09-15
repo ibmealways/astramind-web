@@ -5,7 +5,9 @@ import { open } from "sqlite";
 
 const DB_DIR = path.resolve(process.cwd(), "data");
 const DB_PATH =
-  process.env.ASTRAMIND_DB_PATH || path.join(DB_DIR, "astramind-platform.db");
+  process.env.AIGENIKZ_PLATFORM_DB_PATH ||
+  process.env.ASTRAMIND_DB_PATH ||
+  path.join(DB_DIR, "astramind-platform.db");
 
 let dbInstance = null;
 
@@ -14,8 +16,9 @@ export async function getPlatformDb() {
     return dbInstance;
   }
 
-  if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+  const targetDir = path.dirname(DB_PATH);
+  if (!fs.existsSync(targetDir)) {
+    fs.mkdirSync(targetDir, { recursive: true });
   }
 
   dbInstance = await open({

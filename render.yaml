@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: aigenikz-intelligence-os-staging
+    runtime: node
+    plan: free
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: npm ci && npm run build
+    startCommand: npm run server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AIGENIKZ_AUTH_DB_PATH
+        value: /opt/render/project/src/storage/aigenikz-auth.db
+      - key: AIGENIKZ_PLATFORM_DB_PATH
+        value: /opt/render/project/src/storage/aigenikz-platform.db
+      - key: AI_VIDEO_PROVIDER
+        value: local
+      - key: ENABLE_WEB_SEARCH
+        value: "false"
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_PRICE_BASIC
+        sync: false
+      - key: STRIPE_PRICE_PRO
+        sync: false
+      - key: STRIPE_PRICE_ELITE
+        sync: false

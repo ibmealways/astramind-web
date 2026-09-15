@@ -1,4 +1,6 @@
-const INTERNAL_API_URL = process.env.INTERNAL_API_URL || "http://127.0.0.1:5000";
+const INTERNAL_API_URL =
+  process.env.INTERNAL_API_URL ||
+  `http://127.0.0.1:${process.env.PORT || process.env.BACKEND_PORT || 5000}`;
 import express from "express";
 import OpenAI from "openai";
 import fetch from "node-fetch";
