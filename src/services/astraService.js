@@ -1,6 +1,4 @@
-const API_BASE =
-  process.env.REACT_APP_ASTRAMIND_API_BASE || "http://localhost:5000";
-
+import { API_URL as API_BASE } from "../config/api.js";
 async function handleResponse(response) {
   const contentType = response.headers.get("content-type") || "";
 

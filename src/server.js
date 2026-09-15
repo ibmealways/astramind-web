@@ -38,7 +38,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: (process.env.CORS_ORIGINS || "http://localhost:3000")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
     credentials: true,
   })
 );

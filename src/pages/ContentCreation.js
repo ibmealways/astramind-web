@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import { useOSMode } from "../context/ModeContext.js";
 import { OS_MODES } from "../core/os/modes.js";
 
-import { useProjects } from "../context/ProjectContext.js";
 import { useSubscription } from "../context/SubscriptionContext.js";
 
 import { runVideoEngine } from "../core/content/videoEngine.js";
@@ -23,6 +22,7 @@ import { routeTool } from "../core/router/toolRouter.js";
 import { generatePlatformPack } from "../core/content/contentPackager.js";
 
 import { canAccess } from "../core/subscription/accessControl.js";
+import { apiUrl, resolveApiAssetUrl } from "../config/api.js";
 
 const TOOL_ORDER = [
   "video",
@@ -59,12 +59,6 @@ export default function ContentCreation() {
 
   const { currentMode } =
     useOSMode();
-
-  const {
-    activeProject,
-    projects,
-    createProject,
-  } = useProjects();
 
   const { tier } =
     useSubscription();
@@ -114,11 +108,6 @@ export default function ContentCreation() {
   const [
     generatedVideoUrl,
     setGeneratedVideoUrl,
-  ] = useState(null);
-
-  const [
-    diagnostics,
-    setDiagnostics,
   ] = useState(null);
 
   const [
@@ -183,7 +172,7 @@ export default function ContentCreation() {
 
       const response =
         await fetch(
-          "http://localhost:5000/api/cinematic-video/render",
+          apiUrl("/api/cinematic-video/render"),
           {
             method: "POST",
 
@@ -271,7 +260,7 @@ ADVANCED VIDEO URL EXTRACTION
           "http"
         )
           ? rawVideoUrl
-          : `http://localhost:5000${rawVideoUrl}`;
+          : resolveApiAssetUrl(rawVideoUrl);
 
       setGeneratedVideoUrl(
         normalizedVideoUrl
@@ -305,7 +294,7 @@ ADVANCED VIDEO URL EXTRACTION
     try {
       const response =
         await fetch(
-          "http://localhost:5000/api/cinematic-video/render-queue"
+          apiUrl("/api/cinematic-video/render-queue")
         );
 
       const responseText =

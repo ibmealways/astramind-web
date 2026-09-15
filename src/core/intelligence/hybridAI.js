@@ -1,12 +1,10 @@
+import { API_URL as DEFAULT_API_URL } from "../../config/api.js";
 // src/core/intelligence/hybridAI.js
 
 import { runLocalAI } from "../memory/aiEngine.js";
 import { detectAgentIntent } from "../agents/agentRouter.js";
 import { runAutonomousWorkflow } from "../workflows/workflowEngine.js";
 import { recallRelevantMemory } from "../memory/memoryEngine.js";
-
-const DEFAULT_API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 // ============================
 // 🧠 SEMANTIC MEMORY

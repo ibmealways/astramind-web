@@ -1,3 +1,4 @@
+const INTERNAL_API_URL = process.env.INTERNAL_API_URL || "http://127.0.0.1:5000";
 import express from "express";
 import OpenAI from "openai";
 import fetch from "node-fetch";
@@ -632,8 +633,8 @@ If the user says "help me write a book," give a strong book concept, title optio
 
       try {
         const [pRes, wRes] = await Promise.all([
-          fetch("http://localhost:5000/api/finance/portfolio"),
-          fetch("http://localhost:5000/api/finance/watchlist"),
+          fetch(`${INTERNAL_API_URL}/api/finance/portfolio`),
+          fetch(`${INTERNAL_API_URL}/api/finance/watchlist`),
         ]);
 
         const portfolio = (await pRes.json()).data || [];

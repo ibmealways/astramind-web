@@ -1,8 +1,7 @@
+import { API_URL } from "../../config/api.js";
 import React, { useEffect, useRef, useState } from "react";
 import "./FinanceTradePilot.css";
 import LiveSignalPanel from "./LiveSignalPanel.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function cleanMoneyNumber(value) {
   if (!value) return null;
@@ -180,17 +179,6 @@ export default function FinanceTradePilot() {
 
   const updateMentorField = (field, value) => {
     setMentorForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const syncMentorWithRouteProfile = () => {
-    setMentorForm((prev) => ({
-      ...prev,
-      accountSize: form.startingCapital,
-      weeklyDeposit: form.weeklyDeposit,
-      riskTolerance: form.riskTolerance,
-      experience: form.experience,
-      subscriptionTier: form.subscriptionTier,
-    }));
   };
 
   const generateRoute = async (overrideForm = null) => {

@@ -1,7 +1,6 @@
+import { API_URL } from "../../config/api.js";
 // src/core/content/videoEngine.js
 import { createArtifact } from "./artifacts.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function cleanText(value = "") {
   return String(value || "").replace(/\s+/g, " ").trim();

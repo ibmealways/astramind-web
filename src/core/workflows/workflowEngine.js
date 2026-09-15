@@ -1,7 +1,5 @@
+import { API_URL as DEFAULT_API_URL } from "../../config/api.js";
 import { detectAgentIntent } from "../agents/agentRouter.js";
-
-const DEFAULT_API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function getApiUrl() {
   return localStorage.getItem("astramind_api_url") || DEFAULT_API_URL;

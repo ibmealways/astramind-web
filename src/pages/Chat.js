@@ -4,14 +4,13 @@ import "../styles/chat.css";
 
 import { useOSMode } from "../context/ModeContext.js";
 import { APP_MODES } from "../config/modeConfig.js";
+import { API_URL } from "../config/api.js";
 import { loadCreatorMemory } from "../core/memory/creatorMemory.js";
 
 import {
   buildAdaptiveSystemPrompt,
   logAdaptiveEvent,
 } from "../core/adaptive/adaptiveEngine.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const HANDOFF_KEY = "astramind_handoff";
 const CHAT_STORE_KEY = "astramind_saved_chats";
@@ -200,7 +199,10 @@ export default function Chat() {
     return chats.find((chat) => chat.id === activeChatId) || chats[0] || null;
   }, [chats, activeChatId]);
 
-  const messages = activeChat?.messages || [DEFAULT_MESSAGE];
+  const messages = useMemo(
+    () => activeChat?.messages || [DEFAULT_MESSAGE],
+    [activeChat]
+  );
 
   useEffect(() => {
     setMode(APP_MODES.EXECUTION);

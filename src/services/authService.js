@@ -6,7 +6,10 @@ import {
   sanitizeUser,
 } from "./userService.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || "astramind_dev_secret_change_me";
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? "" : "aigenikz_local_development_only");
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is required when NODE_ENV=production.");
+}
 const JWT_EXPIRES_IN = "7d";
 
 export async function registerUser({ name, email, password }) {

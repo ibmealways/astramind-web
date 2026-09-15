@@ -1,6 +1,5 @@
+import { API_URL } from "../../config/api.js";
 import React, { useEffect, useMemo, useState } from "react";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function LiveSignalPanel({
   subscriptionTier = "finance_pro",

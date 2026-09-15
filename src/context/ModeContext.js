@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { APP_MODES, getModeConfig, getAllModes } from "../config/modeConfig.js";
@@ -70,7 +69,7 @@ export function ModeProvider({ children }) {
     setModeState(previousMode);
   };
 
-  const value = useMemo(() => {
+  const value = (() => {
     const activeModeConfig = getModeConfig(mode);
     const allModes = getAllModes();
 
@@ -98,7 +97,7 @@ export function ModeProvider({ children }) {
       isExecutionMode: mode === APP_MODES.EXECUTION,
       isDeepWorkMode: mode === APP_MODES.DEEP_WORK,
     };
-  }, [mode, previousMode]);
+  })();
 
   return <ModeContext.Provider value={value}>{children}</ModeContext.Provider>;
 }

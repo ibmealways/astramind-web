@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ResearchEngine.css";
+import { apiUrl } from "../config/api.js";
 
 export default function ResearchEngine() {
   const [query, setQuery] = useState("");
@@ -21,7 +22,7 @@ export default function ResearchEngine() {
     setSources([]);
 
     try {
-      const response = await fetch("http://localhost:5000/api/research", {
+      const response = await fetch(apiUrl("/api/research"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,11 +1,10 @@
+import { API_URL } from "../../config/api.js";
 // src/pages/modules/ContentVideo.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useOSMode } from "../../context/ModeContext.js";
 import { OS_MODES } from "../../core/os/modes.js";
 import { runVideoEngine } from "../../core/content/videoEngine.js";
 import { checkVisionHealth } from "../../core/video/visionClient.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const LAST_VIDEO_KEY = "astramind_last_video_url";
 const LAST_RENDER_KEY = "astramind_last_video_render_response";

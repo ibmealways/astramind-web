@@ -1,10 +1,11 @@
 import React from "react";
+import { apiUrl } from "../config/api.js";
 
 export default function UpgradeModal({ open, onClose }) {
   if (!open) return null;
 
   const handleUpgrade = async (tier) => {
-    const res = await fetch("http://localhost:5000/api/billing/create-checkout-session", {
+    const res = await fetch(apiUrl("/api/billing/create-checkout-session"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
