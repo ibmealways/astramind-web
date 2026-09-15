@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import Database from "better-sqlite3";
 
 const DB_DIR = path.resolve(process.cwd(), "data");
 const DB_PATH =
@@ -21,14 +20,11 @@ export async function getPlatformDb() {
     fs.mkdirSync(targetDir, { recursive: true });
   }
 
-  dbInstance = await open({
-    filename: DB_PATH,
-    driver: sqlite3.Database,
-  });
+  dbInstance = new Database(DB_PATH);
 
-  await dbInstance.exec("PRAGMA journal_mode = WAL;");
-  await dbInstance.exec("PRAGMA foreign_keys = ON;");
-  await dbInstance.exec("PRAGMA synchronous = NORMAL;");
+  dbInstance.pragma("journal_mode = WAL");
+  dbInstance.pragma("foreign_keys = ON");
+  dbInstance.pragma("synchronous = NORMAL");
 
   return dbInstance;
 }
