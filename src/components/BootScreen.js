@@ -22,7 +22,7 @@ export default function BootScreen({ onComplete }) {
         letterSpacing: "0.05em",
       }}
     >
-      🚀 AstraMind Booting…
+      🚀 Aigenikz Booting…
     </div>
   );
 }

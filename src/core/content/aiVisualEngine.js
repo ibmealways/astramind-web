@@ -111,7 +111,7 @@ async function generateOpenAIImage({ prompt, outputPath }) {
 export async function createFallbackSceneImage({
   outputPath,
   scene = {},
-  topic = "AstraMind",
+  topic = "Aigenikz",
   index = 0,
 }) {
   const title = scene.title || `Scene ${index + 1}`;
@@ -170,7 +170,7 @@ export async function createFallbackSceneImage({
     </foreignObject>
 
     <text x="90" y="1825" fill="rgba(255,255,255,0.55)" font-size="24" font-family="Arial">
-      Powered by AstraMind Video Studio
+      Powered by Aigenikz Video Studio
     </text>
   </svg>
   `;
@@ -182,7 +182,7 @@ export async function createFallbackSceneImage({
 export async function generateSceneVisuals({
   scenes = [],
   evolvedScenes = [],
-  topic = "AstraMind Video",
+  topic = "Aigenikz Video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   projectId = `visual_${Date.now()}`,

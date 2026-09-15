@@ -495,7 +495,7 @@ export async function composeMotionVideo({
 
   return {
     ok: true,
-    engine: "AstraMind Motion Composer v9 Live Video Compatible",
+    engine: "Aigenikz Motion Composer v9 Live Video Compatible",
     outputPath,
     publicUrl: `/renders/${path.basename(outputPath)}`,
     projectId,

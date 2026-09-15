@@ -3,7 +3,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Scene Narrative Planner v2 Unified";
+  "Aigenikz Scene Narrative Planner v2 Unified";
 
 function clean(value = "") {
   return String(value || "")

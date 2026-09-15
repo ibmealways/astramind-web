@@ -1,5 +1,3 @@
-import { updateCreatorProfile } from "../memory/creatorProfile.js";
-
 export async function routeTool({ type, prompt }) {
   console.log("🧠 TOOL ROUTER:", type);
 

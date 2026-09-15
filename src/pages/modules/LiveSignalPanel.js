@@ -1,6 +1,5 @@
+import { API_URL } from "../../config/api.js";
 import React, { useEffect, useMemo, useState } from "react";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function LiveSignalPanel({
   subscriptionTier = "finance_pro",
@@ -86,7 +85,7 @@ export default function LiveSignalPanel({
     setSignal(null);
 
     try {
-      const question = `Analyze ${ticker} using AstraMind live chart signal logic. Latest price is ${latestPrice}. Recent price change is ${priceChangePercent}%. Should subscriber watch, wait, avoid, buy, sell, or paper trade?`;
+      const question = `Analyze ${ticker} using Aigenikz live chart signal logic. Latest price is ${latestPrice}. Recent price change is ${priceChangePercent}%. Should subscriber watch, wait, avoid, buy, sell, or paper trade?`;
 
       const res = await fetch(`${API_URL}/api/tradepilot/market-mentor`, {
         method: "POST",

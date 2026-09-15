@@ -225,7 +225,7 @@ function buildAdvancedImagePrompt({
 Create one vertical 9:16 cinematic video frame for a short-form video.
 
 CRITICAL REQUIREMENTS:
-- This must be a real scene that matches the script, not an AstraMind template card.
+- This must be a real scene that matches the script, not an Aigenikz template card.
 - Do not create abstract blue dashboard art unless the scene itself is about AI or technology.
 - Do not include large readable text, titles, subtitles, logos, UI labels, or poster typography.
 - The image must visually match the scene's action, environment, and emotion.
@@ -501,7 +501,7 @@ return {
 
 export async function generateSceneVisual({
   scene,
-  topic = "AstraMind Vision Video",
+  topic = "Aigenikz Vision Video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   projectId = `vision_${Date.now()}`,
@@ -551,7 +551,7 @@ export async function generateSceneVisual({
   } else {
 
     console.log(
-      "⚡ AstraMind Local Visual Mode Active"
+      "⚡ Aigenikz Local Visual Mode Active"
     );
 
     const fallback =
@@ -637,7 +637,7 @@ export async function generateSceneVisual({
 }
 
 export async function generateSceneVisuals({
-  topic = "AstraMind Vision Video",
+  topic = "Aigenikz Vision Video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   scenes = [],
@@ -663,7 +663,7 @@ export async function generateSceneVisuals({
   for (let index = 0; index < finalScenes.length; index += 1) {
     const visual = await generateSceneVisual({
       scene: finalScenes[index],
-      topic: topic || storyboard?.topic || "AstraMind Vision Video",
+      topic: topic || storyboard?.topic || "Aigenikz Vision Video",
       platform: platform || storyboard?.platform || "TikTok",
       style: style || storyboard?.style || "cinematic futuristic high-energy",
       projectId,

@@ -1,7 +1,6 @@
+import { API_URL } from "../../config/api.js";
 // src/core/content/videoEngine.js
 import { createArtifact } from "./artifacts.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function cleanText(value = "") {
   return String(value || "").replace(/\s+/g, " ").trim();
@@ -20,7 +19,7 @@ async function postJson(endpoint, payload) {
     throw new Error(
       data?.error ||
         data?.message ||
-        `AstraMind backend request failed: ${endpoint}`
+        `Aigenikz backend request failed: ${endpoint}`
     );
   }
 
@@ -45,7 +44,7 @@ function normalizeStoryboardPayload(data = {}, input = {}) {
 
   if (!Array.isArray(scenes) || scenes.length === 0) {
     throw new Error(
-      "AstraMind Story Brain returned no usable scenes. Check /api/cinematic-video/storyboard."
+      "Aigenikz Story Brain returned no usable scenes. Check /api/cinematic-video/storyboard."
     );
   }
 
@@ -161,7 +160,7 @@ function normalizeRenderPayload(data = {}, input = {}) {
 
 function buildArtifactPayload(data, subtype = "full-video") {
   const content = [
-    `🎬 AstraMind Video: ${data.topic}`,
+    `🎬 Aigenikz Video: ${data.topic}`,
     ``,
     `Pipeline: ${data.pipeline}`,
     `Source: ${data.source}`,
@@ -185,8 +184,8 @@ function buildArtifactPayload(data, subtype = "full-video") {
       title: `${data.topic} (${data.platform})`,
       description:
         subtype === "full-video"
-          ? "AstraMind complete AI video package: storyboard, scenes, visuals, motion, audio, subtitles, and MP4."
-          : "AstraMind autonomous AI storyboard package.",
+          ? "Aigenikz complete AI video package: storyboard, scenes, visuals, motion, audio, subtitles, and MP4."
+          : "Aigenikz autonomous AI storyboard package.",
       content,
       metadata: data,
       source: data.source || "ASTRAMIND_VIDEO_ENGINE",
@@ -196,7 +195,7 @@ function buildArtifactPayload(data, subtype = "full-video") {
 
 export async function generateStoryboardOnly(input = {}) {
   const payload = {
-    topic: cleanText(input.topic || input.prompt || "AstraMind Video"),
+    topic: cleanText(input.topic || input.prompt || "Aigenikz Video"),
     platform: cleanText(input.platform || "TikTok"),
     style: cleanText(input.style || "cinematic futuristic high-energy"),
     durationTarget: Number(input.durationTarget || 30),
@@ -211,7 +210,7 @@ export async function generateStoryboardOnly(input = {}) {
 
 export async function generateCompleteVideo(input = {}) {
   const payload = {
-    topic: cleanText(input.topic || input.prompt || "AstraMind Video"),
+    topic: cleanText(input.topic || input.prompt || "Aigenikz Video"),
     platform: cleanText(input.platform || "TikTok"),
     style: cleanText(input.style || "cinematic futuristic high-energy"),
     durationTarget: Number(input.durationTarget || 30),

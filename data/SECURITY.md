@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # SECURITY POLICY
 
@@ -10,9 +10,9 @@ Status: Active
 
 # Security Philosophy
 
-Security is a foundational design principle of AstraMind Technologies.
+Security is a foundational design principle of Aigenikz Technologies LLC.
 
-Every subsystem within AstraMind OS is expected to follow secure-by-design engineering practices.
+Every subsystem within Aigenikz Intelligence OS is expected to follow secure-by-design engineering practices.
 
 Security is considered throughout the software lifecycle rather than added after development.
 
@@ -20,7 +20,7 @@ Security is considered throughout the software lifecycle rather than added after
 
 # Security Principles
 
-AstraMind follows these core principles:
+Aigenikz follows these core principles:
 
 • Secure by Design
 
@@ -46,7 +46,7 @@ AstraMind follows these core principles:
 
 # Security Objectives
 
-The AstraMind Platform is designed to protect:
+The Aigenikz Platform is designed to protect:
 
 - Source Code
 - User Accounts
@@ -77,7 +77,7 @@ Authorization
 
 ↓
 
-AstraMind Kernel
+Aigenikz Intelligence Kernel
 
 ↓
 
@@ -119,7 +119,7 @@ Future Releases will introduce:
 
 # Responsible Disclosure
 
-If you discover a security vulnerability within AstraMind Technologies, please report it privately.
+If you discover a security vulnerability within Aigenikz Technologies LLC, please report it privately.
 
 Do NOT publicly disclose vulnerabilities before they have been investigated.
 
@@ -358,13 +358,13 @@ Continuous Threat Monitoring
 
 # Security Contact
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 
 Ivan Perez
 
-For security matters, contact AstraMind Technologies through approved private channels.
+For security matters, contact Aigenikz Technologies LLC through approved private channels.
 
 Do not publicly disclose vulnerabilities.
 
@@ -376,10 +376,10 @@ Security is not a feature.
 
 It is a permanent engineering responsibility.
 
-Every subsystem introduced into AstraMind OS is expected to strengthen—not weaken—the platform's overall security posture.
+Every subsystem introduced into Aigenikz Intelligence OS is expected to strengthen—not weaken—the platform's overall security posture.
 
 ---
 
-© AstraMind Technologies
+© Aigenikz Technologies LLC
 
 All Rights Reserved.

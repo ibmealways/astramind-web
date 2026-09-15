@@ -80,7 +80,7 @@ import {
 } from "./renderQueue.js";
 
 const ENGINE_VERSION =
-  "AstraMind Pipeline Orchestrator v2 Production Hardened";
+  "Aigenikz Pipeline Orchestrator v2 Production Hardened";
 
 /*
   ============================================
@@ -1350,10 +1350,10 @@ if (
           "cinematic",
 
         visual:
-          "A futuristic AI consciousness awakens inside AstraMind systems.",
+          "A futuristic AI consciousness awakens inside Aigenikz systems.",
 
         narration:
-          "AstraMind evolves beyond software into living cinematic intelligence.",
+          "Aigenikz evolves beyond software into living cinematic intelligence.",
 
         duration: 6,
       },
@@ -1383,7 +1383,7 @@ if (
           "Cinematic timelines, transitions, subtitles, and voice systems activate.",
 
         narration:
-          "AstraMind now orchestrates cinematic content autonomously.",
+          "Aigenikz now orchestrates cinematic content autonomously.",
 
         duration: 8,
       },

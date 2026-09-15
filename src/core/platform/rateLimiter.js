@@ -36,7 +36,7 @@ function writeJson(filePath, data) {
 
 function loadDb() {
   return readJson(RATE_FILE, {
-    engine: "AstraMind Platform Rate Limiter",
+    engine: "Aigenikz Platform Rate Limiter",
     version: 1,
     windows: {},
     updatedAt: nowIso(),

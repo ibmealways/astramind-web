@@ -82,7 +82,7 @@ export default function ResearchWorkspace() {
         category: "news",
         topic: handoff.prompt || "Chat research handoff",
         title: handoff.prompt || "Research Brief",
-        sourceName: "AstraMind Chat",
+        sourceName: "Aigenikz Chat",
         snippet: handoff.reply || "",
         notes: "",
         createdAt: handoff.createdAt || new Date().toISOString(),
@@ -126,7 +126,7 @@ export default function ResearchWorkspace() {
       category: category === "all" ? "general" : category,
       topic: topic || "Untitled research",
       title: topic || "Untitled research",
-      sourceName: "Manual / AstraMind",
+      sourceName: "Manual / Aigenikz",
       snippet: compiledPack || topic,
       notes: "",
       createdAt: new Date().toISOString(),
@@ -339,7 +339,7 @@ export default function ResearchWorkspace() {
                   <h3>{entry.title || "Untitled Source"}</h3>
 
                   <div className="research-domain">
-                    {entry.sourceName || "AstraMind source"}
+                    {entry.sourceName || "Aigenikz source"}
                   </div>
 
                   <p>{entry.snippet}</p>

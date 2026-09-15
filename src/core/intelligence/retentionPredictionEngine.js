@@ -25,7 +25,7 @@ export function predictRetention({
 
   return {
     ok: true,
-    engine: "AstraMind Retention Prediction Engine v1",
+    engine: "Aigenikz Retention Prediction Engine v1",
     score,
     rating:
       score >= 80 ? "high" : score >= 60 ? "strong" : score >= 45 ? "moderate" : "weak",
@@ -51,7 +51,7 @@ export function predictRetention({
 export function getRetentionPredictionHealth() {
   return {
     ok: true,
-    engine: "AstraMind Retention Prediction Engine v1",
+    engine: "Aigenikz Retention Prediction Engine v1",
     supports: {
       viralRetentionScoring: true,
       durationRiskDetection: true,

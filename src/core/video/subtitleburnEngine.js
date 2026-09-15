@@ -8,7 +8,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Subtitle Burn Engine v3 Unified";
+  "Aigenikz Subtitle Burn Engine v3 Unified";
 
 function clean(value = "") {
   return String(value || "")

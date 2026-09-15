@@ -15,7 +15,7 @@ ffmpeg.setFfmpegPath(
 );
 
 const ENGINE_VERSION =
-  "AstraMind Transition Engine v3 Unified";
+  "Aigenikz Transition Engine v3 Unified";
 
 function clean(value = "") {
   return String(value || "")

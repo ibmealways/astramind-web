@@ -6,7 +6,7 @@ import { spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
 
 const ENGINE_VERSION =
-  "AstraMind Hollywood Composition Engine v1";
+  "Aigenikz Hollywood Composition Engine v1";
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {

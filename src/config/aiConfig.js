@@ -72,7 +72,7 @@ const AI_WORKFLOWS = {
   chat: {
     label: "Chappy Chat",
     model: AI_MODELS.defaultTextModel.id,
-    systemIntent: "General assistant conversation with AstraMind personality.",
+    systemIntent: "General assistant conversation with Aigenikz personality.",
   },
 
   creatorScript: {
@@ -107,7 +107,7 @@ const AI_WORKFLOWS = {
 };
 
 export const AI_CONFIG = {
-  appName: "AstraMind OS",
+  appName: "Aigenikz Intelligence OS",
   defaultProvider: AI_PROVIDERS.HYBRID,
   fallbackProvider: AI_PROVIDERS.LOCAL,
   timeouts: {

@@ -304,7 +304,7 @@ async function meteredHandler({
 router.get("/health", (req, res) => {
   res.json({
     ok: true,
-    service: "AstraMind Developer API Platform",
+    service: "Aigenikz Developer API Platform",
     version: "v2-commercial",
     status: "online",
     plans: getPublicPlanCatalog(),
@@ -908,7 +908,7 @@ router.get("/admin/worker/state", ownerOnly, (req, res) => {
 router.get("/status", requireApiKey("developer:read"), (req, res) => {
   res.json({
     ok: true,
-    platform: "AstraMind Developer API Platform",
+    platform: "Aigenikz Developer API Platform",
     version: "v2-commercial",
     developerId: req.astramindDeveloperId,
     plan: req.astramindPlan,

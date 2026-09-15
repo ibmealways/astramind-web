@@ -43,9 +43,9 @@ function buildDefaultCaption({
   return [
     `🚀 ${topic}`,
     ``,
-    `Built with AstraMind Vision Pipeline`,
+    `Built with Aigenikz Vision Pipeline`,
     ``,
-    `#AI #Automation #ContentCreation #AstraMind #${platform.replace(
+    `#AI #Automation #ContentCreation #Aigenikz #${platform.replace(
       /\s+/g,
       ""
     )}`,
@@ -230,7 +230,7 @@ export async function publishToYouTubeShorts({
 */
 export async function createSocialExportPackage({
   videoPath,
-  topic = "AstraMind Video",
+  topic = "Aigenikz Video",
   platforms = [
     "TikTok",
     "Instagram",
@@ -296,7 +296,7 @@ export async function createSocialExportPackage({
 */
 export async function publishEverywhere({
   videoPath,
-  topic = "AstraMind Video",
+  topic = "Aigenikz Video",
   platforms = [
     "TikTok",
     "Instagram",
@@ -308,7 +308,7 @@ export async function publishEverywhere({
 
   const caption = buildDefaultCaption({
     topic,
-    platform: "AstraMind",
+    platform: "Aigenikz",
   });
 
   const results = [];

@@ -1,10 +1,11 @@
 import React from "react";
+import { apiUrl } from "../config/api.js";
 
 export default function UpgradeModal({ open, onClose }) {
   if (!open) return null;
 
   const handleUpgrade = async (tier) => {
-    const res = await fetch("http://localhost:5000/api/billing/create-checkout-session", {
+    const res = await fetch(apiUrl("/api/billing/create-checkout-session"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -20,7 +21,7 @@ export default function UpgradeModal({ open, onClose }) {
     <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50">
       <div className="bg-gray-900 p-6 rounded w-[400px] text-white">
 
-        <h2 className="text-xl mb-4">🚀 Upgrade AstraMind</h2>
+        <h2 className="text-xl mb-4">🚀 Upgrade Aigenikz</h2>
 
         <button onClick={() => handleUpgrade("basic")} className="w-full mb-2 bg-blue-500 p-2">
           Basic Plan

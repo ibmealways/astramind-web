@@ -1,4 +1,4 @@
-import { loadCreatorMemory } from "../core/memory/creatorMemory.jsS";
+import { loadCreatorMemory } from "../core/memory/creatorMemory.js";
 import { Navigate } from "react-router-dom";
 
 export default function OSGuard({ children }) {

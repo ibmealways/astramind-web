@@ -239,7 +239,7 @@ export function buildMotionInterpolationPlan({
 
   return {
     ok: true,
-    engine: "AstraMind Motion Interpolation Engine v1",
+    engine: "Aigenikz Motion Interpolation Engine v1",
     platform,
     style,
     sceneCount: finalScenes.length,

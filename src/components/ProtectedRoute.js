@@ -11,7 +11,7 @@ export default function ProtectedRoute({ children }) {
     If the user is already authenticated, NEVER replace the page with
     "Checking session..." during a background auth refresh.
 
-    Before, this component unmounted ContentVideo while AstraMind was rendering,
+    Before, this component unmounted ContentVideo while Aigenikz was rendering,
     which wiped videoUrl/result state and made the screen jump back.
   */
   if (isAuthenticated) {

@@ -296,7 +296,7 @@ export function evolveSceneIntoShots({
 
   return {
     ok: true,
-    engine: "AstraMind Scene Evolution Engine v1",
+    engine: "Aigenikz Scene Evolution Engine v1",
     sceneId: scene.id,
     sceneTitle: scene.title,
     mood,
@@ -338,7 +338,7 @@ export function evolveStoryboardIntoShots({
 
   const payload = {
     ok: true,
-    engine: "AstraMind Scene Evolution Engine v1",
+    engine: "Aigenikz Scene Evolution Engine v1",
     topic: topic || storyboard.topic,
     platform: platform || storyboard.platform,
     style: style || storyboard.style,
@@ -380,7 +380,7 @@ export function rebuildScenesFromShots(shots = []) {
 export function getSceneEvolutionHealth() {
   return {
     ok: true,
-    engine: "AstraMind Scene Evolution Engine v1",
+    engine: "Aigenikz Scene Evolution Engine v1",
     outputDir: EVOLUTION_DIR,
     supports: {
       multiShotScenes: true,

@@ -197,7 +197,7 @@ export function buildCinematicDirectorPlan({
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
 } = {}) {
-  const originalTopic = clean(topic || storyboard?.topic || "AstraMind video");
+  const originalTopic = clean(topic || storyboard?.topic || "Aigenikz video");
   const ipRisk = detectIPRisk(originalTopic);
   const safeTopic = makeIPSafeSubject(originalTopic);
   const visual = buildVisualBible({
@@ -220,7 +220,7 @@ export function buildCinematicDirectorPlan({
 
   return {
     ok: true,
-    engine: "AstraMind Cinematic Director Brain v1",
+    engine: "Aigenikz Cinematic Director Brain v1",
     originalTopic,
     safeTopic,
     platform,

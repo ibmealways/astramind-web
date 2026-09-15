@@ -387,7 +387,7 @@ export function getRenderCacheHealth() {
 
   return {
     ok: true,
-    engine: "AstraMind Render Cache Engine v1",
+    engine: "Aigenikz Render Cache Engine v1",
     cacheDir: CACHE_DIR,
     cacheIndexFile: CACHE_INDEX_FILE,
     totalEntries: entries.length,

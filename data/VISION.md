@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # VISION
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Founding Vision Document
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -56,7 +56,7 @@ the resources...
 
 or simply someone to help them take the next step.
 
-AstraMind exists for those ideas.
+Aigenikz exists for those ideas.
 
 ---
 
@@ -92,9 +92,9 @@ Human imagination is the source.
 
 AI should become the amplifier.
 
-AstraMind does not exist to think instead of humanity.
+Aigenikz does not exist to think instead of humanity.
 
-AstraMind exists to help humanity think farther than it ever could alone.
+Aigenikz exists to help humanity think farther than it ever could alone.
 
 ---
 
@@ -126,7 +126,7 @@ Leading a company...
 
 Or simply trying to improve their own life...
 
-AstraMind should be there.
+Aigenikz should be there.
 
 Not as a replacement.
 
@@ -144,7 +144,7 @@ We are not building another productivity app.
 
 We are building an Operating System for Human Potential.
 
-Every capability inside AstraMind exists for one purpose:
+Every capability inside Aigenikz exists for one purpose:
 
 Helping people move from inspiration...
 
@@ -154,7 +154,7 @@ to execution.
 
 # One Mission
 
-The mission of AstraMind can be summarized in one sentence:
+The mission of Aigenikz can be summarized in one sentence:
 
 **Help people transform imagination into reality.**
 
@@ -176,7 +176,7 @@ must serve that mission.
 
 Today...
 
-AstraMind lives inside software.
+Aigenikz lives inside software.
 
 Tomorrow...
 
@@ -198,7 +198,7 @@ Government organizations.
 
 One day...
 
-AstraMind may even walk beside us.
+Aigenikz may even walk beside us.
 
 Not as a machine that replaces people.
 
@@ -218,7 +218,7 @@ And grows alongside humanity.
 
 # Human-Centered Intelligence
 
-The measure of AstraMind's success will never be the number of AI responses it generates.
+The measure of Aigenikz's success will never be the number of AI responses it generates.
 
 Its success will be measured by something much greater.
 
@@ -242,7 +242,7 @@ How many dreams stopped being dreams.
 
 # Every Person Matters
 
-AstraMind is not being built for one profession.
+Aigenikz is not being built for one profession.
 
 It is being built for humanity.
 
@@ -300,7 +300,7 @@ Never manipulate it.
 
 # Engineering Philosophy
 
-Every engineer who contributes to AstraMind should remember:
+Every engineer who contributes to Aigenikz should remember:
 
 We are not merely writing code.
 
@@ -322,13 +322,13 @@ Build with purpose.
 
 # Our Legacy
 
-If AstraMind succeeds...
+If Aigenikz succeeds...
 
 History will not remember it because it generated impressive text.
 
 History will remember it because it helped people accomplish things they once believed were impossible.
 
-The greatest accomplishment of AstraMind will never be the software itself.
+The greatest accomplishment of Aigenikz will never be the software itself.
 
 It will be the people whose lives were changed because someone finally had an intelligent partner willing to help them keep going.
 
@@ -340,9 +340,9 @@ I believe every human being carries ideas capable of changing their own life—a
 
 Too often those ideas remain trapped by uncertainty, lack of guidance, or the overwhelming complexity of turning inspiration into action.
 
-AstraMind was born from the belief that no one should have to pursue those ideas alone.
+Aigenikz was born from the belief that no one should have to pursue those ideas alone.
 
-If AstraMind can help one person build a business...
+If Aigenikz can help one person build a business...
 
 write a book...
 
@@ -368,7 +368,7 @@ It has always belonged to people with ideas.
 
 # Guiding Principle
 
-Before any feature is added to AstraMind, ask one question:
+Before any feature is added to Aigenikz, ask one question:
 
 **"Will this help someone transform an idea into reality?"**
 
@@ -392,17 +392,17 @@ Question whether it belongs.
 
 > "Every great achievement in human history began as an idea that someone refused to let die.
 >
-> AstraMind exists so fewer ideas are ever lost.
+> Aigenikz exists so fewer ideas are ever lost.
 >
 > Because somewhere inside every person is a dream waiting for someone to believe it can become reality."
 
-> "The future isn't built by Artificial Intelligence. The future is built by people. AstraMind simply exists to help them build it."
+> "The future isn't built by Artificial Intelligence. The future is built by people. Aigenikz simply exists to help them build it."
 
 ---
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

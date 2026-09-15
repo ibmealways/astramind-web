@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ResearchEngine.css";
+import { apiUrl } from "../config/api.js";
 
 export default function ResearchEngine() {
   const [query, setQuery] = useState("");
@@ -21,7 +22,7 @@ export default function ResearchEngine() {
     setSources([]);
 
     try {
-      const response = await fetch("http://localhost:5000/api/research", {
+      const response = await fetch(apiUrl("/api/research"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -51,7 +52,7 @@ export default function ResearchEngine() {
     <div className="research-page">
       <div className="research-shell">
         <div className="research-header">
-          <h1>🔎 AstraMind Research Engine v2</h1>
+          <h1>🔎 Aigenikz Research Engine v2</h1>
           <p>
             Live web research, source-backed intelligence, and AI synthesis.
           </p>
@@ -60,7 +61,7 @@ export default function ResearchEngine() {
         <div className="research-controls">
           <textarea
             className="research-textarea"
-            placeholder="Ask AstraMind to research anything..."
+            placeholder="Ask Aigenikz to research anything..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # SECURITY ARCHITECTURE
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Internal Engineering Specification
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -16,11 +16,11 @@ All Rights Reserved.
 
 # Purpose
 
-This document defines the internal security architecture of AstraMind OS.
+This document defines the internal security architecture of Aigenikz Intelligence OS.
 
-Unlike SECURITY.md, which describes vulnerability reporting and security policy, this document specifies how AstraMind protects itself internally.
+Unlike SECURITY.md, which describes vulnerability reporting and security policy, this document specifies how Aigenikz protects itself internally.
 
-Every subsystem introduced into AstraMind must conform to this architecture.
+Every subsystem introduced into Aigenikz must conform to this architecture.
 
 ---
 
@@ -40,7 +40,7 @@ Every capability, provider, mission, memory system, and subsystem must be design
 
 # Core Security Principles
 
-AstraMind follows these engineering principles:
+Aigenikz follows these engineering principles:
 
 • Zero Trust
 
@@ -112,7 +112,7 @@ Audit Logging
 
 # Kernel Security
 
-The AstraMind Kernel is the trusted execution boundary.
+The Aigenikz Intelligence Kernel is the trusted execution boundary.
 
 The Kernel is responsible for:
 
@@ -470,7 +470,7 @@ Continuous Threat Monitoring
 
 # Engineering Requirement
 
-Every new subsystem added to AstraMind must document:
+Every new subsystem added to Aigenikz must document:
 
 Security Model
 
@@ -494,7 +494,7 @@ No subsystem is considered complete until these requirements are satisfied.
 
 Security is inseparable from architecture.
 
-Every engineering decision should strengthen the trustworthiness, resilience, and integrity of AstraMind OS.
+Every engineering decision should strengthen the trustworthiness, resilience, and integrity of Aigenikz Intelligence OS.
 
 The security architecture defined in this document is intended to evolve alongside the platform while preserving these core principles.
 
@@ -502,7 +502,7 @@ The security architecture defined in this document is intended to evolve alongsi
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import { loadProjects, saveProjects } from "../core/content/contentProjectStore.js";
 
 const ProjectContext = createContext(null);
@@ -67,16 +67,13 @@ export function ProjectProvider({ children }) {
     persistProjects([]);
   };
 
-  const value = useMemo(
-    () => ({
-      projects,
-      addProject,
-      updateProject,
-      removeProject,
-      clearProjects,
-    }),
-    [projects]
-  );
+  const value = {
+    projects,
+    addProject,
+    updateProject,
+    removeProject,
+    clearProjects,
+  };
 
   return (
     <ProjectContext.Provider value={value}>

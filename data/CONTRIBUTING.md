@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # CONTRIBUTING GUIDE
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Internal Engineering Standard
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -16,9 +16,9 @@ All Rights Reserved.
 
 # Welcome
 
-Thank you for contributing to AstraMind Technologies.
+Thank you for contributing to Aigenikz Technologies LLC.
 
-AstraMind is more than a software project.
+Aigenikz is more than a software project.
 
 It is an engineering effort dedicated to building an Artificial Intelligence Operating System that helps people transform ideas into reality.
 
@@ -77,7 +77,7 @@ Do not bypass architectural principles to achieve short-term results.
 
 # Kernel-First Development
 
-The AstraMind Kernel coordinates the platform.
+The Aigenikz Intelligence Kernel coordinates the platform.
 
 New functionality should integrate through:
 
@@ -281,7 +281,7 @@ Build software that future engineers will appreciate.
 
 # Our Standard
 
-Every line of code should leave AstraMind stronger than it was before.
+Every line of code should leave Aigenikz stronger than it was before.
 
 ---
 
@@ -289,7 +289,7 @@ Every line of code should leave AstraMind stronger than it was before.
 
 Before submitting code ask:
 
-**Would I be proud if this implementation became the permanent way AstraMind solved this problem?**
+**Would I be proud if this implementation became the permanent way Aigenikz solved this problem?**
 
 If not...
 
@@ -299,7 +299,7 @@ Keep improving it.
 
 # Closing
 
-AstraMind is not being built for the next release.
+Aigenikz is not being built for the next release.
 
 It is being built for the next generation.
 
@@ -309,7 +309,7 @@ Build accordingly.
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

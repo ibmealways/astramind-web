@@ -20,7 +20,7 @@ const router = express.Router();
 router.get("/health", async (req, res) => {
   return res.json({
     ok: true,
-    service: "AstraMind Platform Routes",
+    service: "Aigenikz Platform Routes",
     timestamp: new Date().toISOString(),
   });
 });

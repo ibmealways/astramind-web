@@ -1,6 +1,6 @@
 // src/core/audio/longformNarrationEngine.js
 
-const ENGINE_VERSION = "AstraMind Longform Narration Engine v1";
+const ENGINE_VERSION = "Aigenikz Longform Narration Engine v1";
 
 function clean(value = "") {
   return String(value || "").replace(/\s+/g, " ").trim();
@@ -117,7 +117,7 @@ function expandSceneNarration({
     ],
     ai_product_cinematic: [
       base,
-      `This is where AstraMind stops being just another tool and starts acting like a living intelligence system.`,
+      `This is where Aigenikz stops being just another tool and starts acting like a living intelligence system.`,
       `Instead of forcing the user to jump between platforms, it reads the mission, organizes the workflow, and helps turn raw ideas into real output.`,
       `The subscriber stays in control, but the system becomes smarter with every decision, every project, and every creative direction.`,
     ],

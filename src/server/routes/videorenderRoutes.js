@@ -41,7 +41,7 @@ function normalizeScenes(scenes = []) {
       scene?.visual ||
       scene?.caption ||
       scene?.voiceover ||
-      `Cinematic AstraMind scene ${index + 1}`,
+      `Cinematic Aigenikz scene ${index + 1}`,
     voiceover: scene?.voiceover || "",
     caption: scene?.caption || scene?.title || `Scene ${index + 1}`,
   }));
@@ -160,7 +160,7 @@ async function concatClips({ clipPaths, outputPath }) {
 router.get("/health", (req, res) => {
   return res.json({
     ok: true,
-    service: "AstraMind Video Renderer",
+    service: "Aigenikz Video Renderer",
     ffmpeg: Boolean(ffmpegPath),
     outputDir: OUTPUT_DIR,
   });
@@ -173,7 +173,7 @@ router.post("/render", async (req, res) => {
     ensureDir(OUTPUT_DIR);
 
     const {
-      topic = "AstraMind Video",
+      topic = "Aigenikz Video",
       scenes = [],
       platform = "TikTok",
       style = "cinematic futuristic high-energy",

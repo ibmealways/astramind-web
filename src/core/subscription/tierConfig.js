@@ -17,7 +17,7 @@ export const TIER_LABELS = {
 export const DEFAULT_TIER = TIERS.FREE;
 
 /**
- * AstraMind Subscription Capability Matrix
+ * Aigenikz Subscription Capability Matrix
  * ----------------------------------------
  * FREE:
  *  - Can explore platform
@@ -34,7 +34,7 @@ export const DEFAULT_TIER = TIERS.FREE;
  *  - ElevenLabs premium voices
  *
  * ELITE:
- *  - Full AstraMind ecosystem
+ *  - Full Aigenikz ecosystem
  *  - Automation + connectors + publishing
  */
 

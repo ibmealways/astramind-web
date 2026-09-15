@@ -38,9 +38,9 @@ export default function Setup() {
           boxShadow: "0 0 30px rgba(24,53,120,0.2)",
         }}
       >
-        <h1 style={{ marginTop: 0 }}>🚀 Initialize AstraMind</h1>
+        <h1 style={{ marginTop: 0 }}>🚀 Initialize Aigenikz</h1>
         <p style={{ color: "#b6c2ea" }}>
-          Define your creator identity so AstraMind can align its intelligence.
+          Define your creator identity so Aigenikz can align its intelligence.
         </p>
 
         <div style={{ display: "grid", gap: "14px", marginTop: "24px" }}>
@@ -91,7 +91,7 @@ export default function Setup() {
             cursor: "pointer",
           }}
         >
-          Initialize AstraMind
+          Initialize Aigenikz
         </button>
       </div>
     </div>

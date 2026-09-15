@@ -29,7 +29,7 @@ function requireFinancePro(req, res, next) {
       success: false,
       upgradeRequired: true,
       requiredTier: "finance_pro",
-      message: "Upgrade to AstraMind Finance Pro to unlock this feature.",
+      message: "Upgrade to Aigenikz Finance Pro to unlock this feature.",
     });
   }
 

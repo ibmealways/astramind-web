@@ -1,8 +1,7 @@
+import { API_URL } from "../../config/api.js";
 import React, { useEffect, useRef, useState } from "react";
 import "./FinanceTradePilot.css";
 import LiveSignalPanel from "./LiveSignalPanel.js";
-
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function cleanMoneyNumber(value) {
   if (!value) return null;
@@ -182,17 +181,6 @@ export default function FinanceTradePilot() {
     setMentorForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const syncMentorWithRouteProfile = () => {
-    setMentorForm((prev) => ({
-      ...prev,
-      accountSize: form.startingCapital,
-      weeklyDeposit: form.weeklyDeposit,
-      riskTolerance: form.riskTolerance,
-      experience: form.experience,
-      subscriptionTier: form.subscriptionTier,
-    }));
-  };
-
   const generateRoute = async (overrideForm = null) => {
     const activeForm = overrideForm || form;
 
@@ -344,11 +332,11 @@ export default function FinanceTradePilot() {
   return (
     <div className="tradepilot-page">
       <div className="tradepilot-hero">
-        <p className="tradepilot-eyebrow">AstraMind Finance Pro</p>
+        <p className="tradepilot-eyebrow">Aigenikz Finance Pro</p>
         <h1>WealthRoute + MarketMentor AI</h1>
         <p>
           Goal-based financial guidance and TradeGPT-style market coaching for
-          subscribers. AstraMind helps compare routes, risk levels, trade logic,
+          subscribers. Aigenikz helps compare routes, risk levels, trade logic,
           and next best steps — without guaranteeing outcomes.
         </p>
 
@@ -426,7 +414,7 @@ export default function FinanceTradePilot() {
             <div className="empty-state">
               <h2>Your WealthRoute appears here</h2>
               <p>
-                Enter a goal and AstraMind will guide the subscriber toward the
+                Enter a goal and Aigenikz will guide the subscriber toward the
                 best possible route based on capital, weekly contribution, risk,
                 and experience.
               </p>
@@ -510,7 +498,7 @@ export default function FinanceTradePilot() {
           </div>
 
           <p className="mentor-intro">
-            Ask AstraMind about a ticker, trade idea, exit plan, long-term route,
+            Ask Aigenikz about a ticker, trade idea, exit plan, long-term route,
             or risk decision. MarketMentor guides the subscriber toward a
             structured decision without claiming certainty or guaranteed profit.
           </p>

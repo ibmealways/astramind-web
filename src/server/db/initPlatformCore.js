@@ -97,5 +97,5 @@ export async function initPlatformCoreTables() {
     ON research_sources(topic);
   `);
 
-  console.log("🗄️ AstraMind platform core tables initialized.");
+  console.log("🗄️ Aigenikz platform core tables initialized.");
 }

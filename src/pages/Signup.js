@@ -29,7 +29,7 @@ export default function Signup() {
 
   return (
     <div style={{ minHeight: "100vh", padding: "40px", color: "white" }}>
-      <h1>Create AstraMind Account</h1>
+      <h1>Create Aigenikz Account</h1>
       <form onSubmit={handleSubmit} style={{ maxWidth: "420px", display: "grid", gap: "12px" }}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" />
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />

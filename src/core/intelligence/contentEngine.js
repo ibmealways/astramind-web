@@ -63,7 +63,7 @@ export const generateFullContent = async ({
     });
 
     const prompt = `
-You are AstraMind — an adaptive AI creator.
+You are Aigenikz — an adaptive AI creator.
 
 USER PROFILE:
 Niche: ${profile.niche}

@@ -1,3 +1,4 @@
+import { API_URL as DEFAULT_API_URL } from "../config/api.js";
 import React, { useEffect, useMemo, useState } from "react";
 import "../styles/operator-dashboard.css";
 
@@ -9,9 +10,6 @@ import ProjectList from "../components/OperatorDashboard/ProjectList.js";
 import ProjectDetailPanel from "../components/OperatorDashboard/ProjectDetailPanel.js";
 import ChapterHistoryTable from "../components/OperatorDashboard/ChapterHistoryTable.js";
 import SourceFeed from "../components/OperatorDashboard/SourceFeed.js";
-
-const DEFAULT_API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function getApiUrl() {
   return localStorage.getItem("astramind_api_url") || DEFAULT_API_URL;
@@ -224,7 +222,7 @@ export default function OperatorDashboard() {
       <div className="operator-dashboard-page os-panel os-page-enter os-breathe">
         <div className="op-loading-shell">
           <div className="op-loading-title">Operator Dashboard v3</div>
-          <div className="op-loading-text">Loading AstraMind platform intelligence...</div>
+          <div className="op-loading-text">Loading Aigenikz platform intelligence...</div>
         </div>
       </div>
     );
@@ -234,7 +232,7 @@ export default function OperatorDashboard() {
     <div className="operator-dashboard-page os-panel os-page-enter os-breathe text-white">
       <div className="operator-dashboard-header">
         <div>
-          <h1>🧠 AstraMind Operator Dashboard v3</h1>
+          <h1>🧠 Aigenikz Operator Dashboard v3</h1>
           <p>
             Full operational visibility across agents, workflows, projects,
             chapters, and source intelligence.

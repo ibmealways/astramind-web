@@ -234,7 +234,7 @@ export function buildKineticScenePlan({
 
   return {
     ok: true,
-    engine: "AstraMind Kinetic Scene Engine v2 Hollywood Camera Choreography",
+    engine: "Aigenikz Kinetic Scene Engine v2 Hollywood Camera Choreography",
     sceneId: scene.id || `scene_${Date.now()}`,
     motionStyle,
     grade,
@@ -319,7 +319,7 @@ export async function renderKineticScene({
 
   return {
     ok: true,
-    engine: "AstraMind Kinetic Scene Engine v2 Hollywood Camera Choreography",
+    engine: "Aigenikz Kinetic Scene Engine v2 Hollywood Camera Choreography",
     sceneId: plan.sceneId,
     outputPath,
     videoPath: outputPath,

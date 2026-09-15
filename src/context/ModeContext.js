@@ -2,7 +2,6 @@ import React, {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 import { APP_MODES, getModeConfig, getAllModes } from "../config/modeConfig.js";
@@ -21,7 +20,7 @@ function getInitialMode() {
       return savedMode;
     }
   } catch (error) {
-    console.warn("Unable to read saved AstraMind mode from storage.", error);
+    console.warn("Unable to read saved Aigenikz mode from storage.", error);
   }
 
   return APP_MODES.CREATOR;
@@ -35,7 +34,7 @@ export function ModeProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, mode);
     } catch (error) {
-      console.warn("Unable to save AstraMind mode to storage.", error);
+      console.warn("Unable to save Aigenikz mode to storage.", error);
     }
   }, [mode]);
 
@@ -43,7 +42,7 @@ export function ModeProvider({ children }) {
     const config = getModeConfig(nextMode);
 
     if (!config) {
-      console.warn(`Attempted to set invalid AstraMind mode: ${nextMode}`);
+      console.warn(`Attempted to set invalid Aigenikz mode: ${nextMode}`);
       return;
     }
 
@@ -70,7 +69,7 @@ export function ModeProvider({ children }) {
     setModeState(previousMode);
   };
 
-  const value = useMemo(() => {
+  const value = (() => {
     const activeModeConfig = getModeConfig(mode);
     const allModes = getAllModes();
 
@@ -98,7 +97,7 @@ export function ModeProvider({ children }) {
       isExecutionMode: mode === APP_MODES.EXECUTION,
       isDeepWorkMode: mode === APP_MODES.DEEP_WORK,
     };
-  }, [mode, previousMode]);
+  })();
 
   return <ModeContext.Provider value={value}>{children}</ModeContext.Provider>;
 }

@@ -84,7 +84,7 @@ function maskKey(apiKey = "") {
 
 function loadDb() {
   return readJson(API_KEY_FILE, {
-    engine: "AstraMind Developer API Key Manager",
+    engine: "Aigenikz Developer API Key Manager",
     version: 1,
     developers: {},
     keys: {},
@@ -653,7 +653,7 @@ export function createDefaultOwnerKey() {
     developerId: ownerId,
     email: "zimplyhoodsz@gmail.com",
     name: "Ivan Perez",
-    company: "AstraMind Technologies",
+    company: "Aigenikz Technologies LLC",
     plan: API_PLANS.ENTERPRISE,
     metadata: {
       role: "owner",

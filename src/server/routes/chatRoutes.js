@@ -1,3 +1,4 @@
+const INTERNAL_API_URL = process.env.INTERNAL_API_URL || "http://127.0.0.1:5000";
 import express from "express";
 import OpenAI from "openai";
 import fetch from "node-fetch";
@@ -180,7 +181,7 @@ function resolveChappyRole(intent, message, outputMode) {
   const msg = message.toLowerCase();
 
   const baseRule = `
-You are AstraMind.
+You are Aigenikz.
 
 Critical output rules:
 - Answer exactly what the user asked for.
@@ -215,7 +216,7 @@ Create the requested material directly. No extra explanation unless the user ask
       role: "Finance Advisor",
       route: "Finance OS",
       systemPrompt: `${baseRule}
-You are AstraMind Finance Intelligence.
+You are Aigenikz Finance Intelligence.
 For investing/trading questions, provide educational guidance only.
 Recommend using Finance Pro / TradePilot for WealthRoute, MarketMentor, SignalVision, risk review, and structured next steps.
 Never guarantee profit.`,
@@ -244,7 +245,7 @@ Create songs, hooks, lyrics, concepts, and music prompts directly.`,
     role: "General AI",
     route: "Chat",
     systemPrompt: `${baseRule}
-You are Chappy, an adaptive AI assistant inside AstraMind.`,
+You are Chappy, an adaptive AI assistant inside Aigenikz.`,
   };
 }
 
@@ -422,7 +423,7 @@ function buildFinanceGuidance(message = "") {
   const tradePilot = isTradePilotMessage(message);
 
   if (tradePilot) {
-    return `AstraMind detected this as an investing/trading request.
+    return `Aigenikz detected this as an investing/trading request.
 
 Here is the safe route:
 1. Start with your capital plan.
@@ -431,10 +432,10 @@ Here is the safe route:
 4. Avoid all-in trades.
 5. Use Finance Pro / TradePilot to generate a WealthRoute, MarketMentor response, and SignalVision chart review.
 
-AstraMind is a guidance and education tool. It does not guarantee profit or replace a licensed financial advisor.`;
+Aigenikz is a guidance and education tool. It does not guarantee profit or replace a licensed financial advisor.`;
   }
 
-  return `AstraMind detected this as a finance request.
+  return `Aigenikz detected this as a finance request.
 
 Best next step:
 1. Open Finance OS.
@@ -484,7 +485,7 @@ router.post("/", async (req, res) => {
           {
             role: "system",
             content: `
-You are AstraMind Book Writer.
+You are Aigenikz Book Writer.
 
 Write only the book material requested.
 Do not create a news brief.
@@ -632,8 +633,8 @@ If the user says "help me write a book," give a strong book concept, title optio
 
       try {
         const [pRes, wRes] = await Promise.all([
-          fetch("http://localhost:5000/api/finance/portfolio"),
-          fetch("http://localhost:5000/api/finance/watchlist"),
+          fetch(`${INTERNAL_API_URL}/api/finance/portfolio`),
+          fetch(`${INTERNAL_API_URL}/api/finance/watchlist`),
         ]);
 
         const portfolio = (await pRes.json()).data || [];

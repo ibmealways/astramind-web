@@ -5,7 +5,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Cinematic Timeline Engine v5 Nervous System Authority";
+  "Aigenikz Cinematic Timeline Engine v5 Nervous System Authority";
 
 /*
   ============================================

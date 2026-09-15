@@ -121,7 +121,7 @@ function createEmptyDeveloperUsage({ developerId, plan = DEFAULT_API_PLAN }) {
 
 function loadUsageDb() {
   return readJson(USAGE_FILE, {
-    engine: "AstraMind Developer Usage DB",
+    engine: "Aigenikz Developer Usage DB",
     version: 1,
     developers: {},
     updatedAt: nowIso(),
@@ -137,7 +137,7 @@ function saveUsageDb(db) {
 
 function loadLedger() {
   return readJson(LEDGER_FILE, {
-    engine: "AstraMind Usage Ledger",
+    engine: "Aigenikz Usage Ledger",
     version: 1,
     events: [],
     updatedAt: nowIso(),
@@ -153,7 +153,7 @@ function saveLedger(ledger) {
 
 function loadRates() {
   return readJson(RATE_FILE, {
-    engine: "AstraMind Rate Window DB",
+    engine: "Aigenikz Rate Window DB",
     version: 1,
     windows: {},
     updatedAt: nowIso(),

@@ -1,8 +1,6 @@
+import { API_URL as DEFAULT_API_URL } from "../config/api.js";
 import React, { useState } from "react";
 import "../styles/control-center.css";
-
-const DEFAULT_API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function getApiUrl() {
   return localStorage.getItem("astramind_api_url") || DEFAULT_API_URL;
@@ -232,7 +230,7 @@ export default function ControlCenter() {
   return (
     <div className="control-center-page os-panel os-page-enter os-breathe text-white">
       <div className="control-center-header">
-        <h1>⚡ AstraMind Control Center</h1>
+        <h1>⚡ Aigenikz Control Center</h1>
         <p>
           Run autonomous workflows across research, strategy, books, content,
           AI SaaS building, and full multi-agent orchestration.

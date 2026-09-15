@@ -1,7 +1,7 @@
 // src/core/video/cinematicTransitionEngine.js
 
 const ENGINE_VERSION =
-  "AstraMind Cinematic Transition Engine v5 Nervous System Synchronized";
+  "Aigenikz Cinematic Transition Engine v5 Nervous System Synchronized";
 
 /*
   ============================================

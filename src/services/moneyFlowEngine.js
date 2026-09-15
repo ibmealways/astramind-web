@@ -419,6 +419,6 @@ export function analyzeMoneyFlow({
       "Paper trade unclear setups first.",
     ],
     disclaimer:
-      "AstraMind MoneyFlow is educational decision-support. It does not guarantee profits, predict markets with certainty, or replace licensed financial advice.",
+      "Aigenikz MoneyFlow is educational decision-support. It does not guarantee profits, predict markets with certainty, or replace licensed financial advice.",
   };
 }

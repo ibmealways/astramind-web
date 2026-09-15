@@ -107,7 +107,7 @@ OUTPUT FORMAT:
 - Canva Page 1: Headline / Subhead / Body / CTA
 - Page 2..(optional): Layout blocks
 - Typography + icon suggestions (generic)
-- Color vibes (match AstraMind futuristic)
+- Color vibes (match Aigenikz futuristic)
 `,
   };
 

@@ -179,7 +179,7 @@ async function createFallbackFrame({
 }) {
   const title = scene.title || frameLabel;
   const caption = scene.caption || scene.voiceover || "Build smarter today";
-  const visual = scene.visual || topic || "AstraMind Vision Pipeline";
+  const visual = scene.visual || topic || "Aigenikz Vision Pipeline";
 
   const svg = `
   <svg width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">
@@ -287,7 +287,7 @@ async function createFallbackFrame({
 
 export async function generateAIFrame({
   prompt = "",
-  topic = "AstraMind Vision Video",
+  topic = "Aigenikz Vision Video",
   scene = {},
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
@@ -343,7 +343,7 @@ export async function generateAIFrame({
   source = "fallback-scene-specific";
 
   console.warn(
-    "⚠️ AstraMind Vision Engine entered fallback mode."
+    "⚠️ Aigenikz Vision Engine entered fallback mode."
   );
 
   console.warn(
@@ -377,7 +377,7 @@ return {
 
 export async function generateSceneFrames({
   scene = {},
-  topic = "AstraMind Vision Video",
+  topic = "Aigenikz Vision Video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   projectId = `vision_${Date.now()}`,

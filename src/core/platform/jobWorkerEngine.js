@@ -72,7 +72,7 @@ function buildRenderPayload(job = {}) {
   const payload = getPayload(job);
 
   return {
-    topic: payload.topic || payload.prompt || "AstraMind queued render",
+    topic: payload.topic || payload.prompt || "Aigenikz queued render",
     platform: payload.platform || "TikTok",
     style: payload.style || "cinematic futuristic high-energy",
     durationTarget: payload.durationTarget || 30,
@@ -128,7 +128,7 @@ async function runSingleJob(job) {
     markJobRunning(jobId);
 
     addRenderJobLog(jobId, "Worker accepted job.", "info", {
-      worker: "AstraMind Local Worker",
+      worker: "Aigenikz Local Worker",
     });
 
     markJobProgress(jobId, {
@@ -159,7 +159,7 @@ async function runSingleJob(job) {
     markJobProgress(jobId, {
       percent: 12,
       stage: "Rendering",
-      message: "AstraMind cinematic renderer is generating video.",
+      message: "Aigenikz cinematic renderer is generating video.",
     });
 
     const result = await renderCinematicVideo(renderPayload);
@@ -173,7 +173,7 @@ async function runSingleJob(job) {
     markJobCompleted(jobId, {
       ...result,
       worker: {
-        engine: "AstraMind Job Worker Engine",
+        engine: "Aigenikz Job Worker Engine",
         completedAt: nowIso(),
       },
     });
@@ -228,7 +228,7 @@ async function processQueueOnce() {
 
       if (now - workerState.lastIdleLogAt > workerState.config.idleLogEveryMs) {
         workerState.lastIdleLogAt = now;
-        console.log("🟢 AstraMind Job Worker idle. No queued render jobs.");
+        console.log("🟢 Aigenikz Job Worker idle. No queued render jobs.");
       }
 
       break;
@@ -266,7 +266,7 @@ function scheduleNextLoop() {
         at: nowIso(),
       };
 
-      console.error("🔥 AstraMind Job Worker loop error:", error);
+      console.error("🔥 Aigenikz Job Worker loop error:", error);
     } finally {
       scheduleNextLoop();
     }
@@ -287,7 +287,7 @@ export function startJobWorker(config = {}) {
   workerState.startedAt = nowIso();
   workerState.stoppedAt = null;
 
-  console.log("🚀 AstraMind Job Worker started:", workerState.config);
+  console.log("🚀 Aigenikz Job Worker started:", workerState.config);
 
   processQueueOnce().catch((error) => {
     console.error("🔥 Initial worker queue process failed:", error);
@@ -311,7 +311,7 @@ export async function stopJobWorker(reason = "manual_stop") {
     workerState.timer = null;
   }
 
-  console.log("🛑 AstraMind Job Worker stopped:", reason);
+  console.log("🛑 Aigenikz Job Worker stopped:", reason);
 
   return {
     ok: true,

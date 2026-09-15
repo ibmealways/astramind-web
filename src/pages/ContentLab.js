@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useProjects } from "../context/ProjectContext.js";
 import { useSubscription } from "../context/SubscriptionContext.js";
 import UpgradeModal from "../components/UpgradeModal.js";
+import { apiUrl } from "../config/api.js";
 
 import {
   buildExportPackage,
@@ -33,7 +34,7 @@ export default function ContentLab() {
 
   const fetchJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/scheduler/jobs");
+      const res = await fetch(apiUrl("/api/scheduler/jobs"));
       const data = await res.json();
       setJobs(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -106,7 +107,7 @@ export default function ContentLab() {
     }
 
     try {
-      await fetch("http://localhost:5000/api/scheduler/schedule", {
+      await fetch(apiUrl("/api/scheduler/schedule"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -140,7 +141,7 @@ export default function ContentLab() {
     }
 
     try {
-      await fetch("http://localhost:5000/api/scheduler/schedule", {
+      await fetch(apiUrl("/api/scheduler/schedule"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,7 +225,7 @@ export default function ContentLab() {
               ❌ Project Not Found
             </div>
 
-            <h1 className="text-3xl font-bold mb-3">AstraMind couldn’t locate this project</h1>
+            <h1 className="text-3xl font-bold mb-3">Aigenikz couldn’t locate this project</h1>
 
             <p className="text-gray-300 mb-3">
               Project ID:
@@ -286,7 +287,7 @@ export default function ContentLab() {
               </h1>
 
               <p className="text-gray-300 text-lg mb-5">
-                Refine, package, publish, and export your AstraMind content project.
+                Refine, package, publish, and export your Aigenikz content project.
               </p>
 
               <div className="flex flex-wrap gap-3">

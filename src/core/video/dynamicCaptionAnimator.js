@@ -5,7 +5,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Dynamic Caption Animator v4 Hollywood Overlay";
+  "Aigenikz Dynamic Caption Animator v4 Hollywood Overlay";
 
 function clean(value = "") {
   return String(value || "")

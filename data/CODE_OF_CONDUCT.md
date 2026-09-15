@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # CODE OF CONDUCT
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Organizational Standard
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -16,7 +16,7 @@ All Rights Reserved.
 
 # Our Purpose
 
-AstraMind Technologies exists to help people transform ideas into reality.
+Aigenikz Technologies LLC exists to help people transform ideas into reality.
 
 Every interaction within this project should contribute to that mission.
 
@@ -40,7 +40,7 @@ We welcome challenging ideas while treating people with dignity.
 
 # Our Values
 
-Every member of AstraMind Technologies is expected to uphold the following values:
+Every member of Aigenikz Technologies LLC is expected to uphold the following values:
 
 • Integrity
 
@@ -64,7 +64,7 @@ Every member of AstraMind Technologies is expected to uphold the following value
 
 # Intellectual Honesty
 
-One of AstraMind's founding principles is:
+One of Aigenikz's founding principles is:
 
 > **"We do not fear where the truth leads. We fear only refusing to look for it."**
 
@@ -166,7 +166,7 @@ Treat differing viewpoints with respect.
 
 # Unacceptable Conduct
 
-The following behaviors are inconsistent with AstraMind's values:
+The following behaviors are inconsistent with Aigenikz's values:
 
 Harassment.
 
@@ -240,7 +240,7 @@ Not the highest title.
 
 # Leadership
 
-Leadership within AstraMind is demonstrated through:
+Leadership within Aigenikz is demonstrated through:
 
 Service.
 
@@ -276,7 +276,7 @@ Integrity remains non-negotiable.
 
 # Closing Statement
 
-AstraMind Technologies is more than a software project.
+Aigenikz Technologies LLC is more than a software project.
 
 It is a long-term commitment to building technology that empowers humanity.
 
@@ -310,7 +310,7 @@ Should reflect that commitment.
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

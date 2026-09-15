@@ -5,7 +5,7 @@ export default function MarketplaceUI() {
 
   return (
     <div>
-      <h2>🛒 AstraMind Marketplace</h2>
+      <h2>🛒 Aigenikz Marketplace</h2>
       {items.map((item, i) => (
         <div key={i}>
           <strong>{item.name}</strong> — {item.description}

@@ -19,7 +19,7 @@ export default function OSGreeting() {
   return (
     <div className="os-greeting">
       <div className="os-greeting-card">
-        <span className="os-greeting-title">AstraMind Online</span>
+        <span className="os-greeting-title">Aigenikz Online</span>
         <span className="os-greeting-sub">
           Chappy standing by.
         </span>

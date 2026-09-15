@@ -1,11 +1,8 @@
+import { API_URL as DEFAULT_API_URL } from "../../config/api.js";
 // src/core/video/visionClient.js
 
-const DEFAULT_API_URL =
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:5000";
-
 const CLIENT_VERSION =
-  "AstraMind Vision Client v3 Unified";
+  "Aigenikz Vision Client v3 Unified";
 
 function getApiUrl() {
   return (
@@ -250,7 +247,7 @@ export async function renderVisionVideo({
   ) {
     throw new Error(
       data?.error ||
-        "AstraMind Vision render failed."
+        "Aigenikz Vision render failed."
     );
   }
 

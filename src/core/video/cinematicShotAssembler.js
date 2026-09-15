@@ -218,7 +218,7 @@ export function buildShotAssemblyPlan({
 
   return {
     ok: true,
-    engine: "AstraMind Cinematic Shot Assembler v1",
+    engine: "Aigenikz Cinematic Shot Assembler v1",
     sceneId: scene.id || shots[0]?.sceneId || "scene",
     shotCount: shots.length,
     platform,
@@ -408,7 +408,7 @@ export async function assembleShotsForScene({
 
   return {
     ok: true,
-    engine: "AstraMind Cinematic Shot Assembler v1",
+    engine: "Aigenikz Cinematic Shot Assembler v1",
     sceneId,
     outputPath,
     videoPath: outputPath,
@@ -495,7 +495,7 @@ export async function assembleShotStoryboard({
 
   return {
     ok: true,
-    engine: "AstraMind Cinematic Shot Assembler v1",
+    engine: "Aigenikz Cinematic Shot Assembler v1",
     projectId,
     outputPath: finalOutputPath,
     videoPath: finalOutputPath,
@@ -507,7 +507,7 @@ export async function assembleShotStoryboard({
 export function getCinematicShotAssemblerHealth() {
   return {
     ok: true,
-    engine: "AstraMind Cinematic Shot Assembler v1",
+    engine: "Aigenikz Cinematic Shot Assembler v1",
     outputDir: SHOT_ASSEMBLY_DIR,
     ffmpegLoaded: Boolean(ffmpegPath),
     supports: {
