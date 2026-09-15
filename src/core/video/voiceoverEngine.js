@@ -6,7 +6,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Voiceover Engine v3 Unified";
+  "Aigenikz Voiceover Engine v3 Unified";
 
 function clean(value = "") {
   return String(value || "")

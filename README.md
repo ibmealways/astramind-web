@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Intelligence OS
 
 > **The AI Operating System for Human Intelligence**
 
@@ -8,11 +8,20 @@
 
 ---
 
+## Brand family
+
+- **Aigenikz Technologies LLC** is the parent company and legal business entity.
+- **Aigenikz Intelligence OS** is the company's primary intelligence platform.
+- **Nature's Elixirz OS** is the wellness platform within the Aigenikz Technologies LLC product family.
+
+Legacy `AstraMind` technical identifiers remain temporarily in APIs, environment variables, storage keys, databases, and source symbols so existing installations and integrations continue to work during migration.
+
+---
 # Vision
 
-AstraMind Technologies is an enterprise AI Operating System designed to unify conversational AI, autonomous reasoning, content creation, finance intelligence, research, business operations, and adaptive learning into a single intelligent platform.
+Aigenikz Intelligence OS is an enterprise intelligence platform developed and operated by Aigenikz Technologies LLC. It unifies conversational AI, autonomous reasoning, content creation, finance intelligence, research, business operations, and adaptive learning in one system.
 
-Unlike traditional AI assistants, AstraMind is designed around a modular Kernel architecture where specialized intelligence engines collaborate through a shared orchestration layer.
+Unlike traditional AI assistants, Aigenikz Intelligence OS uses a modular Kernel architecture where specialized intelligence engines collaborate through a shared orchestration layer.
 
 ---
 
@@ -24,9 +33,9 @@ Build the world's most capable AI Operating System that empowers creators, entre
 
 # Core Systems
 
-## AstraMind Kernel
+## Aigenikz Intelligence Kernel
 
-The Kernel serves as AstraMind's central intelligence layer.
+The Kernel serves as Aigenikz's central intelligence layer.
 
 Responsibilities include:
 
@@ -120,7 +129,7 @@ Chat Interface
 
 ↓
 
-AstraMind Kernel
+Aigenikz Intelligence Kernel
 
 ↓
 
@@ -223,7 +232,7 @@ plugins/
 
 # Long-Term Roadmap
 
-- AstraMind Kernel
+- Aigenikz Intelligence Kernel
 - Autonomous Agents
 - Campaign Engine
 - CreatorBrain 3.0
@@ -262,7 +271,7 @@ Current Repository Version
 
 # Maintainer
 
-**AstraMind Technologies**
+**Aigenikz Technologies LLC**
 
 Founder
 
@@ -280,8 +289,8 @@ Manchester, Connecticut
 
 # Copyright
 
-© AstraMind Technologies.
+© Aigenikz Technologies LLC.
 
 All Rights Reserved.
 
-Unauthorized copying, distribution, or commercial use of this software is prohibited without written permission from AstraMind Technologies.
+Unauthorized copying, distribution, or commercial use of this software is prohibited without written permission from Aigenikz Technologies LLC.

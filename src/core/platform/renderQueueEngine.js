@@ -57,7 +57,7 @@ function writeJson(filePath, data) {
 
 function loadQueueDb() {
   return readJson(JOBS_FILE, {
-    engine: "AstraMind Render Queue Engine",
+    engine: "Aigenikz Render Queue Engine",
     version: 1,
     jobs: {},
     updatedAt: nowIso(),
@@ -73,7 +73,7 @@ function saveQueueDb(db) {
 
 function sanitizePayload(payload = {}) {
   return {
-    topic: payload.topic || payload.prompt || "AstraMind render",
+    topic: payload.topic || payload.prompt || "Aigenikz render",
     platform: payload.platform || "TikTok",
     style: payload.style || "cinematic futuristic high-energy",
     durationTarget: payload.durationTarget || 30,
@@ -300,7 +300,7 @@ export function markJobRunning(jobId) {
   job.progress = {
     percent: 5,
     stage: "Worker Started",
-    message: "AstraMind worker has started rendering this job.",
+    message: "Aigenikz worker has started rendering this job.",
   };
   job.timestamps.startedAt = job.timestamps.startedAt || nowIso();
   job.timestamps.updatedAt = nowIso();

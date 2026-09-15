@@ -7,7 +7,7 @@ import {
 } from "../video/pipelineOrchestrator.js";
 
 const ENGINE_VERSION =
-  "AstraMind CreatorBrain Orchestrator v1 Unified";
+  "Aigenikz CreatorBrain Orchestrator v1 Unified";
 
 function nowIso() {
   return new Date().toISOString();

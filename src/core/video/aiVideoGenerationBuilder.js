@@ -474,7 +474,7 @@ function getAutoProviderOrder() {
 export async function generateAIVideoClip({
   scene,
   visual,
-  topic = "AstraMind cinematic video",
+  topic = "Aigenikz cinematic video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   storyboard = null,
@@ -605,7 +605,7 @@ export async function generateAIVideoClips({
   visuals = [],
   storyboard = null,
   directorPlan = null,
-  topic = "AstraMind cinematic video",
+  topic = "Aigenikz cinematic video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   projectId = `ai_video_${Date.now()}`,
@@ -645,7 +645,7 @@ export async function generateAIVideoClips({
 
   return {
     ok: true,
-    engine: "AstraMind AI Video Generation Builder v4 Director + Auto Provider Ready",
+    engine: "Aigenikz AI Video Generation Builder v4 Director + Auto Provider Ready",
     provider,
     providerOrder: provider === "auto" ? getAutoProviderOrder() : [provider],
     runwayModel: RUNWAY_MODEL,
@@ -666,7 +666,7 @@ export async function generateAIVideoClips({
 export function getAIVideoGenerationHealth() {
   return {
     ok: true,
-    engine: "AstraMind AI Video Generation Builder v4 Director + Auto Provider Ready",
+    engine: "Aigenikz AI Video Generation Builder v4 Director + Auto Provider Ready",
     provider: AI_VIDEO_PROVIDER,
     providerOrder: AI_VIDEO_PROVIDER === "auto" ? getAutoProviderOrder() : [AI_VIDEO_PROVIDER],
     runwayModel: RUNWAY_MODEL,

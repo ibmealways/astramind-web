@@ -93,7 +93,7 @@ function normalizeEngineResponse(response) {
     artifact?.metadata?.topic ||
     artifact?.title ||
     response.topic ||
-    "AstraMind Video";
+    "Aigenikz Video";
 
   const fallbackContent =
     artifact?.content || response.content || `Video Script:\n${fallbackTopic}`;
@@ -132,7 +132,7 @@ function normalizeEngineResponse(response) {
           title: "Transformation",
           duration: 5,
           visual: "Show AI systems automating tasks and building workflows.",
-          voiceover: "AstraMind turns ideas into systems.",
+          voiceover: "Aigenikz turns ideas into systems.",
           caption: "Ideas become systems",
         },
         {
@@ -149,7 +149,7 @@ function normalizeEngineResponse(response) {
           id: "scene_5",
           title: "CTA",
           duration: 3,
-          visual: "Final futuristic AstraMind brand reveal.",
+          visual: "Final futuristic Aigenikz brand reveal.",
           voiceover: "Build smarter today.",
           caption: "Build smarter today",
         },
@@ -257,12 +257,12 @@ export default function ContentVideo() {
 
   const runHealthCheck = async () => {
     setCheckingHealth(true);
-    setNotice("🧪 Checking AstraMind Vision Pipeline...");
+    setNotice("🧪 Checking Aigenikz Vision Pipeline...");
 
     try {
       const health = await checkVisionHealth();
       setVisionHealth(health);
-      setNotice("✅ AstraMind Vision Pipeline is online and ready.");
+      setNotice("✅ Aigenikz Vision Pipeline is online and ready.");
     } catch (err) {
       console.error("Vision health check failed:", err);
       setVisionHealth(null);
@@ -306,7 +306,7 @@ export default function ContentVideo() {
       setResult(normalized);
       setNotice(
         renderEngine === "vision"
-          ? "✅ Storyboard ready. Next: render with AstraMind Vision Pipeline."
+          ? "✅ Storyboard ready. Next: render with Aigenikz Vision Pipeline."
           : "✅ Storyboard ready. Next: render standard MP4."
       );
 
@@ -325,7 +325,7 @@ export default function ContentVideo() {
     }
 
     const payload = {
-      topic: topic.trim() || videoData.topic || "AstraMind Video",
+      topic: topic.trim() || videoData.topic || "Aigenikz Video",
       platform: videoData.platform || platform,
       style: videoData.style || style,
       scenes: videoData.scenes,
@@ -351,7 +351,7 @@ export default function ContentVideo() {
   };
 
   const renderVisionMP4 = async () => {
-    const cleanTopic = topic.trim() || videoData?.topic || "AstraMind Video";
+    const cleanTopic = topic.trim() || videoData?.topic || "Aigenikz Video";
 
     if (!cleanTopic) {
       throw new Error("Enter a video topic first.");
@@ -421,7 +421,7 @@ export default function ContentVideo() {
     }
 
     if (renderEngine === "vision" && !topic.trim()) {
-      setNotice("⚠️ Enter a topic before rendering AstraMind Vision Pipeline.");
+      setNotice("⚠️ Enter a topic before rendering Aigenikz Vision Pipeline.");
       return;
     }
 
@@ -656,7 +656,7 @@ if (!rawVideoUrl) {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-purple-300 text-sm font-medium mb-4">
-                🎞️ AstraMind Video Studio
+                🎞️ Aigenikz Video Studio
               </div>
 
               <h1 className="text-4xl font-extrabold tracking-tight mb-3">
@@ -700,7 +700,7 @@ if (!rawVideoUrl) {
                 Engine:{" "}
                 <span className="text-cyan-300 font-semibold">
                   {renderEngine === "vision"
-                    ? "AstraMind Vision Pipeline"
+                    ? "Aigenikz Vision Pipeline"
                     : "Standard Renderer"}
                 </span>
               </p>
@@ -746,7 +746,7 @@ if (!rawVideoUrl) {
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               className="w-full min-h-[160px] rounded-2xl border border-white/10 bg-black/35 p-4 text-white outline-none placeholder:text-gray-500 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20"
-              placeholder="Example: Make me a cinematic video showing AstraMind building apps, generating content, and automating business workflows..."
+              placeholder="Example: Make me a cinematic video showing Aigenikz building apps, generating content, and automating business workflows..."
             />
 
             <label className="block text-sm text-gray-300 mt-4 mb-2">
@@ -808,7 +808,7 @@ if (!rawVideoUrl) {
                     : "bg-white/5 hover:bg-white/10 text-gray-300"
                 }`}
               >
-                🚀 AstraMind Vision Pipeline
+                🚀 Aigenikz Vision Pipeline
                 <span className="block text-xs opacity-75">
                   Visuals + motion + voice + music + subtitles + transitions
                 </span>
@@ -947,7 +947,7 @@ if (!rawVideoUrl) {
                 disabled={loading || rendering}
                 className="w-full rounded-2xl bg-green-600 hover:bg-green-700 disabled:opacity-50 px-5 py-3 font-bold transition active:scale-95"
               >
-                {rendering ? "Rendering..." : "🚀 Render AstraMind MP4"}
+                {rendering ? "Rendering..." : "🚀 Render Aigenikz MP4"}
               </button>
 
               <button

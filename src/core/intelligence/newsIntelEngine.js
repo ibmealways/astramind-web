@@ -34,7 +34,7 @@ ${headlines}
 
 Return this EXACT structure:
 
-🧠 AstraMind Intelligence Brief
+🧠 Aigenikz Intelligence Brief
 
 ⚡ Situation:
 (what is happening globally)

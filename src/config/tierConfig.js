@@ -9,7 +9,7 @@ export const TIER_CONFIG = {
   [SUBSCRIPTION_TIERS.FREE]: {
     label: "Free",
     monthlyPrice: 0,
-    description: "Core AstraMind experience for testing the OS.",
+    description: "Core Aigenikz experience for testing the OS.",
     entitlements: {
       chat: true,
       creatorDashboard: false,
@@ -87,7 +87,7 @@ export const TIER_CONFIG = {
   [SUBSCRIPTION_TIERS.EMPIRE]: {
     label: "Empire",
     monthlyPrice: 99,
-    description: "Full AstraMind OS access for advanced creators and business operators.",
+    description: "Full Aigenikz Intelligence OS access for advanced creators and business operators.",
     entitlements: {
       chat: true,
       creatorDashboard: true,

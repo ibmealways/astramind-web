@@ -31,7 +31,7 @@ export default function Login() {
 
   return (
     <div style={{ minHeight: "100vh", padding: "40px", color: "white" }}>
-      <h1>Login to AstraMind</h1>
+      <h1>Login to Aigenikz</h1>
       <form onSubmit={handleSubmit} style={{ maxWidth: "420px", display: "grid", gap: "12px" }}>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
         <input

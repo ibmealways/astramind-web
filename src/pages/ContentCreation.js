@@ -177,7 +177,7 @@ export default function ContentCreation() {
       };
 
       console.log(
-        "🎬 AstraMind Render Payload:",
+        "🎬 Aigenikz Render Payload:",
         payload
       );
 
@@ -284,12 +284,12 @@ ADVANCED VIDEO URL EXTRACTION
       });
 
       console.log(
-        "✅ AstraMind Video Ready:",
+        "✅ Aigenikz Video Ready:",
         normalizedVideoUrl
       );
     } catch (error) {
       console.error(
-        "❌ AstraMind Render Failure:",
+        "❌ Aigenikz Render Failure:",
         error
       );
 
@@ -459,7 +459,7 @@ try {
         <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="text-5xl font-black">
-              🚀 AstraMind
+              🚀 Aigenikz
               Creator Studio
             </h1>
 
@@ -507,7 +507,7 @@ try {
                     )
                   }
                   rows={6}
-                  placeholder="Describe the content you want AstraMind to create..."
+                  placeholder="Describe the content you want Aigenikz to create..."
                   className="w-full rounded-2xl bg-black/40 border border-cyan-500/20 p-4"
                 />
               </div>

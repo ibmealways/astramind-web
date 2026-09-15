@@ -21,7 +21,7 @@ router.get("/health", async (req, res) => {
   return res.json({
     ok: true,
     route: "GET /api/cinematic-video/health",
-    version: "AstraMind Cinematic Video Routes v7 Existing Structure",
+    version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
     systems: {
       orchestration: true,
       renderQueue: true,
@@ -64,7 +64,7 @@ router.post("/render", async (req, res) => {
     return res.status(result?.ok ? 200 : 500).json({
       ok: Boolean(result?.ok),
       route: "POST /api/cinematic-video/render",
-      version: "AstraMind Cinematic Video Routes v7 Existing Structure",
+      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
       projectId: result?.projectId || null,
       executionId: result?.executionId || null,
       videoUrl:
@@ -90,7 +90,7 @@ router.post("/render", async (req, res) => {
     return res.status(500).json({
       ok: false,
       route: "POST /api/cinematic-video/render",
-      version: "AstraMind Cinematic Video Routes v7 Existing Structure",
+      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
       error: error?.message || "Cinematic render failed.",
     });
   }
@@ -116,7 +116,7 @@ router.get("/status/:projectId", async (req, res) => {
     return res.json({
       ok: true,
       route: "GET /api/cinematic-video/status/:projectId",
-      version: "AstraMind Cinematic Video Routes v7 Existing Structure",
+      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
       projectId,
       status: status.status,
       lifecycleStage: status.lifecycleStage,
@@ -140,7 +140,7 @@ router.get("/render-queue", async (req, res) => {
     return res.json({
       ok: true,
       route: "GET /api/cinematic-video/render-queue",
-      version: "AstraMind Cinematic Video Routes v7 Existing Structure",
+      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
       diagnostics,
       pipelineDiagnostics: getPipelineDiagnostics(),
       productionOS: true,

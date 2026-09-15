@@ -418,7 +418,7 @@ router.get("/dashboard", (req, res) => {
     const suggestions = [];
 
     if (!projects.length) {
-      suggestions.push("Create your first tracked project so AstraMind can start building persistent context.");
+      suggestions.push("Create your first tracked project so Aigenikz can start building persistent context.");
     }
 
     if (!(profileRow?.mission || "").trim()) {
@@ -426,11 +426,11 @@ router.get("/dashboard", (req, res) => {
     }
 
     if (!recentMemory.length) {
-      suggestions.push("Save research and strategic notes into memory so AstraMind can recommend stronger next moves.");
+      suggestions.push("Save research and strategic notes into memory so Aigenikz can recommend stronger next moves.");
     }
 
     if (!suggestions.length) {
-      suggestions.push("Continue your highest-priority active project and let AstraMind route the next actions from memory.");
+      suggestions.push("Continue your highest-priority active project and let Aigenikz route the next actions from memory.");
     }
 
     res.json({

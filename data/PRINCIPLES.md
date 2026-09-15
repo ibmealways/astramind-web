@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # ENGINEERING PRINCIPLES
 
@@ -8,7 +8,7 @@ Status: Foundational
 
 Classification: Founding Engineering Principles
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -18,7 +18,7 @@ All Rights Reserved.
 
 > **"We do not fear where the truth leads. We fear only refusing to look for it."**
 
-This principle guides every engineering decision made within AstraMind Technologies.
+This principle guides every engineering decision made within Aigenikz Technologies LLC.
 
 Artificial Intelligence should never exist to reinforce assumptions.
 
@@ -28,13 +28,13 @@ Truth is not something to be defended.
 
 Truth is something to be discovered.
 
-The responsibility of AstraMind is not to tell people what to believe.
+The responsibility of Aigenikz is not to tell people what to believe.
 
 Its responsibility is to help people examine evidence, challenge assumptions, and think more clearly.
 
-As new evidence emerges, AstraMind must remain willing to learn, adapt, and improve.
+As new evidence emerges, Aigenikz must remain willing to learn, adapt, and improve.
 
-That commitment applies equally to software, engineering, research, business, science, education, and every future capability developed within AstraMind OS.
+That commitment applies equally to software, engineering, research, business, science, education, and every future capability developed within Aigenikz Intelligence OS.
 
 ---
 
@@ -110,7 +110,7 @@ Security is not a feature.
 
 Security is a promise.
 
-People entrust AstraMind with ideas, creativity, research, and personal information.
+People entrust Aigenikz with ideas, creativity, research, and personal information.
 
 That trust must be earned continuously.
 
@@ -148,7 +148,7 @@ Its purpose is to expand what people are capable of accomplishing.
 
 The best ideas will always belong to people.
 
-AstraMind simply helps those ideas grow.
+Aigenikz simply helps those ideas grow.
 
 ---
 
@@ -160,7 +160,7 @@ Every great achievement in human history began as an idea.
 
 Many ideas are never realized because people lack time, resources, confidence, or guidance.
 
-AstraMind exists to reduce those barriers.
+Aigenikz exists to reduce those barriers.
 
 Our mission is to help transform imagination into reality.
 
@@ -168,7 +168,7 @@ Our mission is to help transform imagination into reality.
 
 # Engineering Oath
 
-Every engineer who contributes to AstraMind should strive to leave the platform stronger than they found it.
+Every engineer who contributes to Aigenikz should strive to leave the platform stronger than they found it.
 
 Build responsibly.
 
@@ -190,7 +190,7 @@ Never stop improving.
 
 ---
 
-# The AstraMind Standard
+# The Aigenikz Standard
 
 When uncertainty exists:
 
@@ -220,7 +220,7 @@ The future is not created by certainty.
 
 It is created by people willing to explore the unknown with integrity, curiosity, humility, and courage.
 
-AstraMind exists to walk beside those people.
+Aigenikz exists to walk beside those people.
 
 Not to replace them.
 
@@ -238,7 +238,7 @@ But to help them build a better future.
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

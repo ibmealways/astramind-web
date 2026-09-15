@@ -3,7 +3,7 @@
 import crypto from "crypto";
 
 const ENGINE_VERSION =
-  "AstraMind CreatorBrain Memory Engine v1 Unified";
+  "Aigenikz CreatorBrain Memory Engine v1 Unified";
 
 /*
   MEMORY LAYERS

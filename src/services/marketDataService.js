@@ -43,7 +43,7 @@ export async function getIntradayCandles({
   if (!APPROVED_ASSETS.includes(symbol)) {
     return {
       success: false,
-      message: `${symbol} is not inside the approved AstraMind watchlist.`,
+      message: `${symbol} is not inside the approved Aigenikz watchlist.`,
       candles: [],
     };
   }

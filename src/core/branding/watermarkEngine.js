@@ -117,7 +117,7 @@ export async function applyAstraMindWatermark({
   outputPath,
 
   brandText =
-    "AstraMind Technologies",
+    "Aigenikz Technologies LLC",
 
   logoPath = null,
 
@@ -255,7 +255,7 @@ export async function applyAstraMindWatermark({
   ];
 
   console.log(
-    "🛡️ AstraMind Watermark Engine:",
+    "🛡️ Aigenikz Watermark Engine:",
     watermarkMode
   );
 
@@ -265,7 +265,7 @@ export async function applyAstraMindWatermark({
     ok: true,
 
     engine:
-      "AstraMind Watermark Engine v1",
+      "Aigenikz Watermark Engine v1",
 
     watermarkMode,
 
@@ -289,7 +289,7 @@ export function getWatermarkHealth() {
     ok: true,
 
     engine:
-      "AstraMind Watermark Engine v1",
+      "Aigenikz Watermark Engine v1",
 
     outputDir:
       WATERMARK_OUTPUT_DIR,

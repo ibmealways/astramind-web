@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/scene-visuals", async (req, res) => {
   try {
     const {
-      topic = "AstraMind Video",
+      topic = "Aigenikz Video",
       platform = "TikTok",
       style = "cinematic futuristic high-energy",
       scenes = [],

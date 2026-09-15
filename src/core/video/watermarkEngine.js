@@ -96,7 +96,7 @@ export async function applyAstraMindWatermark({
   videoPath,
   outputPath,
 
-  brandText = "AstraMind Technologies",
+  brandText = "Aigenikz Technologies LLC",
   logoPath = null,
 
   position = "bottom-right",
@@ -172,7 +172,7 @@ export async function applyAstraMindWatermark({
 
   const filterGraph = filterParts.join(";");
 
-  console.log("🛡️ AstraMind Watermark Engine:", watermarkMode);
+  console.log("🛡️ Aigenikz Watermark Engine:", watermarkMode);
 
   await runFFmpeg([
     ...inputArgs,
@@ -212,7 +212,7 @@ export async function applyAstraMindWatermark({
 
   return {
     ok: true,
-    engine: "AstraMind Watermark Engine v2 Audio-Safe Logo-Safe",
+    engine: "Aigenikz Watermark Engine v2 Audio-Safe Logo-Safe",
     watermarkMode,
     brandText,
     logoPath,
@@ -227,7 +227,7 @@ export async function applyAstraMindWatermark({
 export function getWatermarkHealth() {
   return {
     ok: true,
-    engine: "AstraMind Watermark Engine v2 Audio-Safe Logo-Safe",
+    engine: "Aigenikz Watermark Engine v2 Audio-Safe Logo-Safe",
     outputDir: WATERMARK_OUTPUT_DIR,
     ffmpegLoaded: Boolean(ffmpegPath),
     supports: {

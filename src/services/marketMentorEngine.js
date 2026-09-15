@@ -42,15 +42,15 @@ export function generateMarketMentorReply({
   if (!approved) {
     return {
       success: true,
-      mode: "AstraMind MarketMentor AI",
+      mode: "Aigenikz MarketMentor AI",
       disclaimer:
-        "Educational decision-support only. AstraMind does not guarantee profit, predict markets with certainty, or replace licensed financial advice.",
+        "Educational decision-support only. Aigenikz does not guarantee profit, predict markets with certainty, or replace licensed financial advice.",
       answerType: "Asset outside approved beginner watchlist",
       ticker: symbol,
       signal: "WATCHLIST_REJECTED",
       riskLevel: "Unknown",
       guidance: [
-        `${symbol} is outside the beginner-approved AstraMind watchlist.`,
+        `${symbol} is outside the beginner-approved Aigenikz watchlist.`,
         "Research the company, volatility, earnings dates, news catalysts, and liquidity first.",
         "Avoid random tickers until the subscriber has proven consistency through paper trading.",
       ],
@@ -83,7 +83,7 @@ export function generateMarketMentorReply({
       "If the trade is near target, consider taking partial profit.",
       "If the original setup failed, protect capital first.",
       "Do not move the stop-loss farther away just to avoid taking a loss.",
-      "Log the trade result so AstraMind can help improve future decisions.",
+      "Log the trade result so Aigenikz can help improve future decisions.",
     ];
   } else if (isLongTermQuestion) {
     recommendedRoute = "Long-Term Foundation Route";
@@ -113,9 +113,9 @@ export function generateMarketMentorReply({
 
   return {
     success: true,
-    mode: "AstraMind MarketMentor AI",
+    mode: "Aigenikz MarketMentor AI",
     disclaimer:
-      "Educational decision-support only. AstraMind does not guarantee profits, predict markets with certainty, or replace licensed financial advice.",
+      "Educational decision-support only. Aigenikz does not guarantee profits, predict markets with certainty, or replace licensed financial advice.",
     ticker: symbol || "No ticker provided",
     userQuestion: question,
     recommendedRoute,

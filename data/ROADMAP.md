@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # PRODUCT & ENGINEERING ROADMAP
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Internal Strategic Planning Document
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -16,11 +16,11 @@ All Rights Reserved.
 
 # Purpose
 
-This document defines the long-term product, engineering, and platform roadmap for AstraMind Technologies.
+This document defines the long-term product, engineering, and platform roadmap for Aigenikz Technologies LLC.
 
 It is intended to guide architectural decisions, engineering priorities, product planning, and company growth.
 
-This roadmap is a living document and will evolve as AstraMind grows.
+This roadmap is a living document and will evolve as Aigenikz grows.
 
 ---
 
@@ -32,7 +32,7 @@ Build the world's leading Artificial Intelligence Operating System capable of he
 
 # Engineering Philosophy
 
-Every release should make AstraMind:
+Every release should make Aigenikz:
 
 • Smarter
 
@@ -95,12 +95,12 @@ Sprint 1
 
 Objectives
 
-Build AstraMind Kernel.
+Build Aigenikz Intelligence Kernel.
 
 Deliverables
 
 - Kernel Bootstrap
-- AstraMind Kernel
+- Aigenikz Intelligence Kernel
 - Mission Object
 - Event Bus
 - Capability Registry
@@ -235,7 +235,7 @@ Knowledge Graph
 
 Expected Result
 
-Research becomes a reusable intelligence asset across AstraMind.
+Research becomes a reusable intelligence asset across Aigenikz.
 
 ---
 
@@ -297,7 +297,7 @@ Workflow Automation
 
 Expected Result
 
-Businesses manage operations from within AstraMind.
+Businesses manage operations from within Aigenikz.
 
 ---
 
@@ -323,7 +323,7 @@ Community Extensions
 
 Expected Result
 
-External developers extend AstraMind without modifying the Kernel.
+External developers extend Aigenikz without modifying the Kernel.
 
 ---
 
@@ -333,7 +333,7 @@ Enterprise Platform
 
 Objectives
 
-Prepare AstraMind for organizational deployments.
+Prepare Aigenikz for organizational deployments.
 
 Features
 
@@ -353,7 +353,7 @@ Enterprise Integrations
 
 Expected Result
 
-Organizations can securely deploy AstraMind at scale.
+Organizations can securely deploy Aigenikz at scale.
 
 ---
 
@@ -393,7 +393,7 @@ Robotics & Physical Systems
 
 Objectives
 
-Extend AstraMind beyond software.
+Extend Aigenikz beyond software.
 
 Future Possibilities
 
@@ -411,7 +411,7 @@ Edge AI
 
 Expected Result
 
-The AstraMind Kernel coordinates software and physical systems through a common mission architecture.
+The Aigenikz Intelligence Kernel coordinates software and physical systems through a common mission architecture.
 
 ---
 
@@ -496,13 +496,13 @@ Innovation
 
 # Guiding Principle
 
-Every Sprint should move AstraMind closer to becoming the world's most capable modular AI Operating System while maintaining engineering quality, security, and long-term maintainability.
+Every Sprint should move Aigenikz closer to becoming the world's most capable modular AI Operating System while maintaining engineering quality, security, and long-term maintainability.
 
 ---
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

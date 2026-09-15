@@ -23,7 +23,7 @@ const GLOBAL_TREND_FILE = path.join(
 );
 
 const INTELLIGENCE_VERSION =
-  "AstraMind Viral Intelligence Engine v1";
+  "Aigenikz Viral Intelligence Engine v1";
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) {

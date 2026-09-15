@@ -33,7 +33,7 @@ ENSURE FINAL RENDER DIRECTORY EXISTS
 */
 
 const ENGINE_VERSION =
-  "AstraMind Cinematic Render Engine v4 Unified";
+  "Aigenikz Cinematic Render Engine v4 Unified";
 
 const DEFAULT_RENDER_RESOLUTION =
   "1080x1920";

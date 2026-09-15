@@ -18,7 +18,7 @@ export function buildNarrationDirection({
 
   return {
     ok: true,
-    engine: "AstraMind Narration Director v1",
+    engine: "Aigenikz Narration Director v1",
     topic,
     platform,
     durationTarget,
@@ -70,7 +70,7 @@ The old way was scattered. The new way is intelligent, adaptive, and built to mo
 export function getNarrationDirectorHealth() {
   return {
     ok: true,
-    engine: "AstraMind Narration Director v1",
+    engine: "Aigenikz Narration Director v1",
     supports: {
       durationAwareNarration: true,
       creatorVoiceStyle: true,

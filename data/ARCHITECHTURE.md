@@ -1,4 +1,4 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # ASTRAMIND OS ARCHITECTURE
 
@@ -8,7 +8,7 @@ Status: Active
 
 Classification: Internal Engineering Specification
 
-Copyright © AstraMind Technologies
+Copyright © Aigenikz Technologies LLC
 
 All Rights Reserved.
 
@@ -16,7 +16,7 @@ All Rights Reserved.
 
 # Purpose
 
-This document defines the architecture of AstraMind Operating System (AstraMind OS).
+This document defines the architecture of Aigenikz Operating System (Aigenikz Intelligence OS).
 
 It serves as the authoritative engineering specification for the platform's design, subsystem responsibilities, execution model, and long-term evolution.
 
@@ -26,9 +26,9 @@ All future development should remain consistent with the architectural principle
 
 # Vision
 
-AstraMind OS is a modular Artificial Intelligence Operating System that coordinates specialized intelligence engines through a central Kernel.
+Aigenikz Intelligence OS is a modular Artificial Intelligence Operating System that coordinates specialized intelligence engines through a central Kernel.
 
-Unlike traditional AI assistants, AstraMind is designed as an orchestration platform rather than a single language model.
+Unlike traditional AI assistants, Aigenikz is designed as an orchestration platform rather than a single language model.
 
 Every request is treated as a mission.
 
@@ -47,7 +47,7 @@ Every interaction is coordinated through the Kernel.
                 Chat / API / UI Layer
                           │
                           ▼
-                 AstraMind Kernel
+                 Aigenikz Intelligence Kernel
                           │
  ┌───────────────┬───────────────┬───────────────┐
  │               │               │               │
@@ -127,7 +127,7 @@ New capabilities should integrate through adapters rather than forcing rewrites.
 
 # Kernel
 
-The Kernel is the trusted execution environment of AstraMind OS.
+The Kernel is the trusted execution environment of Aigenikz Intelligence OS.
 
 Responsibilities include:
 
@@ -252,7 +252,7 @@ Examples:
 
 # Memory Architecture
 
-AstraMind maintains multiple specialized memory domains.
+Aigenikz maintains multiple specialized memory domains.
 
 Conversation Memory
 
@@ -437,13 +437,13 @@ Main Branch
 
 # Long-Term Direction
 
-AstraMind OS is intended to evolve into a unified intelligence platform capable of orchestrating specialized AI capabilities across personal, business, enterprise, and government domains while maintaining a consistent architectural model centered on the Kernel.
+Aigenikz Intelligence OS is intended to evolve into a unified intelligence platform capable of orchestrating specialized AI capabilities across personal, business, enterprise, and government domains while maintaining a consistent architectural model centered on the Kernel.
 
 ---
 
 Document Owner
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

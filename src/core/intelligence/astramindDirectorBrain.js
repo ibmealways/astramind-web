@@ -12,7 +12,7 @@ import {
 } from "./creatorIdentityEngine.js";
 
 const DIRECTOR_VERSION =
-  "AstraMind Autonomous Director Brain v1";
+  "Aigenikz Autonomous Director Brain v1";
 
 export const CACHE_TYPES = {
   FINAL_RENDER: "final_render",
@@ -500,7 +500,7 @@ export async function buildAstraMindDirectorState({
 
   return {
     ok: true,
-    engine: "AstraMind Global Director State v1 Existing Structure",
+    engine: "Aigenikz Global Director State v1 Existing Structure",
     stage: "global-director-state",
     projectId,
     executionId,

@@ -5,7 +5,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Viral Pacing Engine v3 Unified";
+  "Aigenikz Viral Pacing Engine v3 Unified";
 
 function clean(value = "") {
   return String(value || "")

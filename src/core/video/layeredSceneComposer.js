@@ -136,7 +136,7 @@ export function composeLayeredScene({
 
   return {
     ok: true,
-    engine: "AstraMind Layered Scene Composer v1",
+    engine: "Aigenikz Layered Scene Composer v1",
     sceneId: scene.id || motionScene.id || `scene_${index + 1}`,
     sceneIndex: index,
     title: clean(scene.title || motionScene.title || `Scene ${index + 1}`),
@@ -171,7 +171,7 @@ export function composeLayeredScenes({
 
   return {
     ok: true,
-    engine: "AstraMind Layered Scene Composer v1",
+    engine: "Aigenikz Layered Scene Composer v1",
     sceneCount: scenes.length,
     width,
     height,

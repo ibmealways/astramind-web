@@ -18,7 +18,7 @@ const STORY_MEMORY_FILE = path.join(
 );
 
 const ENGINE_VERSION =
-  "AstraMind Cinematic Storyboard Engine v7 Autonomous Intelligence";
+  "Aigenikz Cinematic Storyboard Engine v7 Autonomous Intelligence";
 
 /*
   ============================================
@@ -678,7 +678,7 @@ function detectTheme(
         "AI dashboards, holographic systems, creator command centers, living neural operating systems",
 
       promise:
-        "AstraMind becomes a living AI operating system adapting to creators in real-time",
+        "Aigenikz becomes a living AI operating system adapting to creators in real-time",
 
       hook:
         "What if one AI system could think across your entire workflow?",
@@ -687,13 +687,13 @@ function detectTheme(
         "Most creators waste energy switching between disconnected tools that never understand the bigger mission.",
 
       transformation:
-        "AstraMind routes ideas into content, systems, automation, and execution from one adaptive intelligence layer.",
+        "Aigenikz routes ideas into content, systems, automation, and execution from one adaptive intelligence layer.",
 
       proof:
         "Content creation, business systems, finance intelligence, and automation operate through one orchestrated creator OS.",
 
       cta:
-        "Choose the mission. AstraMind maps the route.",
+        "Choose the mission. Aigenikz maps the route.",
 
       captions: [
         "One adaptive AI OS.",
@@ -708,7 +708,7 @@ function detectTheme(
         "A creator command center connected to media, finance, automation, and intelligence tools.",
         "AI dashboards evolving around the user in real-time.",
         "A cinematic workflow transforming ideas into content systems.",
-        "AstraMind adapting dynamically to creator decisions.",
+        "Aigenikz adapting dynamically to creator decisions.",
       ],
     };
   }
@@ -1335,7 +1335,7 @@ ${scene.emotionalArc?.emotionalIntensity}`
 
 export function buildCinematicStoryboard({
   topic =
-    "AstraMind cinematic video",
+    "Aigenikz cinematic video",
 
   platform =
     "TikTok",
@@ -1353,7 +1353,7 @@ export function buildCinematicStoryboard({
 } = {}) {
   const cleanTopic =
     clean(topic) ||
-    "AstraMind cinematic video";
+    "Aigenikz cinematic video";
 
   const subject =
     stripPromptCommand(

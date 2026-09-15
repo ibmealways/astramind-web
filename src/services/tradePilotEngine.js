@@ -5,7 +5,7 @@ export function getTradePilotPlan(userProfile = {}) {
   const weeklyDeposit = Number(userProfile.weeklyDeposit || 30);
 
   return {
-    moduleName: "AstraMind TradePilot Pro",
+    moduleName: "Aigenikz TradePilot Pro",
     disclaimer:
       "Educational trading assistant only. This is not financial advice and does not guarantee profit.",
     capitalPlan: {

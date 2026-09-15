@@ -1,6 +1,6 @@
 // src/core/audio/adaptiveVoiceCadenceEngine.js
 
-const ENGINE_VERSION = "AstraMind Adaptive Voice Cadence Engine v1";
+const ENGINE_VERSION = "Aigenikz Adaptive Voice Cadence Engine v1";
 
 function clean(value = "") {
   return String(value || "").replace(/\s+/g, " ").trim();

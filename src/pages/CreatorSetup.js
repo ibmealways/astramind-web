@@ -37,11 +37,11 @@ export default function CreatorSetup() {
         "
       >
         <h1 className="text-2xl font-extrabold mb-2 text-indigo-400">
-          🚀 Initialize AstraMind
+          🚀 Initialize Aigenikz
         </h1>
 
         <p className="text-sm text-gray-300 mb-6">
-          Define your creator identity so AstraMind can align its intelligence.
+          Define your creator identity so Aigenikz can align its intelligence.
         </p>
 
         {/* NICHE */}
@@ -96,7 +96,7 @@ export default function CreatorSetup() {
             transition
           "
         >
-          Initialize AstraMind
+          Initialize Aigenikz
         </button>
       </div>
     </div>

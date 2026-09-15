@@ -36,7 +36,7 @@ export default function Settings() {
         </h1>
 
         <p className="text-sm text-gray-300 mb-10">
-          Configure AstraMind system behavior, intelligence modules, and subscription tiers.
+          Configure Aigenikz system behavior, intelligence modules, and subscription tiers.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -73,7 +73,7 @@ export default function Settings() {
 
           <SettingCard title="🧩 Integration Controls">
             <div className="text-[12px] text-gray-300 mb-3">
-              Let subscribers decide how deeply AstraMind modules integrate with each other.
+              Let subscribers decide how deeply Aigenikz modules integrate with each other.
             </div>
 
             <ToggleRow

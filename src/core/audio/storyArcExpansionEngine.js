@@ -3,7 +3,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Story Arc Expansion Engine v2 Unified";
+  "Aigenikz Story Arc Expansion Engine v2 Unified";
 
 function clean(value = "") {
   return String(value || "")

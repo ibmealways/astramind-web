@@ -7,7 +7,7 @@ const navGroups = [
     title: "Core",
     items: [
       { to: "/", label: "Home", icon: "🏠" },
-      { to: "/chat", label: "AstraMind Chat", icon: "💬" },
+      { to: "/chat", label: "Aigenikz Chat", icon: "💬" },
       { to: "/control-center", label: "Control Center", icon: "⚡" },
       { to: "/research", label: "Research Workspace", icon: "📚" },
       { to: "/setup", label: "Creator Setup", icon: "🛠️" },
@@ -104,7 +104,7 @@ export default function Sidebar() {
 
           {!collapsed && (
             <div className="sidebar-brand-copy">
-              <h2>AstraMind</h2>
+              <h2>Aigenikz</h2>
               <p>Adaptive Creator OS</p>
             </div>
           )}

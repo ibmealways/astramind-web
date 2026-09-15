@@ -87,7 +87,7 @@ export default function Sidebar() {
 
           {!collapsed && (
             <div className="sidebar-brand-copy">
-              <h2>AstraMind</h2>
+              <h2>Aigenikz</h2>
               <p>Adaptive Creator OS</p>
             </div>
           )}

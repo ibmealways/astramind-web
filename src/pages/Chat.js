@@ -19,7 +19,7 @@ const ACTIVE_CHAT_KEY = "astramind_active_chat_id";
 
 const DEFAULT_MESSAGE = {
   role: "assistant",
-  content: "🤖 AstraMind Chat online. What are we building today?",
+  content: "🤖 Aigenikz Chat online. What are we building today?",
   meta: { source: "SYSTEM" },
 };
 
@@ -158,7 +158,7 @@ function sourceLabel(message) {
   if (message.role === "user") return "You";
   if (message.meta?.source === "SYSTEM") return "System";
   if (message.meta?.source === "ERROR") return "Error";
-  return message.meta?.source || "AstraMind";
+  return message.meta?.source || "Aigenikz";
 }
 
 export default function Chat() {
@@ -256,7 +256,7 @@ export default function Chat() {
     setChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
     setInput("");
-    setNotice("✅ New AstraMind Chat started.");
+    setNotice("✅ New Aigenikz Chat started.");
     setStickToBottom(true);
   };
 
@@ -514,8 +514,8 @@ export default function Chat() {
         <section className="astrachat-main">
           <header className="astrachat-header">
             <div>
-              <p className="astrachat-eyebrow">AstraMind Command Layer</p>
-              <h1>AstraMind Chat</h1>
+              <p className="astrachat-eyebrow">Aigenikz Command Layer</p>
+              <h1>Aigenikz Chat</h1>
               <p className="astrachat-subtitle">
                 Clean AI conversation workspace with saved chat history,
                 workspace handoff, and routing intelligence.
@@ -631,7 +631,7 @@ export default function Chat() {
                       <span />
                       <span />
                     </div>
-                    <p>AstraMind is thinking...</p>
+                    <p>Aigenikz is thinking...</p>
                   </div>
                 </article>
               )}
@@ -641,7 +641,7 @@ export default function Chat() {
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask AstraMind anything..."
+                placeholder="Ask Aigenikz anything..."
                 rows={2}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {

@@ -7,7 +7,7 @@ const ROOT = process.cwd();
 const MEMORY_DIR = path.join(ROOT, "server-renders", "astramind-intelligence");
 const DIRECTOR_MEMORY_FILE = path.join(MEMORY_DIR, "autonomous-director-memory.json");
 
-const ENGINE_VERSION = "AstraMind Autonomous Director Engine v1";
+const ENGINE_VERSION = "Aigenikz Autonomous Director Engine v1";
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

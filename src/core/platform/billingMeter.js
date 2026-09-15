@@ -77,7 +77,7 @@ function writeJson(filePath, data) {
 
 function loadBillingDb() {
   return readJson(BILLING_FILE, {
-    engine: "AstraMind Billing Meter",
+    engine: "Aigenikz Billing Meter",
     version: 1,
     events: [],
     invoices: {},
@@ -367,7 +367,7 @@ export function getDeveloperBillingSummary({ developerId }) {
 
 export function createInternalInvoice({
   developerId,
-  description = "AstraMind API usage invoice",
+  description = "Aigenikz API usage invoice",
   lineItems = [],
   metadata = {},
 } = {}) {

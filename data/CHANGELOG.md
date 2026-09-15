@@ -1,8 +1,8 @@
-# AstraMind Technologies
+# Aigenikz Technologies LLC
 
 # CHANGELOG
 
-All notable changes to AstraMind Technologies will be documented in this file.
+All notable changes to Aigenikz Technologies LLC will be documented in this file.
 
 This project follows an internal Semantic Versioning strategy.
 
@@ -37,15 +37,15 @@ Status
 
 Codename
 
-**AstraMind Operating System**
+**Aigenikz Operating System**
 
 Primary Goal
 
-Transform AstraMind from a collection of AI modules into a unified AI Operating System powered by the AstraMind Kernel.
+Transform Aigenikz from a collection of AI modules into a unified AI Operating System powered by the Aigenikz Intelligence Kernel.
 
 Planned Features
 
-- AstraMind Kernel
+- Aigenikz Intelligence Kernel
 - Conversation Engine
 - Mission Planner
 - Capability Registry
@@ -210,7 +210,7 @@ Features
 
 # Future Vision
 
-AstraMind Technologies is being developed as a unified Artificial Intelligence Operating System capable of reasoning, creating, researching, learning, automating, and collaborating across multiple domains.
+Aigenikz Technologies LLC is being developed as a unified Artificial Intelligence Operating System capable of reasoning, creating, researching, learning, automating, and collaborating across multiple domains.
 
 The Kernel architecture introduced in Version 3.0 serves as the foundation for all future expansion.
 
@@ -252,7 +252,7 @@ Production
 
 # Maintained By
 
-AstraMind Technologies
+Aigenikz Technologies LLC
 
 Founder
 

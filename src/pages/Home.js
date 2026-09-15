@@ -18,7 +18,7 @@ export default function Home() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight text-amber-400 drop-shadow-md">
-            🚀 Welcome to AstraMind
+            🚀 Welcome to Aigenikz
           </h1>
           <p className="text-sm text-gray-300 mt-1">
             Your Personal AI Operating System
@@ -32,15 +32,15 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <OSCard to="/chat" title="🤖 AI Chat" desc="Talk to AstraMind in real time." />
+          <OSCard to="/chat" title="🤖 AI Chat" desc="Talk to Aigenikz in real time." />
           <OSCard to="/finance" title="💰 Finance" desc="Track income, expenses, and insights." />
           <OSCard to="/content" title="🎨 Content" desc="Design, generate, and manage content." />
           <OSCard to="/content-lab" title="🧠 Content Lab" desc="Generate content strategies with intelligence." />
-          <OSCard to="/settings" title="⚙️ Settings" desc="Customize AstraMind behavior." />
+          <OSCard to="/settings" title="⚙️ Settings" desc="Customize Aigenikz behavior." />
         </div>
 
         <div className="mt-8 text-center text-[10px] text-gray-500">
-          AstraMind OS · © {new Date().getFullYear()}
+          Aigenikz Intelligence OS · © {new Date().getFullYear()}
         </div>
       </div>
     </div>

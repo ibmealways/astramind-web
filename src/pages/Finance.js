@@ -275,7 +275,7 @@ export default function Finance() {
 
       setInsight({
         text:
-          "This request belongs in Finance Pro. Opened TradePilot / MarketMentor so AstraMind can guide the subscriber through investing, trading, risk routing, and market signal review.",
+          "This request belongs in Finance Pro. Opened TradePilot / MarketMentor so Aigenikz can guide the subscriber through investing, trading, risk routing, and market signal review.",
         source: "ROUTED_TO_FINANCE_PRO",
       });
 
@@ -297,7 +297,7 @@ export default function Finance() {
           {
             role: "system",
             content:
-              "You are AstraMind Finance Intelligence. Be concise, tactical, and specific.",
+              "You are Aigenikz Finance Intelligence. Be concise, tactical, and specific.",
           },
           {
             role: "user",

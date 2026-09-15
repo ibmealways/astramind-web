@@ -310,7 +310,7 @@ export async function runAutonomousResearch({
 
   return {
     ok: deduped.length > 0,
-    engine: "AstraMind Autonomous Research Layer v1",
+    engine: "Aigenikz Autonomous Research Layer v1",
     originalQuery: query,
     researchType: intent?.type || "general_web",
     freshness: intent?.freshness || "recent",

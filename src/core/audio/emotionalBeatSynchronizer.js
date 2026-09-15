@@ -1,7 +1,7 @@
 // src/core/audio/emotionalBeatSynchronizer.js
 
 const ENGINE_VERSION =
-  "AstraMind Emotional Beat Synchronizer v1";
+  "Aigenikz Emotional Beat Synchronizer v1";
 
 function clean(value = "") {
   return String(value || "")

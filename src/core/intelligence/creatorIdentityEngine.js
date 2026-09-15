@@ -7,7 +7,7 @@ const MEMORY_DIR = path.resolve("server-renders/astramind-intelligence");
 const IDENTITY_FILE = path.join(MEMORY_DIR, "creator-identity-memory.json");
 const STYLE_EVENTS_FILE = path.join(MEMORY_DIR, "creator-style-events.json");
 
-const ENGINE_VERSION = "AstraMind Creator Identity Engine v1";
+const ENGINE_VERSION = "Aigenikz Creator Identity Engine v1";
 
 export const CREATOR_ARCHETYPES = {
   POLITICAL_COMMENTATOR: "political_commentator",

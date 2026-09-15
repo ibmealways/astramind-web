@@ -232,7 +232,7 @@ export default function ControlCenter() {
   return (
     <div className="control-center-page os-panel os-page-enter os-breathe text-white">
       <div className="control-center-header">
-        <h1>⚡ AstraMind Control Center</h1>
+        <h1>⚡ Aigenikz Control Center</h1>
         <p>
           Run autonomous workflows across research, strategy, books, content,
           AI SaaS building, and full multi-agent orchestration.

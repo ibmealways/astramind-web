@@ -51,7 +51,7 @@ export default function ResearchEngine() {
     <div className="research-page">
       <div className="research-shell">
         <div className="research-header">
-          <h1>🔎 AstraMind Research Engine v2</h1>
+          <h1>🔎 Aigenikz Research Engine v2</h1>
           <p>
             Live web research, source-backed intelligence, and AI synthesis.
           </p>
@@ -60,7 +60,7 @@ export default function ResearchEngine() {
         <div className="research-controls">
           <textarea
             className="research-textarea"
-            placeholder="Ask AstraMind to research anything..."
+            placeholder="Ask Aigenikz to research anything..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

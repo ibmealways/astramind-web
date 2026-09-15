@@ -73,7 +73,7 @@ function writeJson(filePath, data) {
 function loadDb() {
   return readJson(RECOVERY_FILE, {
     version: 1,
-    engine: "AstraMind Render Recovery Engine",
+    engine: "Aigenikz Render Recovery Engine",
     renders: {},
     events: [],
     updatedAt: now(),
@@ -540,7 +540,7 @@ export function getRenderRecoveryHealth() {
 
   return {
     ok: true,
-    engine: "AstraMind Render Recovery Engine v1",
+    engine: "Aigenikz Render Recovery Engine v1",
     recoveryDir: RECOVERY_DIR,
     recoveryFile: RECOVERY_FILE,
     totalRenders: renders.length,

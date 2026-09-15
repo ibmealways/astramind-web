@@ -5,7 +5,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Motion Director Engine v3 Unified";
+  "Aigenikz Motion Director Engine v3 Unified";
 
 function clean(value = "") {
   return String(value || "")

@@ -3,7 +3,7 @@
 import crypto from "crypto";
 
 const ENGINE_VERSION =
-  "AstraMind CreatorBrain Adaptive Learning Engine v1 Unified";
+  "Aigenikz CreatorBrain Adaptive Learning Engine v1 Unified";
 
 const learningProfiles =
   new Map();

@@ -224,7 +224,7 @@ export default function ContentLab() {
               ❌ Project Not Found
             </div>
 
-            <h1 className="text-3xl font-bold mb-3">AstraMind couldn’t locate this project</h1>
+            <h1 className="text-3xl font-bold mb-3">Aigenikz couldn’t locate this project</h1>
 
             <p className="text-gray-300 mb-3">
               Project ID:
@@ -286,7 +286,7 @@ export default function ContentLab() {
               </h1>
 
               <p className="text-gray-300 text-lg mb-5">
-                Refine, package, publish, and export your AstraMind content project.
+                Refine, package, publish, and export your Aigenikz content project.
               </p>
 
               <div className="flex flex-wrap gap-3">

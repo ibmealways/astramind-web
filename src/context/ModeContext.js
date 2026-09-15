@@ -21,7 +21,7 @@ function getInitialMode() {
       return savedMode;
     }
   } catch (error) {
-    console.warn("Unable to read saved AstraMind mode from storage.", error);
+    console.warn("Unable to read saved Aigenikz mode from storage.", error);
   }
 
   return APP_MODES.CREATOR;
@@ -35,7 +35,7 @@ export function ModeProvider({ children }) {
     try {
       localStorage.setItem(STORAGE_KEY, mode);
     } catch (error) {
-      console.warn("Unable to save AstraMind mode to storage.", error);
+      console.warn("Unable to save Aigenikz mode to storage.", error);
     }
   }, [mode]);
 
@@ -43,7 +43,7 @@ export function ModeProvider({ children }) {
     const config = getModeConfig(nextMode);
 
     if (!config) {
-      console.warn(`Attempted to set invalid AstraMind mode: ${nextMode}`);
+      console.warn(`Attempted to set invalid Aigenikz mode: ${nextMode}`);
       return;
     }
 

@@ -38,7 +38,7 @@ export function generateWealthRoute({
   return {
     success: true,
     disclaimer:
-      "AstraMind is a financial education and decision-support tool. It does not guarantee profits or replace licensed financial advice.",
+      "Aigenikz is a financial education and decision-support tool. It does not guarantee profits or replace licensed financial advice.",
     userGoal: goal,
     recommendedRoute: route,
     riskLevel,

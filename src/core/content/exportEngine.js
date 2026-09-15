@@ -11,7 +11,7 @@ function nowStamp() {
 }
 
 function defaultHashtags(topic) {
-  const base = ["#AstraMind", "#ChappyAI", "#ContentCreator", "#Viral", "#Marketing"];
+  const base = ["#Aigenikz", "#ChappyAI", "#ContentCreator", "#Viral", "#Marketing"];
   const t = safe(topic)
     .split(" ")
     .slice(0, 3)

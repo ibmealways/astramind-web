@@ -1,4 +1,4 @@
-// AstraMind OS — Mode Definitions (FINAL)
+// Aigenikz Intelligence OS — Mode Definitions (FINAL)
 
 export const OS_MODES = {
   SYSTEM: {

@@ -10,7 +10,7 @@ export const JOB_PRIORITY = {
 };
 
 const ENGINE_VERSION =
-  "AstraMind Render Queue v2 Active State Unified";
+  "Aigenikz Render Queue v2 Active State Unified";
 
 /*
   ============================================

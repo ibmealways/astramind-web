@@ -3,7 +3,7 @@ import {
 } from "../intelligence/contentClassifier.js";
 
 const ENGINE_VERSION =
-  "AstraMind Cinematic Dialogue Director v2 Unified";
+  "Aigenikz Cinematic Dialogue Director v2 Unified";
 
 function clean(value = "") {
   return String(value || "")

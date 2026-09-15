@@ -59,7 +59,7 @@ function loadMemory() {
 
     if (!fs.existsSync(MEMORY_FILE)) {
       return {
-        engine: "AstraMind Storyboard Learning Memory",
+        engine: "Aigenikz Storyboard Learning Memory",
         version: 1,
         runs: [],
         winningPatterns: {},
@@ -70,7 +70,7 @@ function loadMemory() {
     return JSON.parse(fs.readFileSync(MEMORY_FILE, "utf8"));
   } catch {
     return {
-      engine: "AstraMind Storyboard Learning Memory",
+      engine: "Aigenikz Storyboard Learning Memory",
       version: 1,
       runs: [],
       winningPatterns: {},
@@ -428,9 +428,9 @@ function fallbackSceneSet({ subject, category, platform, style }) {
       {
         title: "Transformation",
         visual:
-          "AstraMind connects content, finance, automation, travel, media, and business intelligence into one living system.",
+          "Aigenikz connects content, finance, automation, travel, media, and business intelligence into one living system.",
         voiceover:
-          "AstraMind turns scattered work into an adaptive operating system that learns how you build.",
+          "Aigenikz turns scattered work into an adaptive operating system that learns how you build.",
         caption: "Chaos becomes command.",
       },
       {
@@ -444,9 +444,9 @@ function fallbackSceneSet({ subject, category, platform, style }) {
       {
         title: "CTA",
         visual:
-          "Final AstraMind brand reveal with electric blue and violet intelligence streams forming a living digital brain.",
+          "Final Aigenikz brand reveal with electric blue and violet intelligence streams forming a living digital brain.",
         voiceover:
-          "Build smarter. Move faster. Let AstraMind become the system behind your next breakthrough.",
+          "Build smarter. Move faster. Let Aigenikz become the system behind your next breakthrough.",
         caption: "Build smarter today.",
       },
     ],
@@ -650,7 +650,7 @@ function normalizeAIStoryboard(data = {}, request = {}) {
     promptPack: buildPromptPack(scenes),
     editorPackage: {
       editable: true,
-      timelineMode: "AstraMind-native",
+      timelineMode: "Aigenikz-native",
       canEditScript: true,
       canEditScenes: true,
       canEditCaptions: true,
@@ -671,7 +671,7 @@ function normalizeAIStoryboard(data = {}, request = {}) {
         data.hashtags ||
         [
           `#${subject.replace(/[^a-z0-9]/gi, "").slice(0, 28)}`,
-          "#AstraMind",
+          "#Aigenikz",
           "#Shorts",
           "#ViralVideo",
           "#ContentCreation",
@@ -698,7 +698,7 @@ async function callOpenAIStoryboard({
   const visualWorld = inferVisualWorld(category);
 
   const systemPrompt = `
-You are AstraMind Autonomous Story Intelligence V7.
+You are Aigenikz Autonomous Story Intelligence V7.
 
 You are not a template writer.
 You are a cinematic director, editor, social strategist, scriptwriter, and visual prompt engineer.
@@ -721,7 +721,7 @@ Return strict JSON only.
 `.trim();
 
   const userPrompt = `
-Create a complete AstraMind video package.
+Create a complete Aigenikz video package.
 
 USER COMMAND:
 ${topic}
@@ -820,7 +820,7 @@ Create 5 scenes unless the topic needs 6.
 }
 
 export async function generateAIStoryboard({
-  topic = "AstraMind cinematic video",
+  topic = "Aigenikz cinematic video",
   platform = "TikTok",
   style = "cinematic futuristic high-energy",
   durationTarget = 30,

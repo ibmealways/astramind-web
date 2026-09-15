@@ -150,9 +150,9 @@ generated-audio/
 # Local Memory
 ############################
 
-memory/
-sessions/
-conversation-cache/
+/memory/
+/sessions/
+/conversation-cache/
 
 ############################
 # Testing

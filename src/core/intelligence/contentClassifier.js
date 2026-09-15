@@ -1,5 +1,5 @@
 const ENGINE_NAME =
-  "AstraMind Unified Content Classifier v2 Autonomous Research Intent";
+  "Aigenikz Unified Content Classifier v2 Autonomous Research Intent";
 
 function clean(value = "") {
   return String(value || "")
