@@ -62,6 +62,7 @@ app.use("/api/ai-image", aiImageRoutes);
 app.use("/api/developer", developerApiRoutes);
 
 import path from "path";
+import fs from "fs";
 
 app.use(
   "/server-renders",
@@ -90,7 +91,7 @@ app.use(
   )
 );
 
-const PORT = process.env.BACKEND_PORT || 5000;
+const PORT = Number(process.env.PORT || process.env.BACKEND_PORT || 5000);
 
 /* ===============================
    IN-MEMORY STORE
@@ -1372,16 +1373,23 @@ app.get("/api/health", (req, res) => {
 });
 
 /* ===============================
-   ROOT
+   WEB APPLICATION
 =============================== */
+const buildDir = path.resolve("build");
+const indexFile = path.join(buildDir, "index.html");
+
+app.use(express.static(buildDir));
+
 app.get("/", (req, res) => {
-  res.send("Aigenikz backend is live.");
+  if (fs.existsSync(indexFile)) return res.sendFile(indexFile);
+  return res.send("Aigenikz backend is live.");
 });
 
 /* ===============================
    OPTIONAL: CLEAR ALL PROJECTS (DEV TOOL)
 =============================== */
-app.delete("/api/book-projects/clear", (req, res) => {
+app.delete("/api/book-projects/clear", (req, res, next) => {
+  if (process.env.NODE_ENV === "production") return next();
   try {
     bookProjectStore.clear();
 
@@ -1402,7 +1410,8 @@ app.delete("/api/book-projects/clear", (req, res) => {
 /* ===============================
    OPTIONAL: DEBUG VIEW (DEV TOOL)
 =============================== */
-app.get("/api/debug/store", (req, res) => {
+app.get("/api/debug/store", (req, res, next) => {
+  if (process.env.NODE_ENV === "production") return next();
   try {
     return res.json({
       ok: true,
@@ -1417,6 +1426,13 @@ app.get("/api/debug/store", (req, res) => {
   }
 });
 
+/* ===============================
+   CLIENT-SIDE ROUTING
+=============================== */
+app.get(/^(?!\/api(?:\/|$)).*/, (req, res, next) => {
+  if (!fs.existsSync(indexFile)) return next();
+  return res.sendFile(indexFile);
+});
 /* ===============================
    404 HANDLER
 =============================== */

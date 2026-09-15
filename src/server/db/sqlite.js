@@ -6,12 +6,17 @@ import fs from "fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dataDir = path.join(__dirname, "../../../data");
+const configuredDbPath = process.env.AIGENIKZ_AUTH_DB_PATH || "";
+const dataDir = configuredDbPath
+  ? path.dirname(path.resolve(configuredDbPath))
+  : path.join(__dirname, "../../../data");
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const dbPath = path.join(dataDir, "astramind.db");
+const dbPath = configuredDbPath
+  ? path.resolve(configuredDbPath)
+  : path.join(dataDir, "astramind.db");
 const db = new Database(dbPath);
 
 db.pragma("journal_mode = WAL");
