@@ -6,6 +6,7 @@ import ffmpegPath from "ffmpeg-static";
 
 const ROOT = process.cwd();
 const KINETIC_DIR = path.join(ROOT, "server-renders", "kinetic-scenes");
+const LOW_MEMORY_RENDER = process.env.VIDEO_RENDER_PROFILE === "staging-low-memory";
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -226,9 +227,9 @@ export function buildKineticScenePlan({
   const grade = inferGrade({ style, scene, productionPlan });
   const vertical = !String(platform || "").toLowerCase().includes("youtube-wide");
 
-  const width = vertical ? 1080 : 1920;
-  const height = vertical ? 1920 : 1080;
-  const fps = 30;
+  const width = LOW_MEMORY_RENDER ? (vertical ? 540 : 960) : (vertical ? 1080 : 1920);
+  const height = LOW_MEMORY_RENDER ? (vertical ? 960 : 540) : (vertical ? 1920 : 1080);
+  const fps = LOW_MEMORY_RENDER ? 24 : 30;
   const safeDuration = Math.max(2, Math.min(Number(duration || scene.duration || 5), 30));
   const safeIntensity = Math.max(10, Math.min(Number(intensity || 70), 100));
 
@@ -305,6 +306,8 @@ export async function renderKineticScene({
     "libx264",
     "-preset",
     "veryfast",
+    "-threads",
+    LOW_MEMORY_RENDER ? "1" : "0",
     "-crf",
     "20",
     "-pix_fmt",

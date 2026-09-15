@@ -588,7 +588,7 @@ function detectTheme(
   const isKitchenFireTopic =
     t.includes("kitchen exhaust") ||
     t.includes("grease") ||
-    t.includes("hood") ||
+    /\bhood\b/.test(t) ||
     t.includes("commercial kitchen") ||
     t.includes("restaurant fire") ||
     t.includes("firefighters") ||
@@ -645,6 +645,41 @@ function detectTheme(
         "A cutaway-style view of ductwork showing grease buildup spreading toward a rooftop exhaust fan.",
         "Firefighters outside a restaurant as emergency lights reflect against smoke and stainless steel.",
         "A clean kitchen exhaust hood and rooftop fan after professional service, shown as fire prevention and compliance.",
+      ],
+    };
+  }
+
+  const isNaturesElixirzTopic =
+    t.includes("elixirz") ||
+    t.includes("wellness kernel") ||
+    (t.includes("health guidance") && t.includes("smoothie"));
+
+  if (isNaturesElixirzTopic) {
+    return {
+      type: "natures_elixirz_wellness_os",
+      audience: "adults seeking practical, personalized wellness guidance for everyday routines",
+      emotion: "warm, trustworthy, restorative, empowering",
+      palette: "deep emerald, turquoise, sunlight gold, clean white, cosmic glow",
+      visualWorld: "Nature's Elixirz OS interfaces, whole-food smoothies, calming sound waves, meal planning, Tai Chi movement, evidence-aware VIP wellness briefings",
+      promise: "five connected wellness Kernels turn personal preferences into practical health-guidance experiences",
+      hook: "Meet Nature's Elixirz OS, a health-guidance app with five connected wellness Kernels.",
+      problem: "The Smoothie and Frequencies Kernels personalize whole-food blends and calming sound experiences around everyday wellness goals.",
+      transformation: "The Meal Plan Kernel organizes practical meals, nutrition guidance, ingredient choices, and flexible swaps.",
+      proof: "Tai Chi and Movement support mindful activity, mobility, balance, guided practice, and progress awareness.",
+      cta: "VIP adds evidence-aware wellness briefings and eligible merchandise gifts. Explore your wellness constellation with Nature's Elixirz OS.",
+      captions: [
+        "Five connected wellness Kernels.",
+        "Smoothies + Frequencies.",
+        "Personalized Meal Plans.",
+        "Tai Chi + Movement.",
+        "VIP wellness intelligence.",
+      ],
+      visualAngles: [
+        "An elegant cosmic-green Nature's Elixirz OS interface with five glowing Kernel symbols forming a connected constellation.",
+        "Colorful whole-food smoothies beside a calming frequency player with soft turquoise sound waves.",
+        "A personalized weekly meal plan with realistic whole foods, ingredient alternatives, and clear nutrition guidance.",
+        "Diverse adults practicing gentle Tai Chi, mobility, and balance with respectful progress guidance.",
+        "An evidence-aware VIP wellness briefing beside tasteful Nature's Elixirz shirts, hoodies, hats, mugs, and pens.",
       ],
     };
   }

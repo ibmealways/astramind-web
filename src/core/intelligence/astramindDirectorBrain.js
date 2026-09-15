@@ -339,7 +339,7 @@ function detectDirectorCategory({ topic = "", style = "" } = {}) {
   if (text.includes("nature") || text.includes("smoothie") || text.includes("health") || text.includes("wellness")) return "wellness";
   if (text.includes("luxury") || text.includes("premium") || text.includes("apple commercial")) return "luxury_technology";
   if (text.includes("astramind") || text.includes("ai") || text.includes("automation") || text.includes("operating system")) return "ai_technology";
-  if (text.includes("restaurant") || text.includes("hood") || text.includes("grease") || text.includes("fire")) return "service_documentary";
+  if (text.includes("restaurant") || /\bhood\b/.test(text) || text.includes("grease") || text.includes("fire")) return "service_documentary";
 
   return "cinematic_general";
 }
