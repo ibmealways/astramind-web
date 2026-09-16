@@ -2,6 +2,7 @@ import { API_URL } from "../../config/api.js";
 // src/pages/modules/ContentVideo.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useOSMode } from "../../context/ModeContext.js";
+import { useAuth } from "../../context/AuthContext.js";
 import { OS_MODES } from "../../core/os/modes.js";
 import { runVideoEngine } from "../../core/content/videoEngine.js";
 import { checkVisionHealth } from "../../core/video/visionClient.js";
@@ -160,6 +161,7 @@ function normalizeEngineResponse(response) {
 
 export default function ContentVideo() {
   const { setMode } = useOSMode();
+  const { token } = useAuth();
   const resultRef = useRef(null);
   const videoRef = useRef(null);
 
@@ -272,16 +274,16 @@ export default function ContentVideo() {
 
   const runHealthCheck = async () => {
     setCheckingHealth(true);
-    setNotice("ðŸ§ª Checking Aigenikz Vision Pipeline...");
+    setNotice(" Checking Aigenikz Vision Pipeline...");
 
     try {
       const health = await checkVisionHealth();
       setVisionHealth(health);
-      setNotice("âœ… Aigenikz Vision Pipeline is online and ready.");
+      setNotice(" Aigenikz Vision Pipeline is online and ready.");
     } catch (err) {
       console.error("Vision health check failed:", err);
       setVisionHealth(null);
-      setNotice(`âŒ Vision health check failed. ${err.message || ""}`);
+      setNotice(` Vision health check failed. ${err.message || ""}`);
     } finally {
       setCheckingHealth(false);
     }
@@ -294,12 +296,12 @@ export default function ContentVideo() {
     const cleanTopic = topic.trim();
 
     if (!cleanTopic) {
-      setNotice("âš ï¸ Enter a video topic first.");
+      setNotice("  Enter a video topic first.");
       return;
     }
 
     setLoading(true);
-    setNotice("ðŸ§  Generating video storyboard, scenes, captions, and prompts...");
+    setNotice("  Generating video storyboard, scenes, captions, and prompts...");
     setVideoUrl("");
     setRenderResponse(null);
     setRenderProgress(null);
@@ -321,14 +323,14 @@ export default function ContentVideo() {
       setResult(normalized);
       setNotice(
         renderEngine === "vision"
-          ? "âœ… Storyboard ready. Next: render with Aigenikz Vision Pipeline."
-          : "âœ… Storyboard ready. Next: render standard MP4."
+          ? " Storyboard ready. Next: render with Aigenikz Vision Pipeline."
+          : " Storyboard ready. Next: render standard MP4."
       );
 
       scrollToResults();
     } catch (err) {
       console.error("Video generation failed:", err);
-      setNotice(`âŒ Video generation failed. ${err.message || ""}`);
+      setNotice(` Video generation failed. ${err.message || ""}`);
     } finally {
       setLoading(false);
     }
@@ -373,11 +375,15 @@ export default function ContentVideo() {
       throw new Error("Enter a video topic first.");
     }
 
+    if (!token) {
+      throw new Error("Your login session is missing. Sign in again before rendering.");
+    }
+
     const response = await fetch(`${API_URL}/api/cinematic-video/render`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         topic: cleanTopic,
@@ -403,7 +409,7 @@ export default function ContentVideo() {
 
     const data = await response.json();
 
-    console.log("ðŸ”¥ DIRECT VISION RESPONSE:", data);
+    console.log(" DIRECT VISION RESPONSE:", data);
 
     if (!response.ok || !data?.ok) {
       throw new Error(data?.error || "Vision Pipeline render failed.");
@@ -418,7 +424,7 @@ export default function ContentVideo() {
     try {
       const response = await fetch(
         `${API_URL}/api/cinematic-video/status/${projectId}`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await response.json();
 
@@ -435,12 +441,12 @@ export default function ContentVideo() {
     event?.stopPropagation?.();
 
     if (renderEngine === "standard" && !videoData?.scenes?.length) {
-      setNotice("âš ï¸ Generate video package first.");
+      setNotice("  Generate video package first.");
       return;
     }
 
     if (renderEngine === "vision" && !topic.trim()) {
-      setNotice("âš ï¸ Enter a topic before rendering Aigenikz Vision Pipeline.");
+      setNotice("  Enter a topic before rendering Aigenikz Vision Pipeline.");
       return;
     }
 
@@ -457,7 +463,7 @@ export default function ContentVideo() {
         ? videoMode === "local-test"
           ? "Rendering Animated Still Test Render. No paid video provider is called."
           : `Rendering with the ${videoMode} video provider...`
-        : "ðŸŽ¬ Rendering standard MP4..."
+        : " Rendering standard MP4..."
     );
 
     setVideoUrl("");
@@ -471,7 +477,7 @@ export default function ContentVideo() {
           ? await renderVisionMP4()
           : await renderStandardMP4();
 
-      console.log("ðŸŽ¬ VIDEO RENDER RESPONSE:", data);
+      console.log(" VIDEO RENDER RESPONSE:", data);
 
 /*
 ============================================
@@ -500,12 +506,12 @@ const rawVideoUrl =
   null;
 
 console.log(
-  "ðŸŽ¬ FULL BACKEND RESPONSE:",
+  " FULL BACKEND RESPONSE:",
   data
 );
 
 console.log(
-  "ðŸŽ¬ EXTRACTED VIDEO URL:",
+  " EXTRACTED VIDEO URL:",
   rawVideoUrl
 );
 
@@ -517,7 +523,7 @@ if (!rawVideoUrl) {
 
       const finalVideoUrl = addCache(buildBrowserUrl(rawVideoUrl));
       console.log(
-  "ðŸŽ¬ FINAL BROWSER URL:",
+  " FINAL BROWSER URL:",
   finalVideoUrl
 );
 
@@ -542,7 +548,7 @@ if (!rawVideoUrl) {
 
         if (!opened) {
           setNotice(
-            "ðŸ”¥ MP4 ready. Browser blocked auto-open. Click Open Video below."
+            " MP4 ready. Browser blocked auto-open. Click Open Video below."
           );
        }
      }, 120);
@@ -597,7 +603,7 @@ if (!rawVideoUrl) {
         message: "Render complete.",
       }));
 
-      setNotice("ðŸ”¥ MP4 ready. Opening video now and previewing below.");
+      setNotice(" MP4 ready. Opening video now and previewing below.");
       scrollToResults();
 
       setTimeout(() => {
@@ -609,7 +615,7 @@ if (!rawVideoUrl) {
       }, 350);
     } catch (err) {
       console.error("Video render failed:", err);
-      setNotice(`âŒ Video render failed. ${err.message || ""}`);
+      setNotice(` Video render failed. ${err.message || ""}`);
       setRenderProgress({
         status: "failed",
         percent: 0,
@@ -681,7 +687,7 @@ if (!rawVideoUrl) {
       videoData?.captions || renderResponse?.captions || renderResponse?.storyboard?.captions;
 
     if (!captions?.length) {
-      setNotice("âš ï¸ No captions found to export yet.");
+      setNotice("  No captions found to export yet.");
       return;
     }
 
@@ -707,7 +713,7 @@ if (!rawVideoUrl) {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-purple-300 text-sm font-medium mb-4">
-                ðŸŽžï¸ Aigenikz Video Studio
+                 Aigenikz Video Studio
               </div>
 
               <h1 className="text-4xl font-extrabold tracking-tight mb-3">
@@ -786,7 +792,7 @@ if (!rawVideoUrl) {
 
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-1 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <h2 className="text-2xl font-bold mb-4">ðŸ§  Video Mission</h2>
+            <h2 className="text-2xl font-bold mb-4">  Video Mission</h2>
 
             <label className="block text-sm text-gray-300 mb-2">
               Topic / Prompt
@@ -858,7 +864,7 @@ if (!rawVideoUrl) {
                     : "bg-white/5 hover:bg-white/10 text-gray-300"
                 }`}
               >
-                ðŸš€ Aigenikz Vision Pipeline
+                 Aigenikz Vision Pipeline
                 <span className="block text-xs opacity-75">
                   Provider video or an explicitly labeled animated-still test render
                 </span>
@@ -873,7 +879,7 @@ if (!rawVideoUrl) {
                     : "bg-white/5 hover:bg-white/10 text-gray-300"
                 }`}
               >
-                âš™ï¸ Standard Renderer
+                 Standard Renderer
                 <span className="block text-xs opacity-75">
                   Uses existing storyboard scene render route
                 </span>
@@ -978,7 +984,7 @@ if (!rawVideoUrl) {
                 disabled={loading || rendering}
                 className="w-full rounded-2xl bg-green-600 hover:bg-green-700 disabled:opacity-50 px-5 py-3 font-bold transition active:scale-95"
               >
-                {rendering ? "Rendering..." : "ðŸš€ Render Aigenikz MP4"}
+                {rendering ? "Rendering..." : " Render Aigenikz MP4"}
               </button>
 
               <button
@@ -987,7 +993,7 @@ if (!rawVideoUrl) {
                 disabled={checkingHealth || rendering}
                 className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-5 py-3 font-bold transition active:scale-95"
               >
-                {checkingHealth ? "Checking..." : "ðŸ§ª Check Vision Health"}
+                {checkingHealth ? "Checking..." : " Check Vision Health"}
               </button>
 
               <button
@@ -1014,12 +1020,12 @@ if (!rawVideoUrl) {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
                 <h2 className="text-2xl font-bold">
-                  ðŸŽ¬ Generated Video Package
+                   Generated Video Package
                 </h2>
 
                 <p className="text-gray-400 text-sm mt-1">
                   {activeScenes.length
-                    ? `${activeScenes.length} scenes â€¢ ${totalDuration}s total`
+                    ? `${activeScenes.length} scenes  ${totalDuration}s total`
                     : restoredVideoOnly
                     ? "Last MP4 restored from local storage."
                     : "No video package generated yet."}
@@ -1034,7 +1040,7 @@ if (!rawVideoUrl) {
                     disabled={rendering}
                     className="rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-60 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    {rendering ? "Rendering..." : "ðŸŽ¬ Render MP4"}
+                    {rendering ? "Rendering..." : " Render MP4"}
                   </button>
 
                   <button
@@ -1042,7 +1048,7 @@ if (!rawVideoUrl) {
                     onClick={exportScript}
                     className="rounded-xl bg-cyan-600 hover:bg-cyan-700 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    â¬‡ï¸ Script TXT
+                     Script TXT
                   </button>
 
                   <button
@@ -1050,7 +1056,7 @@ if (!rawVideoUrl) {
                     onClick={exportCaptions}
                     className="rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    ðŸŽžï¸ Captions VTT
+                     Captions VTT
                   </button>
 
                   <button
@@ -1059,7 +1065,7 @@ if (!rawVideoUrl) {
                     disabled={!videoData && !renderResponse}
                     className="rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    ðŸ“¦ JSON
+                     JSON
                   </button>
                 </div>
               )}
@@ -1069,7 +1075,7 @@ if (!rawVideoUrl) {
               <div className="mt-8 rounded-3xl border border-cyan-500/20 bg-black/40 p-6 mb-5">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <h3 className="text-2xl font-black text-white">
-                    ðŸŽ¬ MP4 Preview
+                     MP4 Preview
                   </h3>
 
                   <div className="flex flex-wrap gap-3">
@@ -1117,7 +1123,7 @@ if (!rawVideoUrl) {
                   Mode: {renderResponse.label || renderResponse.mode || "unknown"}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                  {renderResponse.artifactValidation.mimeType} · {renderResponse.artifactValidation.video?.width}×{renderResponse.artifactValidation.video?.height}
+                  {renderResponse.artifactValidation.mimeType}  {renderResponse.artifactValidation.video?.width}{renderResponse.artifactValidation.video?.height}
                 </p>
               </div>
             )}
@@ -1125,7 +1131,7 @@ if (!rawVideoUrl) {
             {visuals.length > 0 && (
               <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5 mb-5">
                 <h3 className="text-xl font-bold mb-4 text-cyan-200">
-                  ðŸ–¼ï¸ AI Scene Visuals
+                   AI Scene Visuals
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1167,7 +1173,7 @@ if (!rawVideoUrl) {
             ) : (
               <div className="space-y-5">
                 <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
-                  <h3 className="text-xl font-bold mb-3">ðŸ“œ Script</h3>
+                  <h3 className="text-xl font-bold mb-3"> Script</h3>
 
                   <pre className="whitespace-pre-wrap text-sm leading-7 text-gray-100">
                     {videoData?.script ||
