@@ -12,6 +12,24 @@ if (!JWT_SECRET) {
 }
 const JWT_EXPIRES_IN = "7d";
 
+function createSessionToken(user) {
+  const safeUser = sanitizeUser(user);
+
+  return jwt.sign(
+    {
+      sub: safeUser.id,
+      email: safeUser.email,
+      name: safeUser.name,
+      plan: safeUser.plan,
+      status: safeUser.status,
+      createdAt: safeUser.createdAt,
+      updatedAt: safeUser.updatedAt,
+    },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  );
+}
+
 export async function registerUser({ name, email, password }) {
   const cleanName = String(name || "").trim();
   const cleanEmail = String(email || "").trim().toLowerCase();
@@ -43,15 +61,7 @@ export async function registerUser({ name, email, password }) {
     plan: "starter",
   });
 
-  const token = jwt.sign(
-    {
-      sub: user.id,
-      email: user.email,
-      plan: user.plan,
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  const token = createSessionToken(user);
 
   return {
     token,
@@ -77,15 +87,7 @@ export async function loginUser({ email, password }) {
     throw new Error("Invalid email or password.");
   }
 
-  const token = jwt.sign(
-    {
-      sub: user.id,
-      email: user.email,
-      plan: user.plan,
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  );
+  const token = createSessionToken(user);
 
   return {
     token,

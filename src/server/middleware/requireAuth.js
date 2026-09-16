@@ -16,14 +16,24 @@ export default function requireAuth(req, res, next) {
     const payload = verifyToken(token);
     const user = findUserById(payload.sub);
 
-    if (!user) {
+    if (!user && process.env.ALLOW_TOKEN_USER_FALLBACK !== "true") {
       return res.status(401).json({
         ok: false,
         error: "User not found.",
       });
     }
 
-    req.user = sanitizeUser(user);
+    req.user = user
+      ? sanitizeUser(user)
+      : {
+          id: payload.sub,
+          name: payload.name || String(payload.email || "Aigenikz Member").split("@")[0],
+          email: payload.email,
+          plan: payload.plan || "starter",
+          status: payload.status || "active",
+          createdAt: payload.createdAt || null,
+          updatedAt: payload.updatedAt || null,
+        };
     next();
   } catch (error) {
     return res.status(401).json({
