@@ -9,7 +9,6 @@ import { checkVisionHealth } from "../../core/video/visionClient.js";
 
 const LAST_VIDEO_KEY = "astramind_last_video_url";
 const LAST_RENDER_KEY = "astramind_last_video_render_response";
-const LAST_ENGINE_KEY = "astramind_last_video_engine";
 
 function buildBrowserUrl(url) {
   if (!url) return "";
@@ -169,9 +168,7 @@ export default function ContentVideo() {
   const [platform, setPlatform] = useState("TikTok");
   const [style, setStyle] = useState("cinematic futuristic high-energy");
   const [durationTarget, setDurationTarget] = useState(30);
-  const [renderEngine, setRenderEngine] = useState(
-    () => localStorage.getItem(LAST_ENGINE_KEY) || "vision"
-  );
+  const renderEngine = "vision";
   const [videoMode, setVideoMode] = useState("local-test");
 
   const [voiceover] = useState(false);
@@ -197,10 +194,6 @@ export default function ContentVideo() {
   useEffect(() => {
     setMode(OS_MODES.CONTENT);
   }, [setMode]);
-
-  useEffect(() => {
-    localStorage.setItem(LAST_ENGINE_KEY, renderEngine);
-  }, [renderEngine]);
 
   useEffect(() => {
     const storedVideoUrl = localStorage.getItem(LAST_VIDEO_KEY);
@@ -311,7 +304,7 @@ export default function ContentVideo() {
     try {
       const response = await runVideoEngine({
         subtype: "storyboard",
-        input: { topic: cleanTopic, platform, style },
+        input: { topic: cleanTopic, platform, style, durationTarget },
       });
 
       const normalized = normalizeEngineResponse(response);
@@ -321,11 +314,7 @@ export default function ContentVideo() {
       }
 
       setResult(normalized);
-      setNotice(
-        renderEngine === "vision"
-          ? " Storyboard ready. Next: render with Aigenikz Vision Pipeline."
-          : " Storyboard ready. Next: render standard MP4."
-      );
+      setNotice("Storyboard ready. Next: render with Aigenikz Vision Pipeline.");
 
       scrollToResults();
     } catch (err) {
@@ -334,38 +323,6 @@ export default function ContentVideo() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const renderStandardMP4 = async () => {
-    if (!videoData?.scenes?.length) {
-      throw new Error("Generate video package first.");
-    }
-
-    const payload = {
-      topic: topic.trim() || videoData.topic || "Aigenikz Video",
-      platform: videoData.platform || platform,
-      style: videoData.style || style,
-      scenes: videoData.scenes,
-      captions: videoData.captions || [],
-      promptPack: videoData.promptPack || [],
-    };
-
-    const response = await fetch(`${API_URL}/api/video/render`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok || !data?.ok) {
-      throw new Error(data?.error || "Standard video render failed.");
-    }
-
-    return data;
   };
 
   const renderVisionMP4 = async () => {
@@ -407,7 +364,17 @@ export default function ContentVideo() {
       }),
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data = null;
+    try {
+      data = responseText ? JSON.parse(responseText) : null;
+    } catch {
+      throw new Error(`Render service returned an invalid response (HTTP ${response.status}).`);
+    }
+
+    if (!data) {
+      throw new Error(`Render service returned an empty response (HTTP ${response.status}).`);
+    }
 
     console.log(" DIRECT VISION RESPONSE:", data);
 
@@ -440,12 +407,7 @@ export default function ContentVideo() {
     event?.preventDefault?.();
     event?.stopPropagation?.();
 
-    if (renderEngine === "standard" && !videoData?.scenes?.length) {
-      setNotice("  Generate video package first.");
-      return;
-    }
-
-    if (renderEngine === "vision" && !topic.trim()) {
+    if (!topic.trim()) {
       setNotice("  Enter a topic before rendering Aigenikz Vision Pipeline.");
       return;
     }
@@ -459,11 +421,9 @@ export default function ContentVideo() {
     });
 
     setNotice(
-      renderEngine === "vision"
-        ? videoMode === "local-test"
-          ? "Rendering Animated Still Test Render. No paid video provider is called."
-          : `Rendering with the ${videoMode} video provider...`
-        : " Rendering standard MP4..."
+      videoMode === "local-test"
+        ? "Rendering Animated Still Test Render. No paid video provider is called."
+        : `Rendering with the ${videoMode} video provider...`
     );
 
     setVideoUrl("");
@@ -472,10 +432,7 @@ export default function ContentVideo() {
     localStorage.removeItem(LAST_RENDER_KEY);
 
     try {
-      const data =
-        renderEngine === "vision"
-          ? await renderVisionMP4()
-          : await renderStandardMP4();
+      const data = await renderVisionMP4();
 
       console.log(" VIDEO RENDER RESPONSE:", data);
 
@@ -842,12 +799,6 @@ if (!rawVideoUrl) {
             >
               <option value={20}>20 seconds</option>
               <option value={30}>30 seconds</option>
-              <option value={45}>45 seconds</option>
-              <option value={60}>60 seconds</option>
-              <option value={90}>90 seconds</option>
-              <option value={120}>120 seconds</option>
-              <option value={180}>3 minutes</option>
-              <option value={300}>5 minutes</option>
             </select>
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
@@ -857,31 +808,11 @@ if (!rawVideoUrl) {
 
               <button
                 type="button"
-                onClick={() => setRenderEngine("vision")}
-                className={`w-full rounded-xl px-4 py-3 text-left font-semibold transition ${
-                  renderEngine === "vision"
-                    ? "bg-purple-600 text-white"
-                    : "bg-white/5 hover:bg-white/10 text-gray-300"
-                }`}
+                className="w-full rounded-xl bg-purple-600 px-4 py-3 text-left font-semibold text-white"
               >
                  Aigenikz Vision Pipeline
                 <span className="block text-xs opacity-75">
                   Provider video or an explicitly labeled animated-still test render
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setRenderEngine("standard")}
-                className={`w-full rounded-xl px-4 py-3 text-left font-semibold transition ${
-                  renderEngine === "standard"
-                    ? "bg-cyan-600 text-white"
-                    : "bg-white/5 hover:bg-white/10 text-gray-300"
-                }`}
-              >
-                 Standard Renderer
-                <span className="block text-xs opacity-75">
-                  Uses existing storyboard scene render route
                 </span>
               </button>
             </div>
