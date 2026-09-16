@@ -191,21 +191,11 @@ export default function ContentVideo() {
   const [checkingHealth, setCheckingHealth] = useState(false);
 
   const [result, setResult] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(
-    () => localStorage.getItem(LAST_VIDEO_KEY) || ""
-  );
-  const [renderResponse, setRenderResponse] = useState(
-    () => loadJson(LAST_RENDER_KEY) || null
-  );
+  const [videoUrl, setVideoUrl] = useState("");
+  const [renderResponse, setRenderResponse] = useState(null);
   const [visionHealth, setVisionHealth] = useState(null);
   const [renderProgress, setRenderProgress] = useState(null);
-
-  const [notice, setNotice] = useState(
-    () =>
-      localStorage.getItem(LAST_VIDEO_KEY)
-        ? "✅ Last rendered MP4 restored. Preview, open, or download below."
-        : ""
-  );
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     setMode(OS_MODES.CONTENT);
@@ -214,6 +204,37 @@ export default function ContentVideo() {
   useEffect(() => {
     localStorage.setItem(LAST_ENGINE_KEY, renderEngine);
   }, [renderEngine]);
+
+  useEffect(() => {
+    const storedVideoUrl = localStorage.getItem(LAST_VIDEO_KEY);
+    if (!storedVideoUrl) return undefined;
+
+    const controller = new AbortController();
+
+    fetch(storedVideoUrl, {
+      method: "HEAD",
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((response) => {
+        const contentType = response.headers.get("content-type") || "";
+        if (!response.ok || !contentType.includes("video/mp4")) {
+          throw new Error("Stored MP4 is no longer available.");
+        }
+
+        setVideoUrl(storedVideoUrl);
+        setRenderResponse(loadJson(LAST_RENDER_KEY) || null);
+        setNotice("Last rendered MP4 restored. Preview, open, or download below.");
+      })
+      .catch((error) => {
+        if (error.name === "AbortError") return;
+        localStorage.removeItem(LAST_VIDEO_KEY);
+        localStorage.removeItem(LAST_RENDER_KEY);
+        setNotice("The previous temporary MP4 expired. Generate and render a new video.");
+      });
+
+    return () => controller.abort();
+  }, []);
 
   const videoData = result?.data || null;
   const artifact = result?.artifact || null;
@@ -599,6 +620,36 @@ if (!rawVideoUrl) {
     }
   };
 
+  const downloadVideo = async () => {
+    if (!videoUrl) return;
+
+    setNotice("Preparing MP4 download...");
+
+    try {
+      const response = await fetch(videoUrl, { cache: "no-store" });
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!response.ok || !contentType.includes("video/mp4")) {
+        throw new Error("The temporary MP4 has expired. Render the video again.");
+      }
+
+      const blobUrl = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = "aigenikz-video.mp4";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      setNotice("MP4 downloaded successfully.");
+    } catch (error) {
+      localStorage.removeItem(LAST_VIDEO_KEY);
+      localStorage.removeItem(LAST_RENDER_KEY);
+      setVideoUrl("");
+      setRenderResponse(null);
+      setNotice(error.message || "MP4 download failed.");
+    }
+  };
   const exportScript = () => {
     if (!artifact?.content && !videoData?.script) return;
 
@@ -1041,13 +1092,13 @@ if (!rawVideoUrl) {
                   </h3>
 
                   <div className="flex flex-wrap gap-3">
-                    <a
-                      href={videoUrl}
-                      download
+                    <button
+                      type="button"
+                      onClick={downloadVideo}
                       className="rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-black hover:bg-cyan-400 transition"
                     >
                       Download MP4
-                    </a>
+                    </button>
 
                     <a
                       href={videoUrl}
