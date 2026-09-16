@@ -55,10 +55,13 @@ router.get("/health", (req, res) => {
 
 router.post("/storyboard", requireAuth, (req, res) => {
   try {
-    const { topic, platform = "TikTok", style = "cinematic futuristic high-energy", durationTarget = 30 } = req.body || {};
+    const { topic, platform = "TikTok", style = "cinematic futuristic high-energy", durationTarget = 30, mode = "disabled" } = req.body || {};
     if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
     const limits = getPlanLimits(req.user?.plan);
-    if (Number(durationTarget) > limits.maxRenderDurationSeconds) return res.status(403).json({ ok: false, error: `Your plan allows videos up to ${limits.maxRenderDurationSeconds} seconds.` });
+    const storyboardDurationLimit = mode === "local-test"
+      ? Math.max(60, limits.maxRenderDurationSeconds)
+      : limits.maxRenderDurationSeconds;
+    if (Number(durationTarget) > storyboardDurationLimit) return res.status(403).json({ ok: false, error: `This mode allows videos up to ${storyboardDurationLimit} seconds.` });
     const storyboard = buildCinematicStoryboard({ topic, platform, style, durationTarget });
     if ((storyboard?.scenes?.length || 0) > limits.maxScenesPerVideo) return res.status(403).json({ ok: false, error: `Your plan allows ${limits.maxScenesPerVideo} scenes per video.` });
     return res.json({ ok: true, route: "POST /api/cinematic-video/storyboard", storyboard });
@@ -74,7 +77,11 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
     const { topic, style = "cinematic", platform = "TikTok", durationTarget = 30, force = false } = req.body || {};
     if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
     const limits = getPlanLimits(req.user?.plan);
-    const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: limits.maxRenderDurationSeconds, maxResolution: "1080x1920" });
+    const requestedMode = req.body?.options?.mode;
+    const renderDurationLimit = requestedMode === "local-test"
+      ? Math.max(60, limits.maxRenderDurationSeconds)
+      : limits.maxRenderDurationSeconds;
+    const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: renderDurationLimit, maxResolution: "1080x1920" });
     const estimatedProviderCostUsd = options.diagnostics.realProvider
       ? Number((options.durationTarget * Number(process.env.VIDEO_PROVIDER_COST_PER_SECOND_USD || 0.1)).toFixed(2))
       : 0;

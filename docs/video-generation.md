@@ -13,6 +13,8 @@ Cost and artifact limits use `VIDEO_PROVIDER_COST_PER_SECOND_USD` (default `0.10
 
 Every render request requires a bearer token. The route applies plan duration, scene, concurrency, minute, and daily limits. Send all render settings in the single `options` object. Use an `Idempotency-Key` header or `options.idempotencyKey` to avoid duplicate completed requests.
 
+The staging `local-test` mode permits up to 60 seconds so complete social-video drafts can be tested without provider charges. Real provider modes continue to use the account plan's duration limit.
+
 The repaired route returns success only after FFmpeg verifies a readable MP4 video stream, dimensions, frame rate, duration, requested audio, decodability, and black/static-content checks. Responses expose a public `videoUrl`; server filesystem paths are not returned.
 
 Voiceover, soundtrack, avatar presentation, and GPU rendering currently return explicit unsupported errors. They must stay disabled until the generated audio/video is composed and validated end to end.

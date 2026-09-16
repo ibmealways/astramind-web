@@ -304,7 +304,7 @@ export default function ContentVideo() {
     try {
       const response = await runVideoEngine({
         subtype: "storyboard",
-        input: { topic: cleanTopic, platform, style, durationTarget },
+        input: { topic: cleanTopic, platform, style, durationTarget, mode: videoMode },
       });
 
       const normalized = normalizeEngineResponse(response);
@@ -799,6 +799,7 @@ if (!rawVideoUrl) {
             >
               <option value={20}>20 seconds</option>
               <option value={30}>30 seconds</option>
+              <option value={60}>60 seconds</option>
             </select>
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">

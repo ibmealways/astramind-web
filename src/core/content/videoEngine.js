@@ -210,6 +210,7 @@ export async function generateStoryboardOnly(input = {}) {
     platform: cleanText(input.platform || "TikTok"),
     style: cleanText(input.style || "cinematic futuristic high-energy"),
     durationTarget: Number(input.durationTarget || 30),
+    mode: cleanText(input.mode || "local-test"),
     userTier: input.userTier || input.tier || "CREATOR",
   };
 
