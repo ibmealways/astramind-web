@@ -21,6 +21,53 @@ import {
 
 const router = express.Router();
 
+function normalizeRenderUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+
+  const normalized = value.trim().replace(/\\/g, "/");
+  if (/^https?:\/\//i.test(normalized)) return normalized;
+
+  for (const publicRoot of ["/server-renders/", "/renders/"]) {
+    const rootIndex = normalized.indexOf(publicRoot);
+    if (rootIndex >= 0) return normalized.slice(rootIndex);
+  }
+
+  const relative = normalized.replace(/^\.\//, "").replace(/^\/+/, "");
+  if (relative.startsWith("server-renders/") || relative.startsWith("renders/")) {
+    return `/${relative}`;
+  }
+
+  return null;
+}
+
+function getRenderResult(result) {
+  return result?.outputs?.render || result?.renderOutput || result?.render || null;
+}
+
+function getRenderPath(result) {
+  const render = getRenderResult(result);
+  const candidates = [
+    result?.videoUrl,
+    result?.downloadUrl,
+    result?.renderUrl,
+    result?.renderPath,
+    result?.videoPath,
+    result?.outputPath,
+    result?.output?.videoPath,
+    result?.output?.outputPath,
+    render?.videoUrl,
+    render?.downloadUrl,
+    render?.renderUrl,
+    render?.renderPath,
+    render?.videoPath,
+    render?.outputPath,
+    render?.output?.videoPath,
+    render?.output?.outputPath,
+  ];
+
+  return candidates.find((candidate) => typeof candidate === "string" && candidate.trim()) || null;
+}
+
 router.get("/health", async (req, res) => {
   return res.json({
     ok: true,
@@ -105,26 +152,26 @@ router.post("/render", async (req, res) => {
       options,
     });
 
-    return res.status(result?.ok ? 200 : 500).json({
-      ok: Boolean(result?.ok),
+    const renderOutput = getRenderResult(result);
+    const renderPath = getRenderPath(result);
+    const videoUrl = normalizeRenderUrl(renderPath);
+    const renderSucceeded = Boolean(result?.ok && renderOutput?.ok !== false && videoUrl);
+
+    return res.status(renderSucceeded ? 200 : 500).json({
+      ok: renderSucceeded,
       route: "POST /api/cinematic-video/render",
-      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
+      version: "Aigenikz Cinematic Video Routes v8 Render URL Mapping",
       projectId: result?.projectId || null,
       executionId: result?.executionId || null,
-      videoUrl:
-        result?.videoUrl ||
-        result?.renderOutput?.videoUrl ||
-        result?.renderOutput?.downloadUrl ||
-        null,
-      renderPath:
-        result?.renderPath ||
-        result?.videoPath ||
-        result?.renderOutput?.outputPath ||
-        null,
-      renderOutput: result?.renderOutput || result,
+      videoUrl,
+      renderPath,
+      renderOutput: renderOutput || result,
       directorState: result?.directorState || null,
       diagnostics: result?.diagnostics || null,
-      error: result?.error || null,
+      error:
+        result?.error ||
+        renderOutput?.error ||
+        (!videoUrl ? "Render completed without a public video URL." : null),
       productionOS: true,
       existingStructureOnly: true,
     });
