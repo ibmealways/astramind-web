@@ -2,6 +2,26 @@ import { API_URL as DEFAULT_API_URL } from "../config/api.js";
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 const AuthContext = createContext(null);
+const TOKEN_KEY = "astramind_token";
+const USER_KEY = "aigenikz_session_user";
+
+function readCachedUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveSession(token, user) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function clearSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+}
 
 function getApiUrl() {
   return localStorage.getItem("astramind_api_url") || DEFAULT_API_URL;
@@ -10,14 +30,16 @@ function getApiUrl() {
 async function readJson(response) {
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.error || "Request failed.");
+    const error = new Error(data?.error || "Request failed.");
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("astramind_token") || "");
+  const [user, setUser] = useState(readCachedUser);
+  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY) || "");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,10 +58,13 @@ export function AuthProvider({ children }) {
 
         const data = await readJson(response);
         setUser(data.user || null);
+        localStorage.setItem(USER_KEY, JSON.stringify(data.user || null));
       } catch (error) {
-        localStorage.removeItem("astramind_token");
-        setToken("");
-        setUser(null);
+        if (error?.status === 401) {
+          clearSession();
+          setToken("");
+          setUser(null);
+        }
       } finally {
         setLoading(false);
       }
@@ -63,7 +88,7 @@ export function AuthProvider({ children }) {
 
       const data = await readJson(response);
 
-      localStorage.setItem("astramind_token", data.token);
+      saveSession(data.token, data.user);
       setToken(data.token);
       setUser(data.user);
 
@@ -79,7 +104,7 @@ export function AuthProvider({ children }) {
 
       const data = await readJson(response);
 
-      localStorage.setItem("astramind_token", data.token);
+      saveSession(data.token, data.user);
       setToken(data.token);
       setUser(data.user);
 
@@ -87,7 +112,7 @@ export function AuthProvider({ children }) {
     },
 
     logout() {
-      localStorage.removeItem("astramind_token");
+      clearSession();
       setToken("");
       setUser(null);
     },

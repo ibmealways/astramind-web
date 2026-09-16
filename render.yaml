@@ -21,6 +21,8 @@ services:
         value: local
       - key: VIDEO_RENDER_PROFILE
         value: staging-low-memory
+      - key: ALLOW_TOKEN_USER_FALLBACK
+        value: "true"
       - key: ENABLE_WEB_SEARCH
         value: "false"
       - key: OPENAI_API_KEY
