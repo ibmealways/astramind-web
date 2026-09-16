@@ -1429,7 +1429,7 @@ app.get("/api/debug/store", (req, res, next) => {
 /* ===============================
    CLIENT-SIDE ROUTING
 =============================== */
-app.get(/^(?!\/api(?:\/|$)).*/, (req, res, next) => {
+app.get(/^(?!\/(?:api|renders|server-renders)(?:\/|$)).*/, (req, res, next) => {
   if (!fs.existsSync(indexFile)) return next();
   return res.sendFile(indexFile);
 });
