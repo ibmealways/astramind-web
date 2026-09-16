@@ -7,9 +7,20 @@ function cleanText(value = "") {
 }
 
 async function postJson(endpoint, payload) {
+  const token = typeof window !== "undefined"
+    ? window.localStorage.getItem("astramind_token") || ""
+    : "";
+
+  if (!token) {
+    throw new Error("Your login session is missing. Sign in again before generating video content.");
+  }
+
   const response = await fetch(`${API_URL}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(payload),
   });
 
