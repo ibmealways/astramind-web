@@ -15,7 +15,6 @@ function buildBrowserUrl(url) {
   if (url.startsWith("http")) return url;
   return `${API_URL}${url.startsWith("/") ? url : `/${url}`}`;
 }
-
 function addCache(url) {
   if (!url) return "";
   const separator = url.includes("?") ? "&" : "?";
@@ -171,20 +170,16 @@ export default function ContentVideo() {
   const [renderEngine, setRenderEngine] = useState(
     () => localStorage.getItem(LAST_ENGINE_KEY) || "vision"
   );
+  const [videoMode, setVideoMode] = useState("local-test");
 
-  const [voiceover, setVoiceover] = useState(true);
-  const [voiceId, setVoiceId] = useState("");
-  const [soundtrack, setSoundtrack] = useState(true);
-  const [soundtrackMood, setSoundtrackMood] = useState("cinematic");
+  const [voiceover] = useState(false);
+  const [soundtrack] = useState(false);
   const [subtitles, setSubtitles] = useState(true);
   const [useTransitions, setUseTransitions] = useState(true);
   const [transitionStyle, setTransitionStyle] = useState("cinematic");
-  const [preferGPU, setPreferGPU] = useState(false);
+  const [preferGPU] = useState(false);
   const [quality, setQuality] = useState("balanced");
   const [motionEffect, setMotionEffect] = useState("cinematic");
-  const [avatarPresenter, setAvatarPresenter] = useState(false);
-  const [avatarImagePath, setAvatarImagePath] = useState("");
-  const [createSocialPackage, setCreateSocialPackage] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [rendering, setRendering] = useState(false);
@@ -277,16 +272,16 @@ export default function ContentVideo() {
 
   const runHealthCheck = async () => {
     setCheckingHealth(true);
-    setNotice("🧪 Checking Aigenikz Vision Pipeline...");
+    setNotice("ðŸ§ª Checking Aigenikz Vision Pipeline...");
 
     try {
       const health = await checkVisionHealth();
       setVisionHealth(health);
-      setNotice("✅ Aigenikz Vision Pipeline is online and ready.");
+      setNotice("âœ… Aigenikz Vision Pipeline is online and ready.");
     } catch (err) {
       console.error("Vision health check failed:", err);
       setVisionHealth(null);
-      setNotice(`❌ Vision health check failed. ${err.message || ""}`);
+      setNotice(`âŒ Vision health check failed. ${err.message || ""}`);
     } finally {
       setCheckingHealth(false);
     }
@@ -299,12 +294,12 @@ export default function ContentVideo() {
     const cleanTopic = topic.trim();
 
     if (!cleanTopic) {
-      setNotice("⚠️ Enter a video topic first.");
+      setNotice("âš ï¸ Enter a video topic first.");
       return;
     }
 
     setLoading(true);
-    setNotice("🧠 Generating video storyboard, scenes, captions, and prompts...");
+    setNotice("ðŸ§  Generating video storyboard, scenes, captions, and prompts...");
     setVideoUrl("");
     setRenderResponse(null);
     setRenderProgress(null);
@@ -326,14 +321,14 @@ export default function ContentVideo() {
       setResult(normalized);
       setNotice(
         renderEngine === "vision"
-          ? "✅ Storyboard ready. Next: render with Aigenikz Vision Pipeline."
-          : "✅ Storyboard ready. Next: render standard MP4."
+          ? "âœ… Storyboard ready. Next: render with Aigenikz Vision Pipeline."
+          : "âœ… Storyboard ready. Next: render standard MP4."
       );
 
       scrollToResults();
     } catch (err) {
       console.error("Video generation failed:", err);
-      setNotice(`❌ Video generation failed. ${err.message || ""}`);
+      setNotice(`âŒ Video generation failed. ${err.message || ""}`);
     } finally {
       setLoading(false);
     }
@@ -357,6 +352,7 @@ export default function ContentVideo() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
       },
       body: JSON.stringify(payload),
     });
@@ -381,31 +377,33 @@ export default function ContentVideo() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
       },
       body: JSON.stringify({
         topic: cleanTopic,
         platform,
         style,
         durationTarget,
-        voiceover,
-        voiceId: voiceId.trim() || undefined,
-        soundtrack,
-        soundtrackMood,
-        subtitles,
-        avatarPresenter,
-        avatarImagePath: avatarImagePath.trim(),
-        useTransitions,
-        transitionStyle,
-        preferGPU,
-        quality,
-        motionEffect,
-        createSocialPackage,
+        options: {
+          mode: videoMode,
+          allowFallback: videoMode === "local-test",
+          voiceover,
+          soundtrack,
+          subtitles,
+          transitions: useTransitions,
+          transitionStyle,
+          preferGPU,
+          quality,
+          cameraMovement: motionEffect,
+          exportFormat: "mp4",
+          idempotencyKey: crypto.randomUUID(),
+        },
       }),
     });
 
     const data = await response.json();
 
-    console.log("🔥 DIRECT VISION RESPONSE:", data);
+    console.log("ðŸ”¥ DIRECT VISION RESPONSE:", data);
 
     if (!response.ok || !data?.ok) {
       throw new Error(data?.error || "Vision Pipeline render failed.");
@@ -419,7 +417,8 @@ export default function ContentVideo() {
 
     try {
       const response = await fetch(
-        `${API_URL}/api/cinematic-video/progress/${projectId}`
+        `${API_URL}/api/cinematic-video/status/${projectId}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` } }
       );
       const data = await response.json();
 
@@ -436,12 +435,12 @@ export default function ContentVideo() {
     event?.stopPropagation?.();
 
     if (renderEngine === "standard" && !videoData?.scenes?.length) {
-      setNotice("⚠️ Generate video package first.");
+      setNotice("âš ï¸ Generate video package first.");
       return;
     }
 
     if (renderEngine === "vision" && !topic.trim()) {
-      setNotice("⚠️ Enter a topic before rendering Aigenikz Vision Pipeline.");
+      setNotice("âš ï¸ Enter a topic before rendering Aigenikz Vision Pipeline.");
       return;
     }
 
@@ -455,8 +454,10 @@ export default function ContentVideo() {
 
     setNotice(
       renderEngine === "vision"
-        ? "🎬 Rendering with voiceover, soundtrack, subtitles, transitions, and cinematic motion..."
-        : "🎬 Rendering standard MP4..."
+        ? videoMode === "local-test"
+          ? "Rendering Animated Still Test Render. No paid video provider is called."
+          : `Rendering with the ${videoMode} video provider...`
+        : "ðŸŽ¬ Rendering standard MP4..."
     );
 
     setVideoUrl("");
@@ -470,7 +471,7 @@ export default function ContentVideo() {
           ? await renderVisionMP4()
           : await renderStandardMP4();
 
-      console.log("🎬 VIDEO RENDER RESPONSE:", data);
+      console.log("ðŸŽ¬ VIDEO RENDER RESPONSE:", data);
 
 /*
 ============================================
@@ -499,12 +500,12 @@ const rawVideoUrl =
   null;
 
 console.log(
-  "🎬 FULL BACKEND RESPONSE:",
+  "ðŸŽ¬ FULL BACKEND RESPONSE:",
   data
 );
 
 console.log(
-  "🎬 EXTRACTED VIDEO URL:",
+  "ðŸŽ¬ EXTRACTED VIDEO URL:",
   rawVideoUrl
 );
 
@@ -516,7 +517,7 @@ if (!rawVideoUrl) {
 
       const finalVideoUrl = addCache(buildBrowserUrl(rawVideoUrl));
       console.log(
-  "🎬 FINAL BROWSER URL:",
+  "ðŸŽ¬ FINAL BROWSER URL:",
   finalVideoUrl
 );
 
@@ -541,7 +542,7 @@ if (!rawVideoUrl) {
 
         if (!opened) {
           setNotice(
-            "🔥 MP4 ready. Browser blocked auto-open. Click Open Video below."
+            "ðŸ”¥ MP4 ready. Browser blocked auto-open. Click Open Video below."
           );
        }
      }, 120);
@@ -596,7 +597,7 @@ if (!rawVideoUrl) {
         message: "Render complete.",
       }));
 
-      setNotice("🔥 MP4 ready. Opening video now and previewing below.");
+      setNotice("ðŸ”¥ MP4 ready. Opening video now and previewing below.");
       scrollToResults();
 
       setTimeout(() => {
@@ -608,7 +609,7 @@ if (!rawVideoUrl) {
       }, 350);
     } catch (err) {
       console.error("Video render failed:", err);
-      setNotice(`❌ Video render failed. ${err.message || ""}`);
+      setNotice(`âŒ Video render failed. ${err.message || ""}`);
       setRenderProgress({
         status: "failed",
         percent: 0,
@@ -680,7 +681,7 @@ if (!rawVideoUrl) {
       videoData?.captions || renderResponse?.captions || renderResponse?.storyboard?.captions;
 
     if (!captions?.length) {
-      setNotice("⚠️ No captions found to export yet.");
+      setNotice("âš ï¸ No captions found to export yet.");
       return;
     }
 
@@ -706,7 +707,7 @@ if (!rawVideoUrl) {
           <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/10 px-4 py-2 text-purple-300 text-sm font-medium mb-4">
-                🎞️ Aigenikz Video Studio
+                ðŸŽžï¸ Aigenikz Video Studio
               </div>
 
               <h1 className="text-4xl font-extrabold tracking-tight mb-3">
@@ -714,10 +715,9 @@ if (!rawVideoUrl) {
               </h1>
 
               <p className="text-gray-300 text-lg max-w-3xl">
-                Generate storyboards, AI scene visuals, cinematic motion,
-                ElevenLabs voiceover, procedural soundtrack, burned subtitles,
-                transitions, avatar presenter options, and social export
-                packages.
+                Build storyboards and render either verified provider video or
+                an explicitly labeled animated-still test MP4 with subtitles
+                and transitions.
               </p>
             </div>
 
@@ -786,7 +786,7 @@ if (!rawVideoUrl) {
 
         <section className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-1 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl p-6 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <h2 className="text-2xl font-bold mb-4">🧠 Video Mission</h2>
+            <h2 className="text-2xl font-bold mb-4">ðŸ§  Video Mission</h2>
 
             <label className="block text-sm text-gray-300 mb-2">
               Topic / Prompt
@@ -858,9 +858,9 @@ if (!rawVideoUrl) {
                     : "bg-white/5 hover:bg-white/10 text-gray-300"
                 }`}
               >
-                🚀 Aigenikz Vision Pipeline
+                ðŸš€ Aigenikz Vision Pipeline
                 <span className="block text-xs opacity-75">
-                  Visuals + motion + voice + music + subtitles + transitions
+                  Provider video or an explicitly labeled animated-still test render
                 </span>
               </button>
 
@@ -873,12 +873,31 @@ if (!rawVideoUrl) {
                     : "bg-white/5 hover:bg-white/10 text-gray-300"
                 }`}
               >
-                ⚙️ Standard Renderer
+                âš™ï¸ Standard Renderer
                 <span className="block text-xs opacity-75">
                   Uses existing storyboard scene render route
                 </span>
               </button>
             </div>
+
+            <label className="block text-sm text-gray-300 mt-4 mb-2">
+              Video Mode
+            </label>
+            <select
+              value={videoMode}
+              onChange={(e) => setVideoMode(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none"
+            >
+              <option value="local-test" className="text-black">Animated Still Test Render</option>
+              <option value="runway" className="text-black">Runway provider video</option>
+              <option value="veo" className="text-black">Veo (unavailable until verified)</option>
+              <option value="disabled" className="text-black">Disabled</option>
+            </select>
+            {videoMode === "local-test" && (
+              <p className="mt-2 text-xs text-amber-200">
+                Animated Still Test Render uses generated stills with camera motion. It is not provider-generated video and does not spend provider credits.
+              </p>
+            )}
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
               <p className="text-sm font-bold text-cyan-200">
@@ -886,13 +905,8 @@ if (!rawVideoUrl) {
               </p>
 
               {[
-                ["Voiceover", voiceover, setVoiceover],
-                ["Soundtrack", soundtrack, setSoundtrack],
                 ["Burn Subtitles", subtitles, setSubtitles],
                 ["Cinematic Transitions", useTransitions, setUseTransitions],
-                ["Social Export Package", createSocialPackage, setCreateSocialPackage],
-                ["Prefer GPU", preferGPU, setPreferGPU],
-                ["Avatar Presenter", avatarPresenter, setAvatarPresenter],
               ].map(([label, value, setter]) => (
                 <label
                   key={label}
@@ -907,30 +921,6 @@ if (!rawVideoUrl) {
                 </label>
               ))}
 
-              <label className="block text-xs text-gray-400">Voice ID</label>
-              <input
-                value={voiceId}
-                onChange={(e) => setVoiceId(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none"
-                placeholder="Leave blank for .env default"
-              />
-
-              <label className="block text-xs text-gray-400">
-                Soundtrack Mood
-              </label>
-              <select
-                value={soundtrackMood}
-                onChange={(e) => setSoundtrackMood(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none"
-              >
-                <option className="text-black">cinematic</option>
-                <option className="text-black">futuristic</option>
-                <option className="text-black">emotional</option>
-                <option className="text-black">intense</option>
-                <option className="text-black">documentary</option>
-                <option className="text-black">motivational</option>
-              </select>
-
               <label className="block text-xs text-gray-400">Quality</label>
               <select
                 value={quality}
@@ -939,7 +929,7 @@ if (!rawVideoUrl) {
               >
                 <option className="text-black">fast</option>
                 <option className="text-black">balanced</option>
-                <option className="text-black">ultra</option>
+                <option className="text-black">high</option>
               </select>
 
               <label className="block text-xs text-gray-400">
@@ -970,15 +960,6 @@ if (!rawVideoUrl) {
                 <option className="text-black">intense</option>
               </select>
 
-              <label className="block text-xs text-gray-400">
-                Avatar Image Path
-              </label>
-              <input
-                value={avatarImagePath}
-                onChange={(e) => setAvatarImagePath(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none"
-                placeholder="Example: C:\Users\...\avatar.png"
-              />
             </div>
 
             <div className="mt-5 grid grid-cols-1 gap-3">
@@ -997,7 +978,7 @@ if (!rawVideoUrl) {
                 disabled={loading || rendering}
                 className="w-full rounded-2xl bg-green-600 hover:bg-green-700 disabled:opacity-50 px-5 py-3 font-bold transition active:scale-95"
               >
-                {rendering ? "Rendering..." : "🚀 Render Aigenikz MP4"}
+                {rendering ? "Rendering..." : "ðŸš€ Render Aigenikz MP4"}
               </button>
 
               <button
@@ -1006,7 +987,7 @@ if (!rawVideoUrl) {
                 disabled={checkingHealth || rendering}
                 className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-5 py-3 font-bold transition active:scale-95"
               >
-                {checkingHealth ? "Checking..." : "🧪 Check Vision Health"}
+                {checkingHealth ? "Checking..." : "ðŸ§ª Check Vision Health"}
               </button>
 
               <button
@@ -1033,12 +1014,12 @@ if (!rawVideoUrl) {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
                 <h2 className="text-2xl font-bold">
-                  🎬 Generated Video Package
+                  ðŸŽ¬ Generated Video Package
                 </h2>
 
                 <p className="text-gray-400 text-sm mt-1">
                   {activeScenes.length
-                    ? `${activeScenes.length} scenes • ${totalDuration}s total`
+                    ? `${activeScenes.length} scenes â€¢ ${totalDuration}s total`
                     : restoredVideoOnly
                     ? "Last MP4 restored from local storage."
                     : "No video package generated yet."}
@@ -1053,7 +1034,7 @@ if (!rawVideoUrl) {
                     disabled={rendering}
                     className="rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-60 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    {rendering ? "Rendering..." : "🎬 Render MP4"}
+                    {rendering ? "Rendering..." : "ðŸŽ¬ Render MP4"}
                   </button>
 
                   <button
@@ -1061,7 +1042,7 @@ if (!rawVideoUrl) {
                     onClick={exportScript}
                     className="rounded-xl bg-cyan-600 hover:bg-cyan-700 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    ⬇️ Script TXT
+                    â¬‡ï¸ Script TXT
                   </button>
 
                   <button
@@ -1069,7 +1050,7 @@ if (!rawVideoUrl) {
                     onClick={exportCaptions}
                     className="rounded-xl bg-blue-600 hover:bg-blue-700 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    🎞️ Captions VTT
+                    ðŸŽžï¸ Captions VTT
                   </button>
 
                   <button
@@ -1078,7 +1059,7 @@ if (!rawVideoUrl) {
                     disabled={!videoData && !renderResponse}
                     className="rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 px-4 py-2 font-semibold transition active:scale-95"
                   >
-                    📦 JSON
+                    ðŸ“¦ JSON
                   </button>
                 </div>
               )}
@@ -1088,7 +1069,7 @@ if (!rawVideoUrl) {
               <div className="mt-8 rounded-3xl border border-cyan-500/20 bg-black/40 p-6 mb-5">
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <h3 className="text-2xl font-black text-white">
-                    🎬 MP4 Preview
+                    ðŸŽ¬ MP4 Preview
                   </h3>
 
                   <div className="flex flex-wrap gap-3">
@@ -1129,53 +1110,22 @@ if (!rawVideoUrl) {
               </div>
             )}
 
-            {renderResponse && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-                <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-4">
-                  <h3 className="font-bold text-green-200 mb-2">
-                    🎙️ Voiceover
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    Source: {renderResponse.voiceover?.source || "none"}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-2">
-                    {renderResponse.voiceover?.error || "No voiceover errors."}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-purple-400/20 bg-purple-500/10 p-4">
-                  <h3 className="font-bold text-purple-200 mb-2">
-                    🎼 Soundtrack
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    Mood: {renderResponse.soundtrack?.mood || "disabled"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-blue-400/20 bg-blue-500/10 p-4">
-                  <h3 className="font-bold text-blue-200 mb-2">
-                    💬 Subtitles
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    Burned: {renderResponse.subtitles?.ok ? "Yes" : "No"}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4">
-                  <h3 className="font-bold text-cyan-200 mb-2">
-                    📦 Social Export
-                  </h3>
-                  <p className="text-sm text-gray-300">
-                    {renderResponse.socialExport?.exportId || "Not created"}
-                  </p>
-                </div>
+            {renderResponse?.artifactValidation && (
+              <div className="rounded-2xl border border-green-400/20 bg-green-500/10 p-4 mb-5">
+                <h3 className="font-bold text-green-200 mb-2">Verified video artifact</h3>
+                <p className="text-sm text-gray-300">
+                  Mode: {renderResponse.label || renderResponse.mode || "unknown"}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  {renderResponse.artifactValidation.mimeType} · {renderResponse.artifactValidation.video?.width}×{renderResponse.artifactValidation.video?.height}
+                </p>
               </div>
             )}
 
             {visuals.length > 0 && (
               <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5 mb-5">
                 <h3 className="text-xl font-bold mb-4 text-cyan-200">
-                  🖼️ AI Scene Visuals
+                  ðŸ–¼ï¸ AI Scene Visuals
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1211,13 +1161,13 @@ if (!rawVideoUrl) {
             {!activeScenes.length ? (
               <div className="rounded-2xl border border-white/10 bg-black/30 p-8 text-gray-400">
                 Your video storyboard, captions, AI visual prompts, generated
-                scene images, cinematic motion clips, voiceover, soundtrack,
-                burned subtitles, and MP4 link will appear here.
+                scene images, motion clips, subtitles, and verified MP4 link
+                will appear here.
               </div>
             ) : (
               <div className="space-y-5">
                 <div className="rounded-2xl border border-white/10 bg-black/35 p-5">
-                  <h3 className="text-xl font-bold mb-3">📜 Script</h3>
+                  <h3 className="text-xl font-bold mb-3">ðŸ“œ Script</h3>
 
                   <pre className="whitespace-pre-wrap text-sm leading-7 text-gray-100">
                     {videoData?.script ||

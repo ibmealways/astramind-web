@@ -15,6 +15,7 @@ import {
 import {
   composeHollywoodFinal,
 } from "./cinematicCompositionEngine.js";
+import { composeMotionVideo } from "./motionComposerEngine.js";
 
 import {
   updateRenderProgress,
@@ -507,6 +508,10 @@ async function buildRenderManifest({
 
   sceneAssets,
 
+  aiVideoClips,
+
+  videoOptions,
+
   renderProfile,
 }) {
   return {
@@ -524,6 +529,10 @@ async function buildRenderManifest({
     subtitleTrack,
 
     sceneAssets,
+
+    aiVideoClips,
+
+    videoOptions,
 
     deterministicPipeline:
       true,
@@ -596,6 +605,53 @@ console.log(
 REAL CINEMATIC MODE
 ============================================
 */
+
+const providerMode = renderManifest?.videoOptions?.mode;
+const requiresProviderClips = providerMode === "runway" || providerMode === "veo";
+
+if (requiresProviderClips) {
+  const sceneCount = renderManifest?.timelineAssembly?.length || 0;
+  const providerClips = safeArray(renderManifest?.aiVideoClips);
+  const validProviderClips = providerClips.filter(
+    (clip) => clip?.liveAction === true && fileExists(clip?.outputPath)
+  );
+
+  if (!sceneCount || validProviderClips.length !== sceneCount) {
+    throw new Error(`${providerMode} render requires one verified live-action clip per scene.`);
+  }
+
+  const motionVideo = await composeMotionVideo({
+    visuals: renderManifest.sceneAssets?.assets || [],
+    aiVideoClips: validProviderClips,
+    scenes: renderManifest.timelineAssembly,
+    outputDir: renderSession.tempDir,
+    projectId: `${renderManifest.projectId}_provider`,
+    useTransitions: renderManifest.videoOptions?.useTransitions !== false,
+    transitionStyle: renderManifest.videoOptions?.transitionStyle || "cinematic",
+    quality: renderManifest.videoOptions?.quality || "balanced",
+  });
+
+  const composedVideo = await composeHollywoodFinal({
+    inputVideoPath: motionVideo.outputPath,
+    subtitlePath: renderManifest?.subtitleTrack?.subtitlePath || null,
+    voiceoverTracks: renderManifest?.voiceoverTrack?.tracks || [],
+    outputPath: renderSession.finalVideoPath,
+    workDir: renderSession.tempDir,
+    projectId: renderManifest.projectId,
+    style: renderManifest.renderProfile?.style || "cinematic",
+  });
+
+  return {
+    ok: true,
+    outputPath: composedVideo.outputPath,
+    videoPath: composedVideo.videoPath || composedVideo.outputPath,
+    completedAt: nowIso(),
+    renderMode: providerMode,
+    providerClipCount: validProviderClips.length,
+    motionVideo,
+    composition: composedVideo,
+  };
+}
 
 if (
   renderManifest?.sceneAssets?.ok &&
@@ -694,157 +750,7 @@ console.log(
 FALLBACK MODE
 ============================================
 */
-
-console.warn(
-  "⚠️ FALLBACK BLACK VIDEO MODE"
-);
-
-const duration =
-  Math.max(
-    6,
-    renderManifest
-      ?.timelineAssembly
-      ?.reduce(
-        (sum, scene) =>
-          sum +
-          Number(scene.duration || 3),
-        0
-      )
-  );
-
-return new Promise(
-  (resolve, reject) => {
-    ffmpeg()
-      .input(
-        `color=c=black:s=1080x1920:d=${duration}`
-      )
-
-        /*
-        ============================================
-        Synthetic Video Source
-        ============================================
-        */
-
-        .inputFormat("lavfi")
-
-        /*
-        ============================================
-        VIDEO SETTINGS
-        ============================================
-        */
-
-        .videoCodec("libx264")
-
-        .fps(30)
-
-        .outputOptions([
-          "-preset medium",
-          "-pix_fmt yuv420p",
-          "-movflags +faststart",
-        ])
-
-        /*
-        ============================================
-        OUTPUT
-        ============================================
-        */
-
-        .save(outputPath)
-
-        /*
-        ============================================
-        START
-        ============================================
-        */
-
-        .on("start", cmd => {
-          console.log(
-            "🎬 FFmpeg Command:",
-            cmd
-          );
-
-          console.log(
-            "🎬 Rendering Video:",
-            outputPath
-          );
-        })
-
-        /*
-        ============================================
-        PROGRESS
-        ============================================
-        */
-
-        .on("progress", progress => {
-  console.log(
-    "🎬 Render Progress:",
-    progress.percent
-  );
-})
-
-/*
-============================================
-FFMPEG DIAGNOSTICS
-============================================
-*/
-
-.on("stderr", line => {
-  console.log(
-    "🎬 FFMPEG STDERR:",
-    line
-  );
-})
-
-/*
-============================================
-COMPLETE
-============================================
-*/
-
-.on("end", () => {
-  console.log(
-    "✅ Render Complete:",
-    outputPath
-  );
-
-  resolve({
-    ok: true,
-
-    outputPath,
-
-    completedAt:
-      nowIso(),
-  });
-})
-
-/*
-============================================
-FAILURE
-============================================
-*/
-
-.on(
-  "error",
-  (
-    error,
-    stdout,
-    stderr
-  ) => {
-    console.error(
-      "❌ FFmpeg Failure:",
-      error
-    );
-
-    console.error(
-      "❌ FFmpeg STDERR:",
-      stderr
-    );
-
-    reject(error);
-  }
-); 
-
-});
+throw new Error("No renderable scene assets were produced; black placeholder video is disabled.");
 
 }
 
@@ -885,6 +791,10 @@ export async function renderCinematicVideo({
   transitions = {},
 
   sceneAssets = [],
+
+  aiVideoClips = [],
+
+  videoOptions = {},
 
   creativeContext = {},
 
@@ -998,6 +908,10 @@ export async function renderCinematicVideo({
 
         sceneAssets:
           preparedAssets,
+
+        aiVideoClips,
+
+        videoOptions,
 
         renderProfile,
       });

@@ -62,6 +62,7 @@ import {
 import {
   renderCinematicVideo,
 } from "./cinematicRenderEngine.js";
+import { generateAIVideoClips } from "./aiVideoGenerationBuilder.js";
 
 import {
   generateSceneVisuals,
@@ -1195,6 +1196,8 @@ async function executeRenderStage({
   subtitles,
   transitions,
   sceneAssets = [],
+  aiVideoClips = [],
+  videoOptions = {},
   pipelineContext,
   input,
 }) {
@@ -1336,58 +1339,8 @@ ADVANCED CINEMATIC RECOVERY LAYER
   TIMELINE RECOVERY
 */
 
-if (
-  normalizedTimeline
-    ?.scenes
-    ?.length === 0
-) {
-  normalizedTimeline.scenes =
-    [
-      {
-        id: "scene_1",
-
-        type:
-          "cinematic",
-
-        visual:
-          "A futuristic AI consciousness awakens inside Aigenikz systems.",
-
-        narration:
-          "Aigenikz evolves beyond software into living cinematic intelligence.",
-
-        duration: 6,
-      },
-
-      {
-        id: "scene_2",
-
-        type:
-          "cinematic",
-
-        visual:
-          "Digital neural systems synchronize into one creator intelligence.",
-
-        narration:
-          "Every creator workflow becomes unified into one adaptive nervous system.",
-
-        duration: 7,
-      },
-
-      {
-        id: "scene_3",
-
-        type:
-          "cinematic",
-
-        visual:
-          "Cinematic timelines, transitions, subtitles, and voice systems activate.",
-
-        narration:
-          "Aigenikz now orchestrates cinematic content autonomously.",
-
-        duration: 8,
-      },
-    ];
+if (normalizedTimeline?.scenes?.length === 0) {
+  throw new Error("The generated timeline contains no scenes; render stopped without substituting unrelated content.");
 }
 
 /*
@@ -1545,6 +1498,10 @@ return renderCinematicVideo({
 
   sceneAssets,
 
+  aiVideoClips,
+
+  videoOptions,
+
   topic:
     input.topic,
 
@@ -1614,6 +1571,8 @@ export async function orchestrateCinematicPipeline({
   style = "cinematic",
   platform = "TikTok",
   durationTarget = 60,
+  options = {},
+  maxScenes = Number.POSITIVE_INFINITY,
 } = {}) {
   let pipelineContext =
     null;
@@ -1630,6 +1589,8 @@ export async function orchestrateCinematicPipeline({
         clean(platform),
 
       durationTarget,
+
+      options,
     };
 
     const baseClassification =
@@ -1779,6 +1740,10 @@ console.log(
       storyboard?.promptPack?.length || 0,
   }
 );
+
+if ((storyboard?.scenes?.length || 0) > maxScenes) {
+  throw new Error(`Generated storyboard exceeds the plan limit of ${maxScenes} scenes.`);
+}
 
 const stages =
   buildPipelineStages();
@@ -1960,6 +1925,9 @@ if (
 
     platform:
       input.platform,
+
+    provider:
+      options.mode === "local-test" ? "local" : undefined,
   });
 
   console.log(
@@ -1969,6 +1937,28 @@ if (
 
 pipelineContext.sceneAssets =
   sceneAssets;
+
+    const aiVideoResult =
+      options.mode === "runway" || options.mode === "veo"
+        ? await generateAIVideoClips({
+            scenes: timeline?.scenes || storyboard?.scenes || [],
+            visuals: sceneAssets,
+            storyboard,
+            topic: input.topic,
+            platform: input.platform,
+            style: input.style,
+            projectId: pipelineContext.projectId,
+            provider: options.mode,
+            allowFallback: false,
+          })
+        : { ok: true, provider: "local-test", clips: [], liveActionCount: 0, fallbackCount: 0 };
+
+    if (
+      (options.mode === "runway" || options.mode === "veo") &&
+      aiVideoResult.liveActionCount !== (timeline?.scenes?.length || 0)
+    ) {
+      throw new Error("The selected provider did not return a live-action clip for every scene.");
+    }
 
       console.log(
   "🎥 SCENE ASSET DIAGNOSTICS",
@@ -1996,6 +1986,8 @@ pipelineContext.sceneAssets =
     subtitles,
     transitions,
     sceneAssets,
+    aiVideoClips: aiVideoResult.clips,
+    videoOptions: options,
     pipelineContext,
     input,
   });

@@ -508,6 +508,7 @@ export async function generateSceneVisual({
   index = 0,
   storyboard = null,
   directorState = null,
+  provider = VISUAL_PROVIDER,
 } = {}) {
   ensureDir(RENDERS_DIR);
   ensureDir(VISION_DIR);
@@ -539,7 +540,7 @@ export async function generateSceneVisual({
   try {
 
   if (
-    VISUAL_PROVIDER === "openai"
+    provider === "openai"
   ) {
 
     finalPath =
@@ -644,6 +645,7 @@ export async function generateSceneVisuals({
   storyboard = null,
   projectId = `vision_${Date.now()}`,
   directorState = null,
+  provider = VISUAL_PROVIDER,
 } = {}) {
   const finalScenes =
     Array.isArray(scenes) && scenes.length
@@ -670,6 +672,7 @@ export async function generateSceneVisuals({
       index,
       storyboard,
       directorState,
+      provider,
     });
 
     visuals.push(visual);

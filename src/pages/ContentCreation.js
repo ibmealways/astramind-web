@@ -88,7 +88,7 @@ export default function ContentCreation() {
   const [
     durationTarget,
     setDurationTarget,
-  ] = useState(45);
+  ] = useState(30);
 
   const [
     loading,
@@ -162,7 +162,17 @@ export default function ContentCreation() {
         durationTarget:
           Number(
             durationTarget
-          ) || 45,
+          ) || 30,
+        options: {
+          mode: "local-test",
+          allowFallback: true,
+          voiceover: false,
+          soundtrack: false,
+          subtitles: true,
+          transitions: true,
+          exportFormat: "mp4",
+          idempotencyKey: crypto.randomUUID(),
+        },
       };
 
       console.log(
@@ -179,6 +189,7 @@ export default function ContentCreation() {
             headers: {
               "Content-Type":
                 "application/json",
+              Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}`,
             },
 
             body: JSON.stringify(
@@ -294,7 +305,8 @@ ADVANCED VIDEO URL EXTRACTION
     try {
       const response =
         await fetch(
-          apiUrl("/api/cinematic-video/render-queue")
+          apiUrl("/api/cinematic-video/render-queue"),
+          { headers: { Authorization: `Bearer ${localStorage.getItem("astramind_token") || ""}` } }
         );
 
       const responseText =
@@ -613,6 +625,8 @@ try {
 
                 <input
                   type="number"
+                  min="5"
+                  max="30"
                   value={
                     durationTarget
                   }

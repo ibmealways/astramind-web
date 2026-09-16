@@ -1,43 +1,34 @@
-// src/server/routes/cinematicVideoRoutes.js
-
 import express from "express";
-
-import {
-  orchestrateCinematicPipeline,
-  getPipelineDiagnostics,
-  getPipelineOrchestratorHealth,
-} from "../../core/video/pipelineOrchestrator.js";
-
-import {
-  buildCinematicStoryboard,
-} from "../../core/video/cinematicStoryboardEngine.js";
-
-import {
-  getRenderQueueDiagnostics,
-  getRenderJobStatus,
-  getRenderById,
-  retryRenderJob,
-} from "../../core/video/renderQueue.js";
+import requireAuth from "../middleware/requireAuth.js";
+import { platformRateLimitMiddleware } from "../../core/platform/rateLimiter.js";
+import { getPlanLimits } from "../../core/platform/developerPlans.js";
+import { orchestrateCinematicPipeline, getPipelineDiagnostics, getPipelineOrchestratorHealth } from "../../core/video/pipelineOrchestrator.js";
+import { buildCinematicStoryboard } from "../../core/video/cinematicStoryboardEngine.js";
+import { getRenderQueueDiagnostics, getRenderJobStatus, getRenderById, retryRenderJob } from "../../core/video/renderQueue.js";
+import { getConfiguredVideoMode, getProviderConfiguration, validateVideoOptions } from "../../core/video/videoGenerationConfig.js";
+import { validateVideoArtifact } from "../../core/video/videoArtifactValidator.js";
 
 const router = express.Router();
+const activeRendersByUser = new Map();
+const completedIdempotentRenders = new Map();
+const renderRateLimit = platformRateLimitMiddleware({
+  route: "cinematic-video-render",
+  identityResolver: (req) => req.user?.id || req.ip,
+  planResolver: (req) => req.user?.plan,
+  customMinuteLimit: 3,
+  customDayLimit: 20,
+});
 
 function normalizeRenderUrl(value) {
   if (typeof value !== "string" || !value.trim()) return null;
-
   const normalized = value.trim().replace(/\\/g, "/");
   if (/^https?:\/\//i.test(normalized)) return normalized;
-
   for (const publicRoot of ["/server-renders/", "/renders/"]) {
     const rootIndex = normalized.indexOf(publicRoot);
     if (rootIndex >= 0) return normalized.slice(rootIndex);
   }
-
   const relative = normalized.replace(/^\.\//, "").replace(/^\/+/, "");
-  if (relative.startsWith("server-renders/") || relative.startsWith("renders/")) {
-    return `/${relative}`;
-  }
-
-  return null;
+  return relative.startsWith("server-renders/") || relative.startsWith("renders/") ? `/${relative}` : null;
 }
 
 function getRenderResult(result) {
@@ -46,225 +37,117 @@ function getRenderResult(result) {
 
 function getRenderPath(result) {
   const render = getRenderResult(result);
-  const candidates = [
-    result?.videoUrl,
-    result?.downloadUrl,
-    result?.renderUrl,
-    result?.renderPath,
-    result?.videoPath,
-    result?.outputPath,
-    result?.output?.videoPath,
-    result?.output?.outputPath,
-    render?.videoUrl,
-    render?.downloadUrl,
-    render?.renderUrl,
-    render?.renderPath,
-    render?.videoPath,
-    render?.outputPath,
-    render?.output?.videoPath,
-    render?.output?.outputPath,
-  ];
-
+  const candidates = [result?.videoUrl, result?.outputPath, result?.videoPath, render?.videoUrl, render?.outputPath, render?.videoPath, render?.output?.outputPath, render?.output?.videoPath];
   return candidates.find((candidate) => typeof candidate === "string" && candidate.trim()) || null;
 }
 
-router.get("/health", async (req, res) => {
+router.get("/health", (req, res) => {
+  const configuredMode = getConfiguredVideoMode();
   return res.json({
     ok: true,
     route: "GET /api/cinematic-video/health",
-    version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
-    systems: {
-      orchestration: true,
-      renderQueue: true,
-      productionOS: true,
-      existingStructureOnly: true,
-    },
+    version: "Aigenikz Cinematic Video Routes v9 Verified Modes",
+    video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
   });
 });
 
-router.post("/storyboard", async (req, res) => {
+router.post("/storyboard", requireAuth, (req, res) => {
   try {
-    const {
-      topic,
-      platform = "TikTok",
-      style = "cinematic futuristic high-energy",
-      durationTarget = 30,
-    } = req.body || {};
-
-    if (!String(topic || "").trim()) {
-      return res.status(400).json({
-        ok: false,
-        route: "POST /api/cinematic-video/storyboard",
-        error: "Topic is required.",
-      });
-    }
-
-    const storyboard = buildCinematicStoryboard({
-      topic,
-      platform,
-      style,
-      durationTarget,
-    });
-
-    return res.json({
-      ok: true,
-      route: "POST /api/cinematic-video/storyboard",
-      storyboard,
-    });
+    const { topic, platform = "TikTok", style = "cinematic futuristic high-energy", durationTarget = 30 } = req.body || {};
+    if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
+    const limits = getPlanLimits(req.user?.plan);
+    if (Number(durationTarget) > limits.maxRenderDurationSeconds) return res.status(403).json({ ok: false, error: `Your plan allows videos up to ${limits.maxRenderDurationSeconds} seconds.` });
+    const storyboard = buildCinematicStoryboard({ topic, platform, style, durationTarget });
+    if ((storyboard?.scenes?.length || 0) > limits.maxScenesPerVideo) return res.status(403).json({ ok: false, error: `Your plan allows ${limits.maxScenesPerVideo} scenes per video.` });
+    return res.json({ ok: true, route: "POST /api/cinematic-video/storyboard", storyboard });
   } catch (error) {
-    console.error("Storyboard route failed:", error);
-
-    return res.status(500).json({
-      ok: false,
-      route: "POST /api/cinematic-video/storyboard",
-      error: error?.message || "Storyboard generation failed.",
-    });
+    return res.status(400).json({ ok: false, error: error?.message || "Storyboard generation failed." });
   }
 });
 
-router.post("/render", async (req, res) => {
+router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
+  const userId = req.user.id;
+  let concurrencySlotAcquired = false;
   try {
-    const {
-      topic,
-      style = "cinematic",
-      platform = "TikTok",
-      durationTarget = 60,
-      force = false,
-      options = {},
-    } = req.body || {};
-
-    if (!topic) {
-      return res.status(400).json({
-        ok: false,
-        route: "POST /api/cinematic-video/render",
-        error: "Topic is required.",
-      });
+    const { topic, style = "cinematic", platform = "TikTok", durationTarget = 30, force = false } = req.body || {};
+    if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
+    const limits = getPlanLimits(req.user?.plan);
+    const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: limits.maxRenderDurationSeconds, maxResolution: "1080x1920" });
+    const estimatedProviderCostUsd = options.diagnostics.realProvider
+      ? Number((options.durationTarget * Number(process.env.VIDEO_PROVIDER_COST_PER_SECOND_USD || 0.1)).toFixed(2))
+      : 0;
+    const maxProviderCostUsd = Number(process.env.VIDEO_MAX_PROVIDER_COST_USD || 5);
+    if (estimatedProviderCostUsd > maxProviderCostUsd) {
+      return res.status(403).json({ ok: false, error: `Estimated provider cost $${estimatedProviderCostUsd.toFixed(2)} exceeds the configured $${maxProviderCostUsd.toFixed(2)} limit.` });
     }
+    const idempotencyKey = options.idempotencyKey || String(req.get("Idempotency-Key") || "").trim();
+    const cacheKey = idempotencyKey ? `${userId}:${idempotencyKey}` : "";
+    if (cacheKey && completedIdempotentRenders.has(cacheKey)) return res.json({ ...completedIdempotentRenders.get(cacheKey), idempotentReplay: true });
+    const activeCount = activeRendersByUser.get(userId) || 0;
+    if (activeCount >= limits.maxConcurrentJobs) return res.status(429).json({ ok: false, error: `Your plan allows ${limits.maxConcurrentJobs} concurrent render job(s).` });
+    activeRendersByUser.set(userId, activeCount + 1);
+    concurrencySlotAcquired = true;
 
-    const result = await orchestrateCinematicPipeline({
-      topic,
-      style,
-      platform,
-      durationTarget,
-      force,
-      options,
-    });
-
+    const result = await orchestrateCinematicPipeline({ topic, style, platform, durationTarget, force, options, maxScenes: limits.maxScenesPerVideo });
+    if (!result?.ok) throw new Error(result?.error || "Cinematic pipeline failed.");
     const renderOutput = getRenderResult(result);
     const renderPath = getRenderPath(result);
     const videoUrl = normalizeRenderUrl(renderPath);
-    const renderSucceeded = Boolean(result?.ok && renderOutput?.ok !== false && videoUrl);
-
-    return res.status(renderSucceeded ? 200 : 500).json({
-      ok: renderSucceeded,
+    if (!videoUrl || !renderPath || renderOutput?.ok === false) throw new Error("Render completed without a public video URL.");
+    const artifactValidation = await validateVideoArtifact({
+      filePath: renderPath,
+      source: options.mode,
+      rejectStatic: options.diagnostics.realProvider,
+      expected: {
+        minDuration: 1,
+        maxDuration: options.durationTarget,
+        maxFileSizeBytes: Number(process.env.VIDEO_MAX_FILE_SIZE_BYTES || 262144000),
+        audioRequired: options.voiceover || options.soundtrack,
+      },
+    });
+    const response = {
+      ok: true,
       route: "POST /api/cinematic-video/render",
-      version: "Aigenikz Cinematic Video Routes v8 Render URL Mapping",
-      projectId: result?.projectId || null,
-      executionId: result?.executionId || null,
+      version: "Aigenikz Cinematic Video Routes v9 Verified Modes",
+      projectId: result.projectId || null,
+      executionId: result.executionId || null,
       videoUrl,
-      renderPath,
-      renderOutput: renderOutput || result,
-      directorState: result?.directorState || null,
-      diagnostics: result?.diagnostics || null,
-      error:
-        result?.error ||
-        renderOutput?.error ||
-        (!videoUrl ? "Render completed without a public video URL." : null),
-      productionOS: true,
-      existingStructureOnly: true,
-    });
+      mode: options.mode,
+      label: options.diagnostics.label,
+      artifactValidation,
+      estimatedProviderCostUsd,
+      diagnostics: result.diagnostics || null,
+    };
+    if (cacheKey) completedIdempotentRenders.set(cacheKey, response);
+    return res.json(response);
   } catch (error) {
-    console.error("🔥 Cinematic render route failed:", error);
-
-    return res.status(500).json({
-      ok: false,
-      route: "POST /api/cinematic-video/render",
-      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
-      error: error?.message || "Cinematic render failed.",
-    });
-  }
-});
-
-router.get("/status/:projectId", async (req, res) => {
-  try {
-    const { projectId } = req.params;
-
-    const status =
-      getRenderJobStatus(projectId) ||
-      getRenderById(projectId);
-
-    if (!status) {
-      return res.status(404).json({
-        ok: false,
-        route: "GET /api/cinematic-video/status/:projectId",
-        error: "Render project not found.",
-        projectId,
-      });
+    console.error("Cinematic render route failed:", error);
+    return res.status(400).json({ ok: false, route: "POST /api/cinematic-video/render", error: error?.message || "Cinematic render failed." });
+  } finally {
+    if (concurrencySlotAcquired) {
+      const count = activeRendersByUser.get(userId) || 0;
+      if (count <= 1) activeRendersByUser.delete(userId);
+      else activeRendersByUser.set(userId, count - 1);
     }
-
-    return res.json({
-      ok: true,
-      route: "GET /api/cinematic-video/status/:projectId",
-      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
-      projectId,
-      status: status.status,
-      lifecycleStage: status.lifecycleStage,
-      render: status,
-    });
-  } catch (error) {
-    console.error("🔥 Status route failed:", error);
-
-    return res.status(500).json({
-      ok: false,
-      route: "GET /api/cinematic-video/status/:projectId",
-      error: error.message,
-    });
   }
 });
 
-router.get("/render-queue", async (req, res) => {
-  try {
-    const diagnostics = getRenderQueueDiagnostics();
-
-    return res.json({
-      ok: true,
-      route: "GET /api/cinematic-video/render-queue",
-      version: "Aigenikz Cinematic Video Routes v7 Existing Structure",
-      diagnostics,
-      pipelineDiagnostics: getPipelineDiagnostics(),
-      productionOS: true,
-      existingStructureOnly: true,
-    });
-  } catch (error) {
-    console.error("🔥 Queue route failed:", error);
-
-    return res.status(500).json({
-      ok: false,
-      error: error.message,
-    });
-  }
+router.get("/status/:projectId", requireAuth, (req, res) => {
+  const status = getRenderJobStatus(req.params.projectId) || getRenderById(req.params.projectId);
+  if (!status) return res.status(404).json({ ok: false, error: "Render project not found.", projectId: req.params.projectId });
+  return res.json({ ok: true, projectId: req.params.projectId, status: status.status, lifecycleStage: status.lifecycleStage, render: status });
 });
 
-router.post("/retry/:renderId", async (req, res) => {
+router.get("/render-queue", requireAuth, (req, res) => res.json({ ok: true, diagnostics: getRenderQueueDiagnostics(), pipelineDiagnostics: getPipelineDiagnostics() }));
+
+router.post("/retry/:renderId", requireAuth, renderRateLimit, async (req, res) => {
   try {
-    const { renderId } = req.params;
-
-    const result = await retryRenderJob(renderId);
-
-    return res.json({
-      ok: true,
-      route: "POST /api/cinematic-video/retry/:renderId",
-      result,
-    });
+    const result = await retryRenderJob(req.params.renderId);
+    return res.json({ ok: true, result });
   } catch (error) {
-    console.error("🔥 Retry route failed:", error);
-
-    return res.status(500).json({
-      ok: false,
-      error: error.message,
-    });
+    return res.status(400).json({ ok: false, error: error.message });
   }
 });
 

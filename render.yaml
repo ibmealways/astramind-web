@@ -17,8 +17,8 @@ services:
         value: /opt/render/project/src/storage/aigenikz-auth.db
       - key: AIGENIKZ_PLATFORM_DB_PATH
         value: /opt/render/project/src/storage/aigenikz-platform.db
-      - key: AI_VIDEO_PROVIDER
-        value: local
+      - key: AIGENIKZ_VIDEO_MODE
+        value: local-test
       - key: VIDEO_RENDER_PROFILE
         value: staging-low-memory
       - key: ALLOW_TOKEN_USER_FALLBACK

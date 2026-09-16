@@ -7,6 +7,7 @@ import ffmpegPath from "ffmpeg-static";
 import dotenv from "dotenv";
 import RunwayML, { TaskFailedError } from "@runwayml/sdk";
 import mime from "mime";
+import { validateVideoArtifact } from "./videoArtifactValidator.js";
 
 dotenv.config();
 
@@ -37,6 +38,19 @@ const VEO_MODEL =
   process.env.VEO_MODEL ||
   process.env.GOOGLE_VIDEO_MODEL ||
   "veo-3.1-generate-preview";
+
+const PROVIDER_TIMEOUT_MS = Math.max(30000, Number(process.env.VIDEO_PROVIDER_TIMEOUT_MS || 300000));
+const inFlightRequests = new Map();
+
+function withTimeout(promise, timeoutMs, label) {
+  let timeout;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timeout = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms.`)), timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timeout));
+}
 
 function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -222,6 +236,11 @@ async function downloadRemoteVideo(url, outputPath) {
     throw new Error(`Failed to download AI video: ${response.status}`);
   }
 
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().startsWith("video/")) {
+    throw new Error(`AI provider returned non-video content: ${contentType || "unknown"}.`);
+  }
+
   const arrayBuffer = await response.arrayBuffer();
   fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
   return outputPath;
@@ -278,7 +297,14 @@ async function requestRunwayClip({
   });
 
   try {
-    const task = await client.imageToVideo.create(payload).waitForTaskOutput();
+    const requestKey = crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+    let request = inFlightRequests.get(requestKey);
+    if (!request) {
+      request = withTimeout(client.imageToVideo.create(payload).waitForTaskOutput(), PROVIDER_TIMEOUT_MS, "Runway generation")
+        .finally(() => inFlightRequests.delete(requestKey));
+      inFlightRequests.set(requestKey, request);
+    }
+    const task = await request;
     const videoUrl = extractRunwayOutputUrl(task);
 
     if (!videoUrl) {
@@ -287,12 +313,20 @@ async function requestRunwayClip({
 
     await downloadRemoteVideo(videoUrl, outputPath);
 
+    const artifactValidation = await validateVideoArtifact({
+      filePath: outputPath,
+      source: "runway",
+      rejectStatic: true,
+      expected: { minDuration: 1, maxDuration: Number(scene.duration || 10) + 1 },
+    });
+
     console.log("✅ Runway live-action clip downloaded:", outputPath);
 
     return {
       outputPath,
       remoteUrl: videoUrl,
       task,
+      artifactValidation,
     };
   } catch (error) {
     if (error instanceof TaskFailedError) {
@@ -426,6 +460,7 @@ async function tryProvider({
       outputPath: runwayResult.outputPath,
       remoteUrl: runwayResult.remoteUrl,
       raw: runwayResult.task,
+      artifactValidation: runwayResult.artifactValidation,
     };
   }
 
@@ -496,7 +531,7 @@ export async function generateAIVideoClip({
   )}-${safeSlug(normalized.title)}-${makeId()}.mp4`;
 
   const outputPath = path.join(AI_VIDEO_DIR, fileName);
-  const publicUrl = `/renders/ai-video-clips/${fileName}`;
+  const publicUrl = `/server-renders/ai-video-clips/${fileName}`;
 
   const providerAttempts =
     finalProvider === "auto"
@@ -537,6 +572,7 @@ export async function generateAIVideoClip({
         liveAction: true,
         fallbackUsed: false,
         remoteUrl: result.remoteUrl,
+        artifactValidation: result.artifactValidation,
         providerAttempts,
       };
     } catch (error) {
