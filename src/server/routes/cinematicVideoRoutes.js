@@ -9,6 +9,10 @@ import {
 } from "../../core/video/pipelineOrchestrator.js";
 
 import {
+  buildCinematicStoryboard,
+} from "../../core/video/cinematicStoryboardEngine.js";
+
+import {
   getRenderQueueDiagnostics,
   getRenderJobStatus,
   getRenderById,
@@ -31,6 +35,46 @@ router.get("/health", async (req, res) => {
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
   });
+});
+
+router.post("/storyboard", async (req, res) => {
+  try {
+    const {
+      topic,
+      platform = "TikTok",
+      style = "cinematic futuristic high-energy",
+      durationTarget = 30,
+    } = req.body || {};
+
+    if (!String(topic || "").trim()) {
+      return res.status(400).json({
+        ok: false,
+        route: "POST /api/cinematic-video/storyboard",
+        error: "Topic is required.",
+      });
+    }
+
+    const storyboard = buildCinematicStoryboard({
+      topic,
+      platform,
+      style,
+      durationTarget,
+    });
+
+    return res.json({
+      ok: true,
+      route: "POST /api/cinematic-video/storyboard",
+      storyboard,
+    });
+  } catch (error) {
+    console.error("Storyboard route failed:", error);
+
+    return res.status(500).json({
+      ok: false,
+      route: "POST /api/cinematic-video/storyboard",
+      error: error?.message || "Storyboard generation failed.",
+    });
+  }
 });
 
 router.post("/render", async (req, res) => {
