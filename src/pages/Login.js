@@ -9,6 +9,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,12 +35,25 @@ export default function Login() {
       <h1>Login to Aigenikz</h1>
       <form onSubmit={handleSubmit} style={{ maxWidth: "420px", display: "grid", gap: "12px" }}>
         <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-        />
+        <div style={{ display: "flex", width: "100%" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            autoComplete="current-password"
+            style={{ flex: 1, minWidth: 0 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            style={{ minWidth: "72px", cursor: "pointer" }}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
         <button type="submit" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
