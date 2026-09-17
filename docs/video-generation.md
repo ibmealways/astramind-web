@@ -17,6 +17,8 @@ The staging `local-test` mode permits up to 60 seconds so complete social-video 
 
 The repaired route returns success only after FFmpeg verifies a readable MP4 video stream, dimensions, frame rate, duration, requested audio, decodability, and black/static-content checks. Responses expose a public `videoUrl`; server filesystem paths are not returned.
 
+Duration validation permits up to five seconds of container and transition timing tolerance for `local-test`; videos beyond that bounded tolerance are rejected with the measured duration.
+
 Voiceover, soundtrack, avatar presentation, and GPU rendering currently return explicit unsupported errors. They must stay disabled until the generated audio/video is composed and validated end to end.
 
 For no-cost verification, set `AIGENIKZ_VIDEO_MODE=local-test`, use `allowFallback: true`, and run the test/build commands. Do not add a provider key during local test runs.

@@ -16,4 +16,18 @@ describe("video artifact validation", () => {
     expect(result.errors.join(" ")).toMatch(/no video stream/i);
     expect(result.errors.join(" ")).toMatch(/Audio was requested/i);
   });
+
+  test("allows bounded container and transition timing tolerance", () => {
+    const video = { codec: "h264", width: 1080, height: 1920, frameRate: 30 };
+    expect(validateProbeDiagnostics(
+      { duration: 64.9, video, audio: null },
+      { maxDuration: 60, durationToleranceSeconds: 5 }
+    ).ok).toBe(true);
+    const rejected = validateProbeDiagnostics(
+      { duration: 65.1, video, audio: null },
+      { maxDuration: 60, durationToleranceSeconds: 5 }
+    );
+    expect(rejected.ok).toBe(false);
+    expect(rejected.errors.join(" ")).toMatch(/65\.10s/);
+  });
 });

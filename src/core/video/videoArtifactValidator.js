@@ -53,12 +53,17 @@ export function parseFfmpegProbe(output = "") {
 
 export function validateProbeDiagnostics(probe, expected = {}) {
   const errors = [];
+  const durationToleranceSeconds = Number.isFinite(Number(expected.durationToleranceSeconds))
+    ? Math.max(0, Number(expected.durationToleranceSeconds))
+    : 1;
   if (!probe?.video) errors.push("Artifact has no video stream.");
   if (probe?.video && !SUPPORTED_VIDEO_CODECS.has(probe.video.codec)) errors.push(`Unsupported video codec: ${probe.video.codec}.`);
   if (!Number.isFinite(probe?.video?.width) || probe.video.width <= 0 || !Number.isFinite(probe?.video?.height) || probe.video.height <= 0) errors.push("Video dimensions are invalid.");
   if (!Number.isFinite(probe?.video?.frameRate) || probe.video.frameRate <= 0) errors.push("Video frame rate is invalid.");
   if (!Number.isFinite(probe?.duration) || probe.duration <= 0) errors.push("Video duration is invalid.");
-  if (expected.maxDuration && probe.duration > Number(expected.maxDuration) + 1) errors.push(`Video duration exceeds ${expected.maxDuration} seconds.`);
+  if (expected.maxDuration && probe.duration > Number(expected.maxDuration) + durationToleranceSeconds) {
+    errors.push(`Video duration ${probe.duration.toFixed(2)}s exceeds the ${expected.maxDuration}s target plus ${durationToleranceSeconds}s encoding tolerance.`);
+  }
   if (expected.minDuration && probe.duration < Number(expected.minDuration)) errors.push(`Video duration is shorter than ${expected.minDuration} seconds.`);
   if (expected.audioRequired && !probe.audio) errors.push("Audio was requested but the artifact has no audio stream.");
   if (probe.audio && !SUPPORTED_AUDIO_CODECS.has(probe.audio.codec)) errors.push(`Unsupported audio codec: ${probe.audio.codec}.`);

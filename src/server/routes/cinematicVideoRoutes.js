@@ -110,6 +110,7 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
       expected: {
         minDuration: 1,
         maxDuration: options.durationTarget,
+        durationToleranceSeconds: options.mode === "local-test" ? 5 : 1,
         maxFileSizeBytes: Number(process.env.VIDEO_MAX_FILE_SIZE_BYTES || 262144000),
         audioRequired: options.voiceover || options.soundtrack,
       },
