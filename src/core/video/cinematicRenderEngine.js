@@ -503,6 +503,7 @@ async function buildRenderManifest({
   timelineAssembly,
 
   voiceoverTrack,
+  soundtrack,
 
   subtitleTrack,
 
@@ -525,6 +526,7 @@ async function buildRenderManifest({
     timelineAssembly,
 
     voiceoverTrack,
+    soundtrack,
 
     subtitleTrack,
 
@@ -608,21 +610,20 @@ REAL CINEMATIC MODE
 
 const providerMode = renderManifest?.videoOptions?.mode;
 const requiresProviderClips = providerMode === "runway" || providerMode === "veo";
+const sceneCount = renderManifest?.timelineAssembly?.length || 0;
+const providerClips = safeArray(renderManifest?.aiVideoClips);
+const validProviderClips = providerClips.filter(
+  (clip) => clip?.liveAction === true && fileExists(clip?.outputPath)
+);
 
-if (requiresProviderClips) {
-  const sceneCount = renderManifest?.timelineAssembly?.length || 0;
-  const providerClips = safeArray(renderManifest?.aiVideoClips);
-  const validProviderClips = providerClips.filter(
-    (clip) => clip?.liveAction === true && fileExists(clip?.outputPath)
-  );
-
+if (requiresProviderClips || validProviderClips.length > 0) {
   if (!sceneCount || validProviderClips.length !== sceneCount) {
-    throw new Error(`${providerMode} render requires one verified live-action clip per scene.`);
+    if (requiresProviderClips) throw new Error(`${providerMode} render requires one verified live-action or licensed-stock clip per production shot.`);
   }
 
   const motionVideo = await composeMotionVideo({
     visuals: renderManifest.sceneAssets?.assets || [],
-    aiVideoClips: validProviderClips,
+    aiVideoClips: providerClips,
     scenes: renderManifest.timelineAssembly,
     outputDir: renderSession.tempDir,
     projectId: `${renderManifest.projectId}_provider`,
@@ -635,6 +636,7 @@ if (requiresProviderClips) {
     inputVideoPath: motionVideo.outputPath,
     subtitlePath: renderManifest?.subtitleTrack?.subtitlePath || null,
     voiceoverTracks: renderManifest?.voiceoverTrack?.tracks || [],
+    soundtrackPath: renderManifest?.soundtrack?.soundtrackPath || renderManifest?.soundtrack?.outputPath || null,
     outputPath: renderSession.finalVideoPath,
     workDir: renderSession.tempDir,
     projectId: renderManifest.projectId,
@@ -646,7 +648,7 @@ if (requiresProviderClips) {
     outputPath: composedVideo.outputPath,
     videoPath: composedVideo.videoPath || composedVideo.outputPath,
     completedAt: nowIso(),
-    renderMode: providerMode,
+    renderMode: requiresProviderClips ? providerMode : "hybrid-stock-and-images",
     providerClipCount: validProviderClips.length,
     motionVideo,
     composition: composedVideo,
@@ -715,6 +717,9 @@ console.log(
 
       voiceoverTracks:
         renderManifest?.voiceoverTrack?.tracks || [],
+
+      soundtrackPath:
+        renderManifest?.soundtrack?.soundtrackPath || renderManifest?.soundtrack?.outputPath || null,
 
       outputPath:
         renderSession.finalVideoPath,
@@ -785,6 +790,8 @@ export async function renderCinematicVideo({
   timeline = {},
 
   voiceover = {},
+
+  soundtrack = {},
 
   subtitles = {},
 
@@ -903,6 +910,8 @@ export async function renderCinematicVideo({
         timelineAssembly,
 
         voiceoverTrack,
+
+        soundtrack,
 
         subtitleTrack,
 

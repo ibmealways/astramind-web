@@ -46,6 +46,9 @@ export function getProviderConfiguration(mode, env = process.env) {
   const normalizedMode = normalizeVideoMode(mode, { nodeEnv: env.NODE_ENV });
   const runwayConfigured = Boolean(clean(env.RUNWAY_API_KEY || env.RUNWAYML_API_SECRET || env.RUNWAY_API_SECRET));
   const veoConfigured = Boolean(clean(env.GOOGLE_API_KEY || env.GEMINI_API_KEY || env.GOOGLE_GENAI_API_KEY));
+  const ttsConfigured = Boolean(clean(env.ELEVENLABS_API_KEY));
+  const stockConfigured = Boolean(clean(env.PEXELS_API_KEY));
+  const objectStorageConfigured = Boolean(clean(env.OBJECT_STORAGE_UPLOAD_URL) && clean(env.CDN_PUBLIC_URL_TEMPLATE));
 
   return {
     mode: normalizedMode,
@@ -58,6 +61,9 @@ export function getProviderConfiguration(mode, env = process.env) {
     fallbackAllowed: normalizedMode === VIDEO_MODES.LOCAL_TEST,
     runwayConfigured,
     veoConfigured,
+    ttsConfigured,
+    stockConfigured,
+    objectStorageConfigured,
   };
 }
 
@@ -67,6 +73,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
     "frameRate", "quality", "motionStrength", "cameraMovement", "transitions", "transitionStyle",
     "voiceover", "voiceId", "soundtrack", "soundtrackMood", "avatar", "avatarPresenter",
     "subtitles", "exportFormat", "preferGPU", "allowFallback", "sceneCount", "idempotencyKey",
+    "stock", "mediaStrategy", "musicSource",
   ]);
   const unknown = Object.keys(raw || {}).filter((key) => !allowedKeys.has(key));
   if (unknown.length) throw new Error(`Unsupported video options: ${unknown.join(", ")}.`);
@@ -97,8 +104,8 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
   if (mode === VIDEO_MODES.DISABLED) throw new Error("Video generation is disabled. Configure runway, veo, or explicitly select local-test.");
   if (mode === VIDEO_MODES.LOCAL_TEST && !allowFallback) throw new Error(`${LOCAL_TEST_LABEL} requires allowFallback: true.`);
   if (mode !== VIDEO_MODES.LOCAL_TEST && allowFallback) throw new Error("Fallback is prohibited for real-provider video modes.");
-  if (raw.voiceover === true) throw new Error("Voiceover is unavailable until a validated TTS provider is configured.");
-  if (raw.soundtrack === true) throw new Error("Soundtrack is unavailable in the repaired pipeline until audio composition is fully validated.");
+  if (raw.voiceover === true && !clean(env.ELEVENLABS_API_KEY)) throw new Error("Voiceover requires ELEVENLABS_API_KEY.");
+  if (raw.stock === true && !clean(env.PEXELS_API_KEY)) throw new Error("Licensed stock sourcing requires PEXELS_API_KEY.");
   if (raw.avatar === true || raw.avatarPresenter === true) throw new Error("Avatar rendering is unavailable; server filesystem paths are not accepted.");
   if (raw.preferGPU === true) throw new Error("GPU encoding is unavailable on this service.");
 
@@ -122,8 +129,13 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
     cameraMovement: clean(raw.cameraMovement || "cinematic"),
     transitions: raw.transitions !== false,
     transitionStyle: clean(raw.transitionStyle || "cinematic"),
-    voiceover: false,
-    soundtrack: false,
+    voiceover: raw.voiceover === true,
+    voiceId: clean(raw.voiceId || env.ELEVENLABS_VOICE_ID || ""),
+    soundtrack: raw.soundtrack === true,
+    soundtrackMood: clean(raw.soundtrackMood || "cinematic"),
+    musicSource: clean(raw.musicSource || (env.LICENSED_MUSIC_URL ? "licensed" : "procedural")),
+    stock: raw.stock === true,
+    mediaStrategy: clean(raw.mediaStrategy || "hybrid"),
     avatar: false,
     subtitles: raw.subtitles !== false,
     exportFormat,

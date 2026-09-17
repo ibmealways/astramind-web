@@ -24,7 +24,7 @@ describe("video generation configuration", () => {
   });
 
   test("unverified features and unknown options fail", () => {
-    expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, voiceover: true })).toThrow("Voiceover is unavailable");
+    expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, voiceover: true })).toThrow("ELEVENLABS_API_KEY");
     expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, mystery: true })).toThrow("Unsupported video options");
   });
 });

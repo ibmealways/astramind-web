@@ -403,6 +403,9 @@ async function concatClipsWithTransitions({
   }
 
   const finalLabel = `[v${clips.length - 1}]`;
+  const outputLabel = "[vout]";
+  const transitionOverlap = Number(((clips.length - 1) * 0.45).toFixed(2));
+  filter += `${finalLabel}tpad=stop_mode=clone:stop_duration=${transitionOverlap}${outputLabel}`;
 
   await runFFmpeg([
     "-y",
@@ -410,7 +413,7 @@ async function concatClipsWithTransitions({
     "-filter_complex",
     filter,
     "-map",
-    finalLabel,
+    outputLabel,
     "-c:v",
     "libx264",
     "-preset",

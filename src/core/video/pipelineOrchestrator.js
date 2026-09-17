@@ -62,11 +62,16 @@ import {
 import {
   renderCinematicVideo,
 } from "./cinematicRenderEngine.js";
-import { generateAIVideoClips } from "./aiVideoGenerationBuilder.js";
+import {
+  buildMediaSourcePlan,
+  splitScenesIntoProductionShots,
+} from "./productionShotPlanner.js";
 
 import {
   generateSceneVisuals,
 } from "./sceneVisualGenerator.js";
+import { resolveSoundtrack } from "./musicAssetResolver.js";
+import { generateHybridMediaClips } from "./hybridMediaEngine.js";
 
 import {
   generateStoryboard,
@@ -981,6 +986,12 @@ async function executeVoiceoverStage({
 
         creativeContext:
           pipelineContext,
+
+        outputDir:
+          `./server-renders/voiceover/${pipelineContext.projectId}`,
+
+        enabled:
+          input.options?.voiceover === true,
       }),
 
     payload: {
@@ -1193,6 +1204,7 @@ async function executeTransitionExecutionStage({
 async function executeRenderStage({
   timeline,
   voiceover,
+  soundtrack,
   subtitles,
   transitions,
   sceneAssets = [],
@@ -1490,6 +1502,8 @@ return renderCinematicVideo({
   voiceover:
     normalizedVoiceover,
 
+  soundtrack,
+
   subtitles:
     normalizedSubtitles,
 
@@ -1520,6 +1534,7 @@ return renderCinematicVideo({
     payload: {
       timeline,
       voiceover,
+      soundtrack,
       subtitles,
       transitions,
       input,
@@ -1779,11 +1794,26 @@ const stages =
         input,
       });
 
+    const productionTimeline = {
+      ...timeline,
+      scenes: splitScenesIntoProductionShots({
+        scenes: timeline?.scenes || storyboard?.scenes || [],
+        maxClipSeconds: 10,
+        minClipSeconds: 5,
+      }),
+    };
+    const mediaSourcePlan = buildMediaSourcePlan({
+      scenes: productionTimeline.scenes,
+      mode: options.mode,
+      stockEnabled: options.stock === true,
+    });
+    pipelineContext.mediaSourcePlan = mediaSourcePlan;
+
       const evolvedStoryboard =
   evolveStoryboardIntoShots({
     storyboard: {
       scenes:
-        timeline.scenes,
+        productionTimeline.scenes,
     },
 
     topic:
@@ -1812,7 +1842,7 @@ console.log(
       console.log(
   "🎬 TIMELINE OUTPUT",
   JSON.stringify(
-    timeline,
+    productionTimeline,
     null,
     2
   )
@@ -1820,34 +1850,42 @@ console.log(
 
 console.log(
   "🎬 TIMELINE SCENE COUNT:",
-  timeline?.scenes?.length || 0
+  productionTimeline?.scenes?.length || 0
 );
 
     const motion =
       await executeMotionStage({
-        timeline,
+        timeline: productionTimeline,
         pipelineContext,
         input,
       });
 
     const retention =
       await executeRetentionStage({
-        timeline,
+        timeline: productionTimeline,
         pipelineContext,
         input,
       });
 
     const voiceover =
       await executeVoiceoverStage({
-        timeline,
+        timeline: productionTimeline,
         dialoguePlan,
         pipelineContext,
         input,
       });
 
+    const soundtrack = await resolveSoundtrack({
+      enabled: options.soundtrack === true,
+      projectId: pipelineContext.projectId,
+      mood: options.soundtrackMood || "cinematic",
+      duration: input.durationTarget,
+      source: options.musicSource || "procedural",
+    });
+
     const captions =
       await executeCaptionStage({
-        timeline,
+        timeline: productionTimeline,
         voiceover,
         pipelineContext,
         input,
@@ -1862,14 +1900,14 @@ console.log(
 
     const transitionPlan =
       await executeTransitionPlanningStage({
-        timeline,
+        timeline: productionTimeline,
         pipelineContext,
         input,
       });
 
     const transitions =
       await executeTransitionExecutionStage({
-        timeline,
+        timeline: productionTimeline,
         transitionPlan,
         clips,
         pipelineContext,
@@ -1880,9 +1918,9 @@ console.log(
   "🎥 VISUAL GENERATION INPUT",
   {
     timelineScenes:
-      timeline?.scenes?.length,
+      productionTimeline?.scenes?.length,
 
-    timeline,
+    timeline: productionTimeline,
 
     storyboardScenes:
       storyboard?.scenes?.length,
@@ -1913,7 +1951,7 @@ if (
     storyboard,
 
     scenes:
-      timeline?.scenes ||
+      productionTimeline?.scenes ||
       storyboard?.scenes ||
       [],
 
@@ -1938,24 +1976,24 @@ if (
 pipelineContext.sceneAssets =
   sceneAssets;
 
-    const aiVideoResult =
-      options.mode === "runway" || options.mode === "veo"
-        ? await generateAIVideoClips({
-            scenes: timeline?.scenes || storyboard?.scenes || [],
-            visuals: sceneAssets,
-            storyboard,
-            topic: input.topic,
-            platform: input.platform,
-            style: input.style,
-            projectId: pipelineContext.projectId,
-            provider: options.mode,
-            allowFallback: false,
-          })
-        : { ok: true, provider: "local-test", clips: [], liveActionCount: 0, fallbackCount: 0 };
+    const usesExternalMedia = options.mode === "runway" || options.mode === "veo" || options.stock === true;
+    const aiVideoResult = usesExternalMedia
+      ? await generateHybridMediaClips({
+          scenes: productionTimeline?.scenes || storyboard?.scenes || [],
+          visuals: sceneAssets,
+          sourcePlan: mediaSourcePlan,
+          storyboard,
+          topic: input.topic,
+          platform: input.platform,
+          style: input.style,
+          projectId: pipelineContext.projectId,
+          mode: options.mode,
+        })
+      : { ok: true, provider: "local-test", clips: [], liveActionCount: 0, fallbackCount: productionTimeline?.scenes?.length || 0 };
 
     if (
       (options.mode === "runway" || options.mode === "veo") &&
-      aiVideoResult.liveActionCount !== (timeline?.scenes?.length || 0)
+      aiVideoResult.liveActionCount !== (productionTimeline?.scenes?.length || 0)
     ) {
       throw new Error("The selected provider did not return a live-action clip for every scene.");
     }
@@ -1964,7 +2002,7 @@ pipelineContext.sceneAssets =
   "🎥 SCENE ASSET DIAGNOSTICS",
   {
     timelineScenes:
-      timeline?.scenes?.length,
+      productionTimeline?.scenes?.length,
 
     voiceSegments:
       voiceover?.segments?.length,
@@ -1983,6 +2021,7 @@ pipelineContext.sceneAssets =
       evolvedStoryboard,
 
     voiceover,
+    soundtrack,
     subtitles,
     transitions,
     sceneAssets,
@@ -2066,6 +2105,7 @@ pipelineContext.sceneAssets =
         motion,
         retention,
         voiceover,
+        soundtrack,
         captions,
         subtitles,
         transitionPlan,

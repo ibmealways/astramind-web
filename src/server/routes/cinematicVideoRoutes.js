@@ -7,6 +7,7 @@ import { buildCinematicStoryboard } from "../../core/video/cinematicStoryboardEn
 import { getRenderQueueDiagnostics, getRenderJobStatus, getRenderById, retryRenderJob } from "../../core/video/renderQueue.js";
 import { getConfiguredVideoMode, getProviderConfiguration, validateVideoOptions } from "../../core/video/videoGenerationConfig.js";
 import { validateVideoArtifact } from "../../core/video/videoArtifactValidator.js";
+import { deliverVideoArtifact } from "../../core/video/artifactDelivery.js";
 
 const router = express.Router();
 const activeRendersByUser = new Map();
@@ -83,7 +84,7 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
       : limits.maxRenderDurationSeconds;
     const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: renderDurationLimit, maxResolution: "1080x1920" });
     const estimatedProviderCostUsd = options.diagnostics.realProvider
-      ? Number((options.durationTarget * Number(process.env.VIDEO_PROVIDER_COST_PER_SECOND_USD || 0.1)).toFixed(2))
+      ? Number((options.durationTarget * Number(process.env.VIDEO_PROVIDER_COST_PER_SECOND_USD || 0.12)).toFixed(2))
       : 0;
     const maxProviderCostUsd = Number(process.env.VIDEO_MAX_PROVIDER_COST_USD || 5);
     if (estimatedProviderCostUsd > maxProviderCostUsd) {
@@ -115,16 +116,22 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
         audioRequired: options.voiceover || options.soundtrack,
       },
     });
+    const delivery = await deliverVideoArtifact({
+      filePath: renderPath,
+      projectId: result.projectId,
+      localPublicUrl: videoUrl,
+    });
     const response = {
       ok: true,
       route: "POST /api/cinematic-video/render",
       version: "Aigenikz Cinematic Video Routes v9 Verified Modes",
       projectId: result.projectId || null,
       executionId: result.executionId || null,
-      videoUrl,
+      videoUrl: delivery.videoUrl,
       mode: options.mode,
       label: options.diagnostics.label,
       artifactValidation,
+      delivery,
       estimatedProviderCostUsd,
       diagnostics: result.diagnostics || null,
     };

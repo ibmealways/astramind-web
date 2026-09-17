@@ -27,6 +27,26 @@ services:
         value: "false"
       - key: OPENAI_API_KEY
         sync: false
+      - key: RUNWAYML_API_SECRET
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: LICENSED_MUSIC_URL
+        sync: false
+      - key: LICENSED_MUSIC_LICENSE
+        sync: false
+      - key: OBJECT_STORAGE_UPLOAD_URL
+        sync: false
+      - key: CDN_PUBLIC_URL_TEMPLATE
+        sync: false
+      - key: VIDEO_PROVIDER_COST_PER_SECOND_USD
+        value: "0.12"
+      - key: VIDEO_MAX_PROVIDER_COST_USD
+        value: "8"
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET

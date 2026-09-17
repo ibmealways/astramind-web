@@ -343,10 +343,37 @@ async function attachNarration({ inputVideoPath, audioPath, outputPath }) {
   };
 }
 
+async function attachAudioBed({ inputVideoPath, narrationPath, soundtrackPath, outputPath }) {
+  const narration = normalizeToAbsolutePath(narrationPath);
+  const soundtrack = normalizeToAbsolutePath(soundtrackPath);
+  const hasNarration = fileExists(narration);
+  const hasSoundtrack = fileExists(soundtrack);
+
+  if (!hasSoundtrack) return attachNarration({ inputVideoPath, audioPath: narration, outputPath });
+
+  const args = ["-y", "-i", inputVideoPath];
+  if (hasNarration) args.push("-i", narration);
+  args.push("-stream_loop", "-1", "-i", soundtrack);
+
+  if (hasNarration) {
+    args.push(
+      "-filter_complex", "[1:a]volume=1.0[voice];[2:a]volume=0.14[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+      "-map", "0:v:0", "-map", "[aout]"
+    );
+  } else {
+    args.push("-filter_complex", "[1:a]volume=0.14[aout]", "-map", "0:v:0", "-map", "[aout]");
+  }
+
+  args.push("-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", "-movflags", "+faststart", outputPath);
+  await runFFmpeg(args);
+  return { ok: true, outputPath, audioAttached: true, narrationAttached: hasNarration, soundtrackAttached: true };
+}
+
 export async function composeHollywoodFinal({
   inputVideoPath,
   subtitlePath = null,
   voiceoverTracks = [],
+  soundtrackPath = null,
   outputPath,
   workDir,
   projectId = "render",
@@ -375,9 +402,10 @@ export async function composeHollywoodFinal({
     style,
   });
 
-  const audioResult = await attachNarration({
+  const audioResult = await attachAudioBed({
     inputVideoPath: captionResult.outputPath,
-    audioPath: narration.audioPath,
+    narrationPath: narration.audioPath,
+    soundtrackPath,
     outputPath,
   });
 
@@ -388,6 +416,7 @@ export async function composeHollywoodFinal({
     videoPath: outputPath,
     subtitlePath,
     narrationPath: narration.audioPath,
+    soundtrackPath: fileExists(soundtrackPath) ? soundtrackPath : null,
     captionsBurned: captionResult.burned,
     audioAttached: audioResult.audioAttached,
     voiceTracks: narration.totalTracks,
@@ -395,6 +424,7 @@ export async function composeHollywoodFinal({
       hollywoodComposition: true,
       subtitlesAsOverlayLayer: true,
       voiceoverAsAudioLayer: true,
+      soundtrackAsAudioLayer: Boolean(fileExists(soundtrackPath)),
     },
   };
 }

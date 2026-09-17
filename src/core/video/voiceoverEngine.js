@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { generateVoice } from "../content/voiceEngine.js";
 
 import {
   classifyContent,
@@ -162,11 +163,15 @@ function buildVoiceSegments({
 
       const dialogue =
         clean(
-          dialogueScene
+          timelineScene?.productionClip
+            ? timelineScene?.voiceover || timelineScene?.narration || ""
+            : dialogueScene
             ?.cinematicDialogue ||
             dialogueScene
               ?.expandedText ||
             dialogueScene?.text ||
+            timelineScene?.voiceover ||
+            timelineScene?.narration ||
             ""
         );
 
@@ -227,27 +232,23 @@ function buildVoiceSegments({
 async function synthesizeVoiceSegment({
   segment,
   outputDir,
+  enabled = false,
 }) {
-  /*
-    PRODUCTION NOTE:
-
-    Placeholder synthesis layer.
-
-    Replace later with:
-    - ElevenLabs
-    - OpenAI TTS
-    - Azure TTS
-    - local neural synthesis
-    - GPU voice rendering
-
-    WITHOUT changing orchestration contracts.
-  */
-
   const outputPath =
     path.join(
       outputDir,
       `${segment.id}.mp3`
     );
+
+  if (!enabled) {
+    return { ok: true, segmentId: segment.id, outputPath: null, duration: segment.duration, synthesized: false };
+  }
+
+  const audio = await generateVoice(segment.text);
+  if (!audio?.length) {
+    throw new Error(`TTS provider returned no audio for ${segment.id}.`);
+  }
+  fs.writeFileSync(outputPath, audio);
 
   return {
     ok: true,
@@ -283,6 +284,7 @@ export async function generateVoiceover({
   productionPlan = {},
 
   directorState = null,
+  enabled = false,
 } = {}) {
   const classification =
     classifyContent({
@@ -353,6 +355,7 @@ export async function generateVoiceover({
       await synthesizeVoiceSegment({
         segment,
         outputDir,
+        enabled,
       });
 
     synthesizedSegments.push({
@@ -417,6 +420,9 @@ export async function generateVoiceover({
 
       timelineDrivenVoiceover:
         true,
+
+      ttsEnabled:
+        enabled,
 
       duplicateTimingLogic:
         false,

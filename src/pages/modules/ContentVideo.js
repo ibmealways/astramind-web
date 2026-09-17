@@ -171,8 +171,9 @@ export default function ContentVideo() {
   const renderEngine = "vision";
   const [videoMode, setVideoMode] = useState("local-test");
 
-  const [voiceover] = useState(false);
-  const [soundtrack] = useState(false);
+  const [voiceover, setVoiceover] = useState(false);
+  const [soundtrack, setSoundtrack] = useState(false);
+  const [licensedStock, setLicensedStock] = useState(false);
   const [subtitles, setSubtitles] = useState(true);
   const [useTransitions, setUseTransitions] = useState(true);
   const [transitionStyle, setTransitionStyle] = useState("cinematic");
@@ -352,6 +353,10 @@ export default function ContentVideo() {
           allowFallback: videoMode === "local-test",
           voiceover,
           soundtrack,
+          soundtrackMood: "cinematic",
+          musicSource: "procedural",
+          stock: licensedStock,
+          mediaStrategy: "hybrid",
           subtitles,
           transitions: useTransitions,
           transitionStyle,
@@ -678,9 +683,9 @@ if (!rawVideoUrl) {
               </h1>
 
               <p className="text-gray-300 text-lg max-w-3xl">
-                Build storyboards and render either verified provider video or
-                an explicitly labeled animated-still test MP4 with subtitles
-                and transitions.
+                Plan a script, split it into 5-10 second shots, combine generated
+                clips, images, licensed stock, narration, music, captions, and
+                transitions, then assemble and validate the MP4.
               </p>
             </div>
 
@@ -843,6 +848,9 @@ if (!rawVideoUrl) {
               </p>
 
               {[
+                ["AI Narration (ElevenLabs)", voiceover, setVoiceover],
+                ["Music Bed", soundtrack, setSoundtrack],
+                ["Licensed Stock Footage (Pexels)", licensedStock, setLicensedStock],
                 ["Burn Subtitles", subtitles, setSubtitles],
                 ["Cinematic Transitions", useTransitions, setUseTransitions],
               ].map(([label, value, setter]) => (
