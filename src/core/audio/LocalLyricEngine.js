@@ -1,5 +1,5 @@
 const GENRES = ["country rap","country hip hop","hip hop","hip-hop","r&b","rnb","country","pop","rock","gospel","jazz","blues","electronic","cinematic","reggae","latin","classical"];
-const INSTRUCTION_WORDS = new Set(["create","generate","write","compose","make","produce","song","track","lyrics","lyric","anthem","ballad","describing","describe","about","please","original","vibrant","upbeat","slow","fast","minute","minutes","second","seconds","bpm","using","include","featuring","style"]);
+const INSTRUCTION_WORDS = new Set(["create","generate","write","compose","make","produce","song","track","lyrics","lyric","anthem","ballad","describing","describe","about","please","original","vibrant","upbeat","slow","fast","minute","minutes","second","seconds","bpm","using","include","featuring","style","music","form"]);
 const FILLER_WORDS = new Set(["a","an","the","and","or","but","to","of","for","from","in","on","with","that","this","it","its","how","has","have","do","does","everything","something","my","our","your"]);
 
 function tidy(value){return String(value||"").replace(/[“”]/g,'"').replace(/[’]/g,"'").replace(/\s+/g," ").trim();}
@@ -15,8 +15,10 @@ export function extractLyricTheme(prompt="") {
     .replace(new RegExp(`\\b(?:${GENRES.map((item)=>item.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")})\\b`,"gi")," ")
     .replace(/\b\d{2,3}\s*bpm\b/gi," ")
     .replace(/\b(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\s*[- ]?(?:minute|second)s?\b/gi," ")
+    .replace(/\bmake it\b.*$/i," ")
     .replace(/\b(?:create|generate|write|compose|make|produce)\b(?:\s+(?:me|us))?/gi," ")
     .replace(/\b(?:a|an)\s+(?:song|track|anthem|ballad|lyric draft)\b/gi," ")
+    .replace(/\b(?:in (?:the )?(?:style|form|voice|sound) of|like|imitating|modeled after)\b.*$/i," ")
     .replace(/\b(?:for|to)\s+(?:tiktok|youtube|instagram|a music video|radio|streaming)\b.*$/i," ")
     .replace(/[.;]+$/g,"");
   const words=(candidate.toLowerCase().match(/[a-z][a-z'-]*/g)||[]).filter((word)=>!INSTRUCTION_WORDS.has(word));
@@ -27,7 +29,7 @@ export function extractLyricTheme(prompt="") {
 
 function conceptProfile(keywords=[]) {
   const has=(...terms)=>terms.some((term)=>keywords.includes(term));
-  if(has("conservative","values","tradition","traditional","liberty","freedom"))return "values";
+  if(has("america","american","patriot","patriotic","civic","constitution","conservative","government","rights","socialism","socialist","agenda","values","tradition","traditional","liberty","freedom"))return "values";
   if(has("love","romance","partner","heart","together"))return "love";
   if(has("family","home","roots","community"))return "home";
   if(has("faith","god","grace","prayer"))return "faith";
@@ -35,6 +37,36 @@ function conceptProfile(keywords=[]) {
   if(has("resilience","overcome","adversity","struggle","survive","strong"))return "resilience";
   if(has("dream","success","future","build","building","ambition"))return "future";
   return "purpose";
+}
+
+function hashText(value="") { let hash=2166136261; for(const character of value){hash^=character.charCodeAt(0);hash=Math.imul(hash,16777619);} return hash>>>0; }
+function rotate(values,offset=0){if(!values.length)return values;const start=offset%values.length;return [...values.slice(start),...values.slice(0,start)];}
+
+function personalizeProfile(profile,profileName,theme){
+  const seed=hashText(theme.original);
+  const primary=theme.keywords[0]||"purpose";
+  const secondary=theme.keywords[1]||"future";
+  const focus=theme.theme.replace(/\b(?:in the|with the|for the)\b.*$/i,"").trim();
+  const topical={
+    values:[
+      "I will ask the hard questions when the headlines fill the air",
+      "A promise made in public still needs truth and care",
+      `No slogan owns my conscience, no crowd can choose my view`,
+      `Liberty needs honest work and neighbors seeing through`,
+    ],
+    love:[`Every word about ${primary} finds a rhythm in your name`,`We turn ${secondary} into something neither distance nor time can change`],
+    home:[`The story of ${primary} lives in every open door`,`We carry ${secondary} forward, stronger than before`],
+    faith:[`I bring the weight of ${primary} into the quiet place`,`Even through ${secondary}, I keep reaching for grace`],
+    loss:[`The memory of ${primary} still moves beside me here`,`I carry ${secondary} with me through another year`],
+    resilience:[`I faced ${primary} head-on and kept my footing true`,`What ${secondary} tried to break became a strength I never knew`],
+    future:[`We turn ${primary} into plans that hands can build`,`Let ${secondary} become the promise that we choose to fulfill`],
+    purpose:[`I put ${primary} in the center of the work I choose`,`When ${secondary} tests the road, I find another way to move`],
+  }[profileName]||[];
+  const rotated=rotate(topical,seed);
+  const verse1=[...rotate(profile.verse1,seed).slice(0,4),...rotated.slice(0,2)];
+  const verse2=[...rotate(profile.verse2,seed>>>4).slice(0,4),...rotate(rotated,2).slice(0,2)];
+  const hook=profileName==="values"?"My conscience is not property; no agenda owns my voice":profile.hook;
+  return {...profile,verse1,verse2,hook,chorus:[...rotate(profile.chorus,seed>>>8).slice(0,3),hook],themeFocus:focus};
 }
 
 const PROFILE_LINES = {
@@ -80,8 +112,9 @@ function sectionLines(section,profile,genre){
 export function generateLocalLyrics({prompt,structure,perspective="first person",genre="Pop"}={}){
   const theme=extractLyricTheme(prompt);
   const profileName=conceptProfile(theme.keywords);
-  const profile=PROFILE_LINES[profileName];
+  const profile=personalizeProfile(PROFILE_LINES[profileName],profileName,theme);
   const sections=String(structure||"Verse 1, Pre-Chorus, Chorus, Verse 2, Bridge, Final Chorus").split(",").map((item)=>item.trim()).filter(Boolean).slice(0,10);
   const lyrics=sections.map((section)=>`[${section}]\n${sectionLines(section,profile,genre).map((line)=>applyPerspective(line,perspective)).join("\n")}`).join("\n\n");
-  return {lyrics,theme:theme.theme,keywords:theme.keywords,suggestedTitle:PROFILE_TITLES[profileName]||theme.suggestedTitle,hook:applyPerspective(profile.hook,perspective),engine:"astramind-local-lyric-v2"};
+  const suggestedTitle=theme.suggestedTitle&&theme.suggestedTitle!=="Finding Our Way"?theme.suggestedTitle:(PROFILE_TITLES[profileName]||theme.suggestedTitle);
+  return {lyrics,theme:theme.theme,keywords:theme.keywords,suggestedTitle,hook:applyPerspective(profile.hook,perspective),engine:"aigenikz-local-lyric-v3"};
 }
