@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.js";
 
@@ -62,7 +62,15 @@ export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 980px)").matches
+  );
+
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 980px)").matches) {
+      setCollapsed(true);
+    }
+  }, [location.pathname]);
 
   const activeGroupTitles = useMemo(() => {
     return navGroups
@@ -83,6 +91,15 @@ export default function Sidebar() {
   };
 
   return (
+    <>
+    {!collapsed && (
+      <button
+        type="button"
+        className="sidebar-backdrop"
+        onClick={() => setCollapsed(true)}
+        aria-label="Close navigation menu"
+      />
+    )}
     <aside className={`sidebar-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
       <div className="sidebar-glow" />
 
@@ -91,6 +108,7 @@ export default function Sidebar() {
           type="button"
           className="sidebar-collapse-btn"
           onClick={() => setCollapsed((prev) => !prev)}
+          aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -184,6 +202,7 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   );
 }
 
