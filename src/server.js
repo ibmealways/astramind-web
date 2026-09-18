@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 console.log("ELEVENLABS LOADED:", process.env.ELEVENLABS_API_KEY ? "YES" : "NO");
+console.log("AIGENIKZ MUSIC WORKER:", process.env.AIGENIKZ_MUSIC_WORKER_URL ? "CONNECTED" : "NOT CONFIGURED");
 console.log("🔑 API KEY LOADED:", process.env.OPENAI_API_KEY ? "YES" : "NO");
 console.log("STRIPE KEY LOADED:", process.env.STRIPE_SECRET_KEY ? "YES" : "NO");
 console.log("WEBHOOK KEY LOADED:", process.env.STRIPE_WEBHOOK_SECRET ? "YES" : "NO");
