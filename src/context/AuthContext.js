@@ -44,19 +44,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     async function bootstrap() {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await fetch(`${getApiUrl()}/api/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
         const data = await readJson(response);
+        const restoredToken = data.token || token;
+        if (restoredToken) {
+          setToken(restoredToken);
+          localStorage.setItem(TOKEN_KEY, restoredToken);
+        }
         setUser(data.user || null);
         localStorage.setItem(USER_KEY, JSON.stringify(data.user || null));
       } catch (error) {
@@ -82,6 +81,7 @@ export function AuthProvider({ children }) {
     async signup(payload) {
       const response = await fetch(`${getApiUrl()}/api/auth/signup`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -98,6 +98,7 @@ export function AuthProvider({ children }) {
     async login(payload) {
       const response = await fetch(`${getApiUrl()}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -112,6 +113,7 @@ export function AuthProvider({ children }) {
     },
 
     logout() {
+      fetch(`${getApiUrl()}/api/auth/logout`, { method: "POST", credentials: "include" }).catch(() => {});
       clearSession();
       setToken("");
       setUser(null);

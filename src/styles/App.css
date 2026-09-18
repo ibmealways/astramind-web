@@ -58,6 +58,8 @@ body {
   min-width: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* =========================
@@ -500,6 +502,14 @@ body {
 ========================= */
 
 @media (max-width: 980px) {
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .app-layout {
     display: flex;
     height: 100vh;
@@ -581,6 +591,63 @@ body {
     min-height: 0;
     padding: 14px;
     padding-top: max(70px, calc(14px + env(safe-area-inset-top, 0px)));
+    overflow-x: hidden;
+  }
+
+  .main-scroll-area {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: max(96px, calc(32px + env(safe-area-inset-bottom, 0px)));
+    scroll-padding-bottom: max(96px, calc(32px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .main-scroll-area > *,
+  .main-scroll-area section,
+  .main-scroll-area form,
+  .main-scroll-area article,
+  .main-scroll-area div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .main-scroll-area img,
+  .main-scroll-area video,
+  .main-scroll-area canvas,
+  .main-scroll-area iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .main-scroll-area pre {
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .control-center-page,
+  .creator-dashboard-page,
+  .operator-dashboard-page,
+  .tradepilot-page,
+  .content-book-page,
+  .research-workspace-page {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 100%;
+    overflow: visible;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: max(80px, calc(24px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  .creator-list-item,
+  .research-card-actions,
+  .operator-dashboard-header,
+  .operator-dashboard-header-actions,
+  .chart-topbar {
+    flex-wrap: wrap;
   }
 
   .os-panel {

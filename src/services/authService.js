@@ -10,9 +10,9 @@ const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "producti
 if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is required when NODE_ENV=production.");
 }
-const JWT_EXPIRES_IN = "7d";
+const JWT_EXPIRES_IN = "30d";
 
-function createSessionToken(user) {
+export function createSessionToken(user) {
   const safeUser = sanitizeUser(user);
 
   return jwt.sign(
