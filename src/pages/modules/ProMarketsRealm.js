@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useOSMode } from "../../context/ModeContext.js";
 import { OS_MODES } from "../../core/os/modes.js";
+import { API_URL as API } from "../../config/api.js";
 import { createPortfolioBlueprint } from "../../core/finance/portfolioPlannerEngine.js";
 import LiveSignalPanel from "./LiveSignalPanel.js";
 import "./FinanceTradePilot.css";
 import "../../styles/finance-realm.css";
 
-const API = process.env.REACT_APP_API_URL || "http://localhost:5000";
 const money = (value) => value == null ? "—" : new Intl.NumberFormat("en-US", { style:"currency",currency:"USD",maximumFractionDigits:2 }).format(value);
 const defaultSymbols = "SPY,QQQ,DIA,AAPL,MSFT,NVDA,AMZN,GOOGL";
 
