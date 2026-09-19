@@ -100,6 +100,8 @@ export function buildAudioExportManifest(session, format = "wav") {
 }
 
 export function updateSessionLyrics(session, text = "") {
+  if (!session?.id) throw new Error("Audio session is required.");
+  if (typeof text !== "string") throw new Error("Lyrics must be sent as text.");
   const cleanText = String(text).slice(0, 30000);
-  return { ...session, lyrics: { ...(session.lyrics || {}), text: cleanText, rhymeAnalysis: analyzeRhymes(cleanText) }, updatedAt: new Date().toISOString(), version: session.version + 1 };
+  return { ...session, lyrics: { ...(session.lyrics || {}), text: cleanText, rhymeAnalysis: analyzeRhymes(cleanText) }, updatedAt: new Date().toISOString(), version: (Number(session.version) || 0) + 1 };
 }
