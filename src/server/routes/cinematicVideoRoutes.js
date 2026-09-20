@@ -8,6 +8,7 @@ import { getRenderQueueDiagnostics, getRenderJobStatus, getRenderById, retryRend
 import { getConfiguredVideoMode, getProviderConfiguration, validateVideoOptions } from "../../core/video/videoGenerationConfig.js";
 import { validateVideoArtifact } from "../../core/video/videoArtifactValidator.js";
 import { deliverVideoArtifact } from "../../core/video/artifactDelivery.js";
+import { generateAIVideoClip } from "../../core/video/aiVideoGenerationBuilder.js";
 
 const router = express.Router();
 const activeRendersByUser = new Map();
@@ -71,6 +72,25 @@ router.post("/storyboard", requireAuth, (req, res) => {
   }
 });
 
+router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
+  try {
+    if (!getProviderConfiguration("aigenikz-local").configured) throw new Error("Connect the PC video worker in Render before generating a local AI clip.");
+    const prompt = String(req.body?.prompt || "").trim();
+    if (!prompt || prompt.length > 1200) throw new Error("Enter a video prompt of 1–1200 characters.");
+    const clip = await generateAIVideoClip({
+      scene: { id: `local-${Date.now()}`, title: "Generated AI video", visual: prompt, duration: 6 },
+      topic: prompt,
+      style: String(req.body?.style || "cinematic").slice(0, 120),
+      projectId: `local-${req.user.id}-${Date.now()}`,
+      provider: "aigenikz-local",
+      allowFallback: false,
+    });
+    return res.json({ ok: true, videoUrl: clip.publicUrl, mode: "aigenikz-local", label: "Aigenikz local AI video", artifactValidation: clip.artifactValidation });
+  } catch (error) {
+    return res.status(502).json({ ok: false, error: error.message || "Local AI video generation failed." });
+  }
+});
+
 router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
   const userId = req.user.id;
   let concurrencySlotAcquired = false;
@@ -83,7 +103,7 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
       ? Math.max(60, limits.maxRenderDurationSeconds)
       : limits.maxRenderDurationSeconds;
     const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: renderDurationLimit, maxResolution: "1080x1920" });
-    const estimatedProviderCostUsd = options.diagnostics.realProvider
+    const estimatedProviderCostUsd = options.diagnostics.realProvider && options.mode !== "aigenikz-local"
       ? Number((options.durationTarget * Number(process.env.VIDEO_PROVIDER_COST_PER_SECOND_USD || 0.12)).toFixed(2))
       : 0;
     const maxProviderCostUsd = Number(process.env.VIDEO_MAX_PROVIDER_COST_USD || 5);

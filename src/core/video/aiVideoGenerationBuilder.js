@@ -154,6 +154,40 @@ function normalizeProvider(provider = "") {
   return clean(provider || "fallback-motion").toLowerCase();
 }
 
+async function requestLocalVideoClip({ prompt, outputPath }) {
+  const baseUrl = String(process.env.AIGENIKZ_VIDEO_WORKER_URL || "").trim().replace(/\/$/, "");
+  const token = String(process.env.AIGENIKZ_VIDEO_WORKER_TOKEN || "").trim();
+  if (!baseUrl || !token) throw new Error("Aigenikz local video worker is not configured.");
+  const auth = { Authorization: `Bearer ${token}` };
+  const start = await fetch(`${baseUrl}/v1/video/generations`, {
+    method: "POST",
+    headers: { ...auth, "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, model: "CogVideoX-2B" }),
+    signal: AbortSignal.timeout(30000),
+  });
+  const submitted = await start.json().catch(() => ({}));
+  if (!start.ok) throw new Error(submitted.error || `Local video worker rejected the request (${start.status}).`);
+  const jobId = submitted.job_id;
+  if (!jobId) throw new Error("Local video worker returned no job ID.");
+  const deadline = Date.now() + 25 * 60 * 1000;
+  let job = submitted;
+  while (job.status === "queued" || job.status === "running") {
+    if (Date.now() > deadline) throw new Error("Local video generation timed out after 25 minutes.");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const status = await fetch(`${baseUrl}/v1/video/generations/${encodeURIComponent(jobId)}`, { headers: auth, signal: AbortSignal.timeout(30000) });
+    job = await status.json().catch(() => ({}));
+    if (!status.ok) throw new Error(job.error || `Local video status failed (${status.status}).`);
+  }
+  if (job.status !== "completed") throw new Error(job.error || "Local video generation failed.");
+  const response = await fetch(`${baseUrl}/v1/video/generations/${encodeURIComponent(jobId)}/file`, { headers: auth, signal: AbortSignal.timeout(120000) });
+  if (!response.ok || !(response.headers.get("content-type") || "").includes("video/")) throw new Error(`Local worker did not return an MP4 (${response.status}).`);
+  const video = Buffer.from(await response.arrayBuffer());
+  if (video.length < 10000) throw new Error("Local worker returned an empty or invalid video.");
+  fs.writeFileSync(outputPath, video);
+  const artifactValidation = await validateVideoArtifact({ filePath: outputPath, source: "aigenikz-local", rejectStatic: true });
+  return { outputPath, artifactValidation };
+}
+
 function buildRunwayPrompt({
   scene,
   topic,
@@ -462,6 +496,12 @@ async function tryProvider({
       raw: runwayResult.task,
       artifactValidation: runwayResult.artifactValidation,
     };
+  }
+
+  if (finalProvider === "aigenikz-local") {
+    const prompt = buildRunwayPrompt({ scene, topic, platform, style, storyboard, directorPlan });
+    const result = await requestLocalVideoClip({ prompt, outputPath });
+    return { provider: "aigenikz-local", model: "CogVideoX-2B", prompt, ...result };
   }
 
   if (finalProvider === "veo") {

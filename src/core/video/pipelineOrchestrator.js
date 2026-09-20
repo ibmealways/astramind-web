@@ -1976,7 +1976,7 @@ if (
 pipelineContext.sceneAssets =
   sceneAssets;
 
-    const usesExternalMedia = options.mode === "runway" || options.mode === "veo" || options.stock === true;
+    const usesExternalMedia = options.mode === "runway" || options.mode === "veo" || options.mode === "aigenikz-local" || options.stock === true;
     const aiVideoResult = usesExternalMedia
       ? await generateHybridMediaClips({
           scenes: productionTimeline?.scenes || storyboard?.scenes || [],
@@ -1992,7 +1992,7 @@ pipelineContext.sceneAssets =
       : { ok: true, provider: "local-test", clips: [], liveActionCount: 0, fallbackCount: productionTimeline?.scenes?.length || 0 };
 
     if (
-      (options.mode === "runway" || options.mode === "veo") &&
+      (options.mode === "runway" || options.mode === "veo" || options.mode === "aigenikz-local") &&
       aiVideoResult.liveActionCount !== (productionTimeline?.scenes?.length || 0)
     ) {
       throw new Error("The selected provider did not return a live-action clip for every scene.");

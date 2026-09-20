@@ -609,7 +609,7 @@ REAL CINEMATIC MODE
 */
 
 const providerMode = renderManifest?.videoOptions?.mode;
-const requiresProviderClips = providerMode === "runway" || providerMode === "veo";
+const requiresProviderClips = providerMode === "runway" || providerMode === "veo" || providerMode === "aigenikz-local";
 const sceneCount = renderManifest?.timelineAssembly?.length || 0;
 const providerClips = safeArray(renderManifest?.aiVideoClips);
 const validProviderClips = providerClips.filter(

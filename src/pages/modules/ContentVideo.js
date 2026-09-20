@@ -183,6 +183,7 @@ export default function ContentVideo() {
 
   const [loading, setLoading] = useState(false);
   const [rendering, setRendering] = useState(false);
+  const [renderingLocalClip, setRenderingLocalClip] = useState(false);
   const [checkingHealth, setCheckingHealth] = useState(false);
 
   const [result, setResult] = useState(null);
@@ -668,6 +669,31 @@ if (!rawVideoUrl) {
     localStorage.removeItem(LAST_RENDER_KEY);
   };
 
+  const generateLocalClip = async () => {
+    if (!topic.trim()) { setNotice("Enter a topic or prompt for the AI video clip."); return; }
+    setRenderingLocalClip(true);
+    setNotice("Generating real moving video frames on your PC. This may take several minutes.");
+    try {
+      const response = await fetch(`${API_URL}/api/cinematic-video/local-clip`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ prompt: topic.trim(), style }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.videoUrl) throw new Error(data.error || "No generated MP4 was returned.");
+      const url = addCache(buildBrowserUrl(data.videoUrl));
+      setVideoUrl(url);
+      setRenderResponse({ ...data, videoUrl: url });
+      localStorage.setItem(LAST_VIDEO_KEY, url);
+      localStorage.setItem(LAST_RENDER_KEY, JSON.stringify({ ...data, videoUrl: url }));
+      setNotice("Real AI video clip is ready. Play or download the MP4 below.");
+    } catch (error) {
+      setNotice(error.message || "Local video generation failed.");
+    } finally {
+      setRenderingLocalClip(false);
+    }
+  };
+
   return (
     <div className="min-h-screen p-6 text-white bg-gradient-to-br from-[#050816] via-[#090d1f] to-[#140b2d]">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -832,6 +858,7 @@ if (!rawVideoUrl) {
               className="w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white outline-none"
             >
               <option value="local-test" className="text-black">Animated Still Test Render</option>
+              <option value="aigenikz-local" className="text-black">Aigenikz local AI video (PC GPU)</option>
               <option value="runway" className="text-black">Runway provider video</option>
               <option value="veo" className="text-black">Veo (unavailable until verified)</option>
               <option value="disabled" className="text-black">Disabled</option>
@@ -841,6 +868,8 @@ if (!rawVideoUrl) {
                 Animated Still Test Render uses generated stills with camera motion. It is not provider-generated video and does not spend provider credits.
               </p>
             )}
+            {videoMode === "aigenikz-local" && <p className="mt-2 text-xs text-cyan-200">Generates actual scene video on your connected PC. Each scene may take several minutes. Your PC and video worker must stay on.</p>}
+            {videoMode === "aigenikz-local" && <button type="button" onClick={generateLocalClip} disabled={renderingLocalClip} className="mt-3 w-full rounded-xl bg-cyan-700 px-4 py-3 font-bold text-white disabled:opacity-50">{renderingLocalClip ? "Generating real AI clip…" : "Generate 6-second real AI clip"}</button>}
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
               <p className="text-sm font-bold text-cyan-200">
