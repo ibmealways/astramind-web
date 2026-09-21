@@ -91,6 +91,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
   const quality = clean(raw.quality || "balanced").toLowerCase();
   const exportFormat = clean(raw.exportFormat || "mp4").toLowerCase();
   const allowFallback = raw.allowFallback === true;
+  const stockRequested = raw.stock === true && mode !== VIDEO_MODES.AIGENIKZ_LOCAL;
 
   if (!Number.isFinite(duration) || duration < 5 || duration > maxDuration) throw new Error(`Duration must be between 5 and ${maxDuration} seconds.`);
   if (!SUPPORTED_ASPECT_RATIOS.includes(aspectRatio)) throw new Error(`Unsupported aspect ratio: ${aspectRatio}.`);
@@ -109,7 +110,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
   if (mode === VIDEO_MODES.LOCAL_TEST && !allowFallback) throw new Error(`${LOCAL_TEST_LABEL} requires allowFallback: true.`);
   if (mode !== VIDEO_MODES.LOCAL_TEST && allowFallback) throw new Error("Fallback is prohibited for real-provider video modes.");
   if (raw.voiceover === true && !clean(env.ELEVENLABS_API_KEY)) throw new Error("Voiceover requires ELEVENLABS_API_KEY.");
-  if (raw.stock === true && !clean(env.PEXELS_API_KEY)) throw new Error("Licensed stock sourcing requires PEXELS_API_KEY.");
+  if (stockRequested && !clean(env.PEXELS_API_KEY)) throw new Error("Licensed stock sourcing requires PEXELS_API_KEY.");
   if (raw.avatar === true || raw.avatarPresenter === true) throw new Error("Avatar rendering is unavailable; server filesystem paths are not accepted.");
   if (raw.preferGPU === true) throw new Error("GPU encoding is unavailable on this service.");
 
@@ -139,8 +140,8 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
     soundtrack: raw.soundtrack === true,
     soundtrackMood: clean(raw.soundtrackMood || "cinematic"),
     musicSource: clean(raw.musicSource || (env.LICENSED_MUSIC_URL ? "licensed" : "procedural")),
-    stock: raw.stock === true,
-    mediaStrategy: clean(raw.mediaStrategy || "hybrid"),
+    stock: stockRequested,
+    mediaStrategy: mode === VIDEO_MODES.AIGENIKZ_LOCAL ? "generated" : clean(raw.mediaStrategy || "hybrid"),
     avatar: false,
     subtitles: raw.subtitles !== false,
     exportFormat,

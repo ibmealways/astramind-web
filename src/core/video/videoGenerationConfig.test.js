@@ -36,6 +36,22 @@ describe("video generation configuration", () => {
     expect(options.allowFallback).toBe(false);
   });
 
+  test("local AI video never requires licensed stock or a Pexels key", () => {
+    const options = validateVideoOptions(
+      { mode: "aigenikz-local", durationTarget: 60, stock: true, mediaStrategy: "hybrid" },
+      {
+        env: {
+          NODE_ENV: "test",
+          AIGENIKZ_VIDEO_WORKER_URL: "https://example.com",
+          AIGENIKZ_VIDEO_WORKER_TOKEN: "test",
+        },
+        maxDuration: 60,
+      }
+    );
+    expect(options.stock).toBe(false);
+    expect(options.mediaStrategy).toBe("generated");
+  });
+
   test("unverified features and unknown options fail", () => {
     expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, voiceover: true })).toThrow("ELEVENLABS_API_KEY");
     expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, mystery: true })).toThrow("Unsupported video options");
