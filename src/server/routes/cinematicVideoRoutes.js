@@ -100,6 +100,7 @@ router.get("/health", (req, res) => {
     selfHostedRequiresPexels: false,
     storyboardProfiles: ["hollow-bloom-episode-one"],
     workerProgress: true,
+    localSceneImageToVideo: true,
     video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
