@@ -17,6 +17,7 @@ const router = express.Router();
 const activeRendersByUser = new Map();
 const completedIdempotentRenders = new Map();
 const GENERATED_IMAGES_DIR = path.resolve("public", "renders", "generated-images");
+const SELF_HOSTED_VIDEO_MODES = new Set(["local-test", "aigenikz-local"]);
 const renderRateLimit = platformRateLimitMiddleware({
   route: "cinematic-video-render",
   identityResolver: (req) => req.user?.id || req.ip,
@@ -72,7 +73,7 @@ router.post("/storyboard", requireAuth, (req, res) => {
     const { topic, platform = "TikTok", style = "cinematic futuristic high-energy", durationTarget = 30, mode = "disabled" } = req.body || {};
     if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
     const limits = getPlanLimits(req.user?.plan);
-    const storyboardDurationLimit = mode === "local-test"
+    const storyboardDurationLimit = SELF_HOSTED_VIDEO_MODES.has(mode)
       ? Math.max(60, limits.maxRenderDurationSeconds)
       : limits.maxRenderDurationSeconds;
     if (Number(durationTarget) > storyboardDurationLimit) return res.status(403).json({ ok: false, error: `This mode allows videos up to ${storyboardDurationLimit} seconds.` });
@@ -125,7 +126,7 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
     if (!String(topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
     const limits = getPlanLimits(req.user?.plan);
     const requestedMode = req.body?.options?.mode;
-    const renderDurationLimit = requestedMode === "local-test"
+    const renderDurationLimit = SELF_HOSTED_VIDEO_MODES.has(requestedMode)
       ? Math.max(60, limits.maxRenderDurationSeconds)
       : limits.maxRenderDurationSeconds;
     const options = validateVideoOptions({ ...(req.body?.options || {}), durationTarget }, { maxDuration: renderDurationLimit, maxResolution: "1080x1920" });
