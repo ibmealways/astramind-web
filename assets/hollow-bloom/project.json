@@ -3,6 +3,8 @@
   "version": 1,
   "style": "Original cinematic anime fantasy; glowing forest, ancient plants, cave pond, blue water, moonlight, grounded vibrant colors, expressive faces and distinct silhouettes",
   "referenceStatus": "poster-supplied; individual designs pending approval",
+  "ensembleReference": "hollow-bloom-ensemble-candidate.png",
+  "ensembleApproval": "pending",
   "characters": [
     {
       "id": "kyle",
