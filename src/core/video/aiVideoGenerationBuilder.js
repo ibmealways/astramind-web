@@ -713,6 +713,15 @@ export async function generateAIVideoClips({
   const clips = [];
 
   for (let index = 0; index < finalScenes.length; index += 1) {
+    const sceneReferenceImage =
+      normalizeProvider(provider) === "aigenikz-local"
+        ? getVisualPath(visuals[index])
+        : null;
+
+    if (normalizeProvider(provider) === "aigenikz-local" && !sceneReferenceImage) {
+      throw new Error(`Scene ${index + 1} has no generated reference image for local animation.`);
+    }
+
     const clip = await generateAIVideoClip({
       scene: finalScenes[index],
       visual: visuals[index],
@@ -725,6 +734,7 @@ export async function generateAIVideoClips({
       index,
       provider,
       allowFallback,
+      referenceImagePath: sceneReferenceImage,
     });
 
     clips.push(clip);

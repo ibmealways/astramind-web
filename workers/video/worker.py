@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import uuid
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
@@ -19,6 +20,10 @@ TOKEN = os.getenv("AIGENIKZ_VIDEO_WORKER_TOKEN", "")
 JOBS = {}
 LOCK = threading.Lock()
 GPU_LOCK = threading.Lock()
+
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat()
 
 
 def save_job(job_id):
@@ -48,27 +53,35 @@ for saved in OUTPUT.glob("*.json"):
 def run_job(job_id, prompt, reference_path=None):
     path = OUTPUT / f"{job_id}.mp4"
     with LOCK:
-        JOBS[job_id]["status"] = "running"
+        JOBS[job_id].update(status="running", stage="Loading local AI video model", started_at=now_iso())
         save_job(job_id)
-        command = [sys.executable, str(ROOT / ("generate_i2v.py" if reference_path else "generate.py")),
-                   "--prompt", prompt, "--output", str(path)]
-        if reference_path:
-            command.extend(["--image", str(reference_path)])
-        try:
-            with GPU_LOCK:
-                result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
-            if result.returncode or not path.exists() or path.stat().st_size < 10000:
-                raise RuntimeError((result.stderr or result.stdout or "Video model returned no MP4")[-1000:])
-            JOBS[job_id].update(status="completed", bytes=path.stat().st_size)
-        except Exception as exc:
-            JOBS[job_id].update(status="failed", error=str(exc)[:1000])
-        save_job(job_id)
+    command = [sys.executable, str(ROOT / ("generate_i2v.py" if reference_path else "generate.py")),
+               "--prompt", prompt, "--output", str(path)]
+    if reference_path:
+        command.extend(["--image", str(reference_path)])
+    try:
+        with GPU_LOCK:
+            with LOCK:
+                JOBS[job_id]["stage"] = "Animating scene from reference image" if reference_path else "Generating video frames from prompt"
+                save_job(job_id)
+            result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
+        if result.returncode or not path.exists() or path.stat().st_size < 10000:
+            raise RuntimeError((result.stderr or result.stdout or "Video model returned no MP4")[-1000:])
+        with LOCK:
+            JOBS[job_id].update(status="completed", stage="Video clip ready", bytes=path.stat().st_size, completed_at=now_iso())
+            save_job(job_id)
+    except Exception as exc:
+        with LOCK:
+            JOBS[job_id].update(status="failed", stage="Generation failed", error=str(exc)[:1000], completed_at=now_iso())
+            save_job(job_id)
 
 
 def run_image_job(job_id, prompt, aspect, seed):
     path = OUTPUT / f"{job_id}.png"
     with LOCK:
         JOBS[job_id]["status"] = "running"
+        JOBS[job_id]["stage"] = "Generating scene image"
+        JOBS[job_id]["started_at"] = now_iso()
         save_job(job_id)
     command = [
         sys.executable,
@@ -86,11 +99,11 @@ def run_image_job(job_id, prompt, aspect, seed):
         with Image.open(path) as image:
             image.verify()
         with LOCK:
-            JOBS[job_id].update(status="completed", bytes=path.stat().st_size)
+            JOBS[job_id].update(status="completed", stage="Scene image ready", bytes=path.stat().st_size, completed_at=now_iso())
             save_job(job_id)
     except Exception as exc:
         with LOCK:
-            JOBS[job_id].update(status="failed", error=str(exc)[:1500])
+            JOBS[job_id].update(status="failed", stage="Image generation failed", error=str(exc)[:1500], completed_at=now_iso())
             save_job(job_id)
 
 
@@ -114,12 +127,18 @@ class Handler(BaseHTTPRequestHandler):
             return
         parts = urlparse(self.path).path.strip("/").split("/")
         if parts == ["health"]:
+            jobs = list(JOBS.values())
             return self.send_json(200, {
                 "ok": True,
                 "models": ["Animagine-XL-4.0", "CogVideoX-2B", "LTX-Video-2B-I2V"],
                 "real_image": True,
                 "real_video": True,
+                "busy": any(job.get("status") in ("queued", "running") for job in jobs),
+                "active_jobs": sum(job.get("status") in ("queued", "running") for job in jobs),
             })
+        if parts == ["v1", "jobs"]:
+            jobs = sorted(JOBS.values(), key=lambda job: job.get("queued_at", ""), reverse=True)[:30]
+            return self.send_json(200, {"ok": True, "jobs": jobs, "checked_at": now_iso()})
         if len(parts) in (4, 5) and parts[:3] == ["v1", "image", "generations"]:
             job = JOBS.get(parts[3])
             if not job or job.get("kind") != "image":
@@ -187,6 +206,8 @@ class Handler(BaseHTTPRequestHandler):
                     "model": model,
                     "seed": seed,
                     "aspect": aspect,
+                    "stage": "Queued for PC GPU",
+                    "queued_at": now_iso(),
                 }
                 with LOCK:
                     JOBS[job_id] = job
@@ -209,7 +230,7 @@ class Handler(BaseHTTPRequestHandler):
                         return self.send_json(400, {"error": "Reference image dimensions must be 256-4096 pixels"})
                     reference_path = OUTPUT / f"{job_id}-reference.png"
                     source.convert("RGB").save(reference_path)
-            job = {"job_id": job_id, "kind": "video", "status": "queued", "model": "LTX-Video-2B-I2V" if reference_path else "CogVideoX-2B"}
+            job = {"job_id": job_id, "kind": "video", "status": "queued", "stage": "Queued for PC GPU", "queued_at": now_iso(), "model": "LTX-Video-2B-I2V" if reference_path else "CogVideoX-2B"}
             with LOCK:
                 JOBS[job_id] = job
                 save_job(job_id)

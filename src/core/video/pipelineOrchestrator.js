@@ -1965,7 +1965,11 @@ if (
       input.platform,
 
     provider:
-      options.mode === "local-test" ? "local" : undefined,
+      options.mode === "aigenikz-local"
+        ? "aigenikz-local"
+        : options.mode === "local-test"
+        ? "local"
+        : undefined,
   });
 
   console.log(

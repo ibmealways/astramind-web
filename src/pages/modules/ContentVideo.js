@@ -193,11 +193,35 @@ export default function ContentVideo() {
   const [renderResponse, setRenderResponse] = useState(null);
   const [visionHealth, setVisionHealth] = useState(null);
   const [renderProgress, setRenderProgress] = useState(null);
+  const [workerProgress, setWorkerProgress] = useState(null);
+  const [renderStartedAt, setRenderStartedAt] = useState(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
     setMode(OS_MODES.CONTENT);
   }, [setMode]);
+
+  useEffect(() => {
+    if (!rendering || videoMode !== "aigenikz-local" || !renderStartedAt || !token) return undefined;
+    let cancelled = false;
+    const poll = async () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - Date.parse(renderStartedAt)) / 1000)));
+      try {
+        const response = await fetch(`${API_URL}/api/cinematic-video/worker-progress?since=${encodeURIComponent(renderStartedAt)}`, {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled) setWorkerProgress(response.ok ? data : { connected: false, error: data.error || "PC worker status is unavailable." });
+      } catch (error) {
+        if (!cancelled) setWorkerProgress({ connected: false, error: error.message || "PC worker is unreachable." });
+      }
+    };
+    poll();
+    const timer = setInterval(poll, 3000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [rendering, videoMode, renderStartedAt, token]);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -433,6 +457,10 @@ export default function ContentVideo() {
     }
 
     setRendering(true);
+    const startedAt = new Date().toISOString();
+    setRenderStartedAt(startedAt);
+    setElapsedSeconds(0);
+    setWorkerProgress(videoMode === "aigenikz-local" ? { connected: null, current: { stage: "Contacting PC video worker", status: "starting" } } : null);
     setRenderProgress({
       status: "active",
       percent: 1,
@@ -1001,6 +1029,33 @@ if (!rawVideoUrl) {
                 Clear Studio
               </button>
             </div>
+
+            {videoMode === "aigenikz-local" && (rendering || workerProgress) && (
+              <div className={`mt-4 rounded-2xl border p-4 ${workerProgress?.connected === false ? "border-red-400/30 bg-red-500/10" : "border-cyan-400/30 bg-cyan-500/10"}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-bold">
+                  <span>PC AI generation status</span>
+                  <span className={workerProgress?.connected === false ? "text-red-300" : "text-cyan-200"}>
+                    {workerProgress?.connected === false ? "Disconnected" : workerProgress?.connected ? "Connected" : "Connecting"}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-200">
+                  <span>Elapsed: {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s</span>
+                  <span>Scenes ready: {workerProgress?.completedJobs || 0}/{Math.max(1, activeScenes.length)}</span>
+                  <span>Model: {workerProgress?.current?.model || "Waiting for worker"}</span>
+                  <span>Status: {workerProgress?.current?.status || "starting"}</span>
+                </div>
+                <p className="mt-3 text-sm text-cyan-100">
+                  {workerProgress?.current?.stage || workerProgress?.error || "Waiting for the first GPU job..."}
+                </p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/30">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-400 to-purple-500 transition-all duration-500"
+                    style={{ width: `${Math.min(100, Math.round(((workerProgress?.completedJobs || 0) / Math.max(1, activeScenes.length)) * 100))}%` }}
+                  />
+                </div>
+                {workerProgress?.failedJobs > 0 && <p className="mt-2 text-xs text-red-300">{workerProgress.failedJobs} scene job failed. The render will report the exact error.</p>}
+              </div>
+            )}
 
             {notice && (
               <div className="mt-4 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 p-4 text-sm text-yellow-200">
