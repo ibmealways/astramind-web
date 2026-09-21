@@ -1,6 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import requireAuth from "../middleware/requireAuth.js";
 import { platformRateLimitMiddleware } from "../../core/platform/rateLimiter.js";
 import { getPlanLimits } from "../../core/platform/developerPlans.js";
@@ -16,6 +17,7 @@ import { listCharacterReferences, resolveCharacterReference } from "../../core/v
 const router = express.Router();
 const activeRendersByUser = new Map();
 const completedIdempotentRenders = new Map();
+const backgroundRenders = new Map();
 const GENERATED_IMAGES_DIR = path.resolve("public", "renders", "generated-images");
 const SELF_HOSTED_VIDEO_MODES = new Set(["local-test", "aigenikz-local"]);
 const renderRateLimit = platformRateLimitMiddleware({
@@ -101,6 +103,7 @@ router.get("/health", (req, res) => {
     storyboardProfiles: ["hollow-bloom-episode-one"],
     workerProgress: true,
     localSceneImageToVideo: true,
+    backgroundLocalRender: true,
     video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
@@ -155,6 +158,45 @@ router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
   } catch (error) {
     return res.status(502).json({ ok: false, error: error.message || "Local AI video generation failed." });
   }
+});
+
+router.post("/render-background", requireAuth, renderRateLimit, (req, res) => {
+  const userId = req.user.id;
+  const body = req.body || {};
+  if (!String(body.topic || "").trim()) return res.status(400).json({ ok: false, error: "Topic is required." });
+  const jobId = crypto.randomUUID();
+  backgroundRenders.set(jobId, { jobId, userId, status: "queued", stage: "Preparing cinematic pipeline", createdAt: new Date().toISOString() });
+  res.status(202).json({ ok: true, accepted: true, jobId, status: "queued" });
+
+  setImmediate(async () => {
+    try {
+      const { topic, style = "cinematic", platform = "TikTok", durationTarget = 30, force = false } = body;
+      const limits = getPlanLimits(req.user?.plan);
+      const requestedMode = body.options?.mode;
+      const renderDurationLimit = SELF_HOSTED_VIDEO_MODES.has(requestedMode) ? Math.max(60, limits.maxRenderDurationSeconds) : limits.maxRenderDurationSeconds;
+      const options = validateVideoOptions({ ...(body.options || {}), durationTarget }, { maxDuration: renderDurationLimit, maxResolution: "1080x1920" });
+      backgroundRenders.set(jobId, { ...backgroundRenders.get(jobId), status: "running", stage: "Generating scenes on PC GPU", startedAt: new Date().toISOString() });
+      const result = await orchestrateCinematicPipeline({ topic, style, platform, durationTarget, force, options, maxScenes: limits.maxScenesPerVideo });
+      if (!result?.ok) throw new Error(result?.error || "Cinematic pipeline failed.");
+      const renderOutput = getRenderResult(result);
+      const renderPath = getRenderPath(result);
+      const videoUrl = normalizeRenderUrl(renderPath);
+      if (!videoUrl || !renderPath || renderOutput?.ok === false) throw new Error("Render completed without a public video URL.");
+      const artifactValidation = await validateVideoArtifact({ filePath: renderPath, source: options.mode, rejectStatic: options.diagnostics.realProvider, expected: { minDuration: 1, maxDuration: options.durationTarget, durationToleranceSeconds: options.mode === "local-test" ? 5 : 1, maxFileSizeBytes: Number(process.env.VIDEO_MAX_FILE_SIZE_BYTES || 262144000), audioRequired: options.voiceover || options.soundtrack } });
+      const delivery = await deliverVideoArtifact({ filePath: renderPath, projectId: result.projectId, localPublicUrl: videoUrl });
+      const output = { ok: true, projectId: result.projectId || null, executionId: result.executionId || null, videoUrl: delivery.videoUrl, mode: options.mode, label: options.diagnostics.label, artifactValidation, delivery, diagnostics: result.diagnostics || null };
+      backgroundRenders.set(jobId, { ...backgroundRenders.get(jobId), status: "completed", stage: "MP4 ready", completedAt: new Date().toISOString(), output });
+    } catch (error) {
+      console.error("Background cinematic render failed:", error);
+      backgroundRenders.set(jobId, { ...backgroundRenders.get(jobId), status: "failed", stage: "Render failed", completedAt: new Date().toISOString(), error: error?.message || "Cinematic render failed." });
+    }
+  });
+});
+
+router.get("/render-background/:jobId", requireAuth, (req, res) => {
+  const job = backgroundRenders.get(req.params.jobId);
+  if (!job || job.userId !== req.user.id) return res.status(404).json({ ok: false, error: "Background render job not found." });
+  return res.json({ ok: true, job: { ...job, userId: undefined } });
 });
 
 router.post("/render", requireAuth, renderRateLimit, async (req, res) => {

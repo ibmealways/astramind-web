@@ -376,7 +376,8 @@ export default function ContentVideo() {
       throw new Error("Your login session is missing. Sign in again before rendering.");
     }
 
-    const response = await fetch(`${API_URL}/api/cinematic-video/render`, {
+    const background = videoMode === "aigenikz-local";
+    const response = await fetch(`${API_URL}/api/cinematic-video/${background ? "render-background" : "render"}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -424,6 +425,20 @@ export default function ContentVideo() {
 
     if (!response.ok || !data?.ok) {
       throw new Error(data?.error || "Vision Pipeline render failed.");
+    }
+
+    if (background && data.jobId) {
+      const deadline = Date.now() + 2 * 60 * 60 * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        const statusResponse = await fetch(`${API_URL}/api/cinematic-video/render-background/${encodeURIComponent(data.jobId)}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+        const statusData = await statusResponse.json().catch(() => ({}));
+        if (!statusResponse.ok) throw new Error(statusData.error || "Background render status failed.");
+        const job = statusData.job;
+        if (job?.status === "completed") return job.output;
+        if (job?.status === "failed") throw new Error(job.error || "Background render failed.");
+      }
+      throw new Error("Background render exceeded two hours.");
     }
 
     return data;
