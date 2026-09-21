@@ -439,6 +439,10 @@ function detectNarrativeMode({
   const combined =
     `${topic} ${style} ${platform}`.toLowerCase();
 
+  if (/hollow bloom|seeds of change|kyle.*jorge.*jack.*susan/i.test(combined)) {
+    return "fiction";
+  }
+
   if (
     /war|iran|government|classified|military|breaking|evidence|investigation|antarctica/.test(
       combined
@@ -584,6 +588,47 @@ function detectTheme(
 ) {
   const t = topic.toLowerCase();
   const subject = stripPromptCommand(topic);
+
+  if (
+    t.includes("hollow bloom") ||
+    t.includes("seeds of change") ||
+    (t.includes("kyle") && t.includes("jorge") && t.includes("cave"))
+  ) {
+    return {
+      type: "hollow_bloom_episode_one",
+      audience: "teen and adult supernatural anime audiences",
+      emotion: "celebratory friendship turning into mystery, danger, and wonder",
+      palette: "graduation white and navy, forest green, cave-water blue, golden creation light, violet shield light, orange fire",
+      visualWorld: "a small judgmental town, an ancient moonlit forest, and a hidden cave garden surrounding a luminous underground pond",
+      promise: "eight graduating friends discover that Kyle's forgotten cave garden has changed them forever",
+      hook: "Graduation was supposed to be the end of one chapter. For eight lifelong friends, it became the beginning of something impossible.",
+      problem: "Driven away by hostile townspeople, the friends follow Kyle into the forest toward a cave where he planted seeds years ago.",
+      transformation: "The forgotten plants have fused with supernatural cave water, and glowing pollen awakens a different power inside each friend.",
+      proof: "As the cavern collapses, shields, speed, healing light, living roots, fire, inventions, heightened senses, and golden creation energy erupt for the first time.",
+      cta: "They escape believing their secret is safe, but an unseen observer enters the cave and whispers: They finally awakened.",
+      captions: [
+        "The Last Day",
+        "The Hidden Garden",
+        "The Awakening",
+        "First Powers",
+        "They Are Not Alone",
+      ],
+      sceneTitles: [
+        "The Last Day",
+        "The Hidden Garden",
+        "The Awakening",
+        "First Powers",
+        "They Are Not Alone",
+      ],
+      visualAngles: [
+        "Eight 18-year-old friends leave their high-school graduation in consistent formal clothes and graduation pieces; hostile townspeople stare as Kyle leads the group toward the forest.",
+        "At dusk the friends enter a concealed cave and discover Kyle's forgotten plants transformed into a luminous garden around blue cave water, ancient roots, and crystals.",
+        "Beside the pond, smoke, luminous pollen, and cave mist combine; supernatural visions surround the eight friends as the cavern awakens and begins to shake.",
+        "The friends manifest their powers for the first time: Kyle's golden creation energy, Timmy's violet-blue shield, Jorge's speed, Jack's senses, Susan's healing tattoos, Rosé's roots, Shaun's fire, and Max's electrical inventions.",
+        "Jack senses a watcher; Kyle finds an unfamiliar carved symbol; the friends leave while a concealed figure enters the garden and says, They finally awakened.",
+      ],
+    };
+  }
 
   const isKitchenFireTopic =
     t.includes("kitchen exhaust") ||
@@ -1460,7 +1505,7 @@ export function buildCinematicStoryboard({
     [
       {
         title:
-          "Hook",
+          theme.sceneTitles?.[0] || "Hook",
 
         role:
           "hook",
@@ -1482,7 +1527,7 @@ export function buildCinematicStoryboard({
 
       {
         title:
-          "Problem",
+          theme.sceneTitles?.[1] || "Problem",
 
         role:
           "problem",
@@ -1504,7 +1549,7 @@ export function buildCinematicStoryboard({
 
       {
         title:
-          "Escalation",
+          theme.sceneTitles?.[2] || "Escalation",
 
         role:
           "build",
@@ -1527,7 +1572,7 @@ export function buildCinematicStoryboard({
 
       {
         title:
-          "Proof",
+          theme.sceneTitles?.[3] || "Proof",
 
         role:
           "evidence",
@@ -1549,7 +1594,7 @@ export function buildCinematicStoryboard({
 
       {
         title:
-          "Payoff",
+          theme.sceneTitles?.[4] || "Payoff",
 
         role:
           "payoff",
