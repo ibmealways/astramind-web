@@ -1,0 +1,104 @@
+{
+  "projectId": "hollow-bloom",
+  "version": 1,
+  "style": "Original cinematic anime fantasy; glowing forest, ancient plants, cave pond, blue water, moonlight, grounded vibrant colors, expressive faces and distinct silhouettes",
+  "referenceStatus": "poster-supplied; individual designs pending approval",
+  "characters": [
+    {
+      "id": "kyle",
+      "name": "Kyle",
+      "role": "central hero",
+      "power": "golden creation energy around his hands",
+      "referenceImage": "characters/kyle-candidate.png",
+      "approval": "pending"
+    },
+    {
+      "id": "timmy",
+      "name": "Timmy",
+      "role": "defender",
+      "power": "translucent defensive energy shield",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "jorge",
+      "name": "Jorge",
+      "role": "speedster",
+      "power": "golden speed trails",
+      "appearance": "runner's pose with a bag of food",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "jack",
+      "name": "Jack",
+      "role": "scout",
+      "power": "heightened senses",
+      "appearance": "rugged scout outfit and a wolf companion",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "susan",
+      "name": "Susan",
+      "role": "healer",
+      "power": "glowing healing tattoos across her arms",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "rose",
+      "name": "Rosé",
+      "role": "nature guardian",
+      "power": "enormous vines and tree roots",
+      "appearance": "green-and-gold clothing inspired by nature",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "shaun",
+      "name": "Shaun",
+      "role": "fire wielder",
+      "power": "controlled orange fire in one hand",
+      "referenceImage": null,
+      "approval": "needed"
+    },
+    {
+      "id": "max",
+      "name": "Max",
+      "role": "inventor",
+      "power": "floating blue electrical inventions",
+      "appearance": "futuristic tech jacket",
+      "referenceImage": null,
+      "approval": "needed"
+    }
+  ],
+  "shots": [
+    {
+      "id": "pilot-shot-01",
+      "characterId": "kyle",
+      "style": "anime",
+      "durationSeconds": 2,
+      "action": "Kyle turns toward his glowing creation energy, raises his hand, and steps forward.",
+      "camera": "Medium shot tracking his gesture.",
+      "dialogue": "The forest is waking.",
+      "status": "review-needed",
+      "clipPath": "shots/kyle-pilot-test.mp4",
+      "approval": "pending",
+      "quality": {
+        "durationSeconds": 2.04,
+        "visibleMotion": true,
+        "frozen": false
+      },
+      "draftVoiceId": "am_michael"
+    }
+  ],
+  "audioTracks": [
+    {
+      "path": "audio/kyle-draft-line.wav",
+      "startSeconds": 0,
+      "gain": 1,
+      "status": "draft"
+    }
+  ]
+}

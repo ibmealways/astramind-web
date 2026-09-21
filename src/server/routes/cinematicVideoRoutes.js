@@ -9,6 +9,7 @@ import { getConfiguredVideoMode, getProviderConfiguration, validateVideoOptions 
 import { validateVideoArtifact } from "../../core/video/videoArtifactValidator.js";
 import { deliverVideoArtifact } from "../../core/video/artifactDelivery.js";
 import { generateAIVideoClip } from "../../core/video/aiVideoGenerationBuilder.js";
+import { listCharacterReferences, resolveCharacterReference } from "../../core/video/characterLibrary.js";
 
 const router = express.Router();
 const activeRendersByUser = new Map();
@@ -72,11 +73,21 @@ router.post("/storyboard", requireAuth, (req, res) => {
   }
 });
 
+router.get("/characters", requireAuth, (req, res) => {
+  try {
+    return res.json({ ok: true, characters: listCharacterReferences() });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: "Character library is unavailable." });
+  }
+});
+
 router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
   try {
     if (!getProviderConfiguration("aigenikz-local").configured) throw new Error("Connect the PC video worker in Render before generating a local AI clip.");
     const prompt = String(req.body?.prompt || "").trim();
     if (!prompt || prompt.length > 1200) throw new Error("Enter a video prompt of 1–1200 characters.");
+    const referenceId = String(req.body?.referenceId || "").trim();
+    const referenceImagePath = referenceId ? resolveCharacterReference(referenceId).imagePath : null;
     const clip = await generateAIVideoClip({
       scene: { id: `local-${Date.now()}`, title: "Generated AI video", visual: prompt, duration: 6 },
       topic: prompt,
@@ -84,8 +95,9 @@ router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
       projectId: `local-${req.user.id}-${Date.now()}`,
       provider: "aigenikz-local",
       allowFallback: false,
+      referenceImagePath,
     });
-    return res.json({ ok: true, videoUrl: clip.publicUrl, mode: "aigenikz-local", label: "Aigenikz local AI video", artifactValidation: clip.artifactValidation });
+    return res.json({ ok: true, videoUrl: clip.publicUrl, mode: "aigenikz-local", model: clip.model, referenceId: referenceId || null, duration: clip.duration, label: "Aigenikz local AI video", artifactValidation: clip.artifactValidation });
   } catch (error) {
     return res.status(502).json({ ok: false, error: error.message || "Local AI video generation failed." });
   }

@@ -170,6 +170,8 @@ export default function ContentVideo() {
   const [durationTarget, setDurationTarget] = useState(30);
   const renderEngine = "vision";
   const [videoMode, setVideoMode] = useState("local-test");
+  const [characterReference, setCharacterReference] = useState("");
+  const [characterOptions, setCharacterOptions] = useState([]);
 
   const [voiceover, setVoiceover] = useState(false);
   const [soundtrack, setSoundtrack] = useState(false);
@@ -196,6 +198,18 @@ export default function ContentVideo() {
   useEffect(() => {
     setMode(OS_MODES.CONTENT);
   }, [setMode]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+    const controller = new AbortController();
+    fetch(`${API_URL}/api/cinematic-video/characters`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+    }).then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (!controller.signal.aborted) setCharacterOptions(data?.characters || []); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [token]);
 
   useEffect(() => {
     const storedVideoUrl = localStorage.getItem(LAST_VIDEO_KEY);
@@ -672,12 +686,12 @@ if (!rawVideoUrl) {
   const generateLocalClip = async () => {
     if (!topic.trim()) { setNotice("Enter a topic or prompt for the AI video clip."); return; }
     setRenderingLocalClip(true);
-    setNotice("Generating real moving video frames on your PC. This may take several minutes.");
+    setNotice("Generating model video frames on your PC and checking for frozen output. This may take several minutes.");
     try {
       const response = await fetch(`${API_URL}/api/cinematic-video/local-clip`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ prompt: topic.trim(), style }),
+        body: JSON.stringify({ prompt: topic.trim(), style, referenceId: characterReference || undefined }),
       });
       const data = await response.json();
       if (!response.ok || !data.videoUrl) throw new Error(data.error || "No generated MP4 was returned.");
@@ -686,7 +700,7 @@ if (!rawVideoUrl) {
       setRenderResponse({ ...data, videoUrl: url });
       localStorage.setItem(LAST_VIDEO_KEY, url);
       localStorage.setItem(LAST_RENDER_KEY, JSON.stringify({ ...data, videoUrl: url }));
-      setNotice("Real AI video clip is ready. Play or download the MP4 below.");
+      setNotice(`Generated ${Number(data.duration || 0).toFixed(1)}-second clip passed the frozen-video check. Review character continuity before using it.`);
     } catch (error) {
       setNotice(error.message || "Local video generation failed.");
     } finally {
@@ -869,7 +883,20 @@ if (!rawVideoUrl) {
               </p>
             )}
             {videoMode === "aigenikz-local" && <p className="mt-2 text-xs text-cyan-200">Generates actual scene video on your connected PC. Each scene may take several minutes. Your PC and video worker must stay on.</p>}
-            {videoMode === "aigenikz-local" && <button type="button" onClick={generateLocalClip} disabled={renderingLocalClip} className="mt-3 w-full rounded-xl bg-cyan-700 px-4 py-3 font-bold text-white disabled:opacity-50">{renderingLocalClip ? "Generating real AI clip…" : "Generate 6-second real AI clip"}</button>}
+            {videoMode === "aigenikz-local" && (
+              <label className="mt-3 block text-sm text-cyan-100">
+                Character reference
+                <select value={characterReference} onChange={(event) => setCharacterReference(event.target.value)} className="mt-1 w-full rounded-xl border border-white/10 bg-black/35 px-4 py-3 text-white">
+                  <option value="" className="text-black">No reference (text-to-video)</option>
+                  {characterOptions.map((character) => (
+                    <option key={character.id} value={character.id} disabled={!character.available} className="text-black">
+                      {character.name} ({character.approval === "pending" ? "candidate" : character.available ? "reference ready" : "reference needed"})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {videoMode === "aigenikz-local" && <button type="button" onClick={generateLocalClip} disabled={renderingLocalClip} className="mt-3 w-full rounded-xl bg-cyan-700 px-4 py-3 font-bold text-white disabled:opacity-50">{renderingLocalClip ? "Generating and checking clip…" : characterReference ? "Generate 2-second character motion test" : "Generate 6-second AI video test"}</button>}
 
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/25 p-4 space-y-3">
               <p className="text-sm font-bold text-cyan-200">

@@ -1,4 +1,6 @@
 """Token-protected local video job API for the Aigenikz Video Studio."""
+import base64
+import io
 import json
 import os
 import subprocess
@@ -8,6 +10,7 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
+from PIL import Image, UnidentifiedImageError
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT = Path(os.getenv("AIGENIKZ_VIDEO_OUTPUT_DIR", str(ROOT / "output"))).resolve()
@@ -40,12 +43,15 @@ for saved in OUTPUT.glob("*.json"):
         continue
 
 
-def run_job(job_id, prompt):
+def run_job(job_id, prompt, reference_path=None):
     path = OUTPUT / f"{job_id}.mp4"
     with LOCK:
         JOBS[job_id]["status"] = "running"
         save_job(job_id)
-        command = [sys.executable, str(ROOT / "generate.py"), "--prompt", prompt, "--output", str(path)]
+        command = [sys.executable, str(ROOT / ("generate_i2v.py" if reference_path else "generate.py")),
+                   "--prompt", prompt, "--output", str(path)]
+        if reference_path:
+            command.extend(["--image", str(reference_path)])
         try:
             result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
             if result.returncode or not path.exists() or path.stat().st_size < 10000:
@@ -76,7 +82,7 @@ class Handler(BaseHTTPRequestHandler):
             return
         parts = urlparse(self.path).path.strip("/").split("/")
         if parts == ["health"]:
-            return self.send_json(200, {"ok": True, "model": "CogVideoX-2B", "real_video": True})
+            return self.send_json(200, {"ok": True, "models": ["CogVideoX-2B", "LTX-Video-2B-I2V"], "real_video": True})
         if len(parts) in (4, 5) and parts[:3] == ["v1", "video", "generations"]:
             job = JOBS.get(parts[3])
             if not job:
@@ -102,20 +108,36 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(404, {"error": "Not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            if length < 1 or length > 10000:
+            if length < 1 or length > 12 * 1024 * 1024:
                 return self.send_json(400, {"error": "Prompt request size is invalid"})
             payload = json.loads(self.rfile.read(length))
             prompt = str(payload.get("prompt", "")).strip()
             if not prompt:
                 return self.send_json(400, {"error": "Prompt is required"})
             job_id = uuid.uuid4().hex
-            job = {"job_id": job_id, "status": "queued", "model": "CogVideoX-2B"}
+            reference_path = None
+            reference_image = payload.get("reference_image")
+            if reference_image:
+                if not isinstance(reference_image, str) or "," not in reference_image:
+                    return self.send_json(400, {"error": "Reference image must be a PNG or JPEG data URL"})
+                header, encoded = reference_image.split(",", 1)
+                if header not in ("data:image/png;base64", "data:image/jpeg;base64"):
+                    return self.send_json(400, {"error": "Only PNG and JPEG reference images are supported"})
+                data = base64.b64decode(encoded, validate=True)
+                if len(data) > 8 * 1024 * 1024:
+                    return self.send_json(400, {"error": "Reference image exceeds 8 MB"})
+                with Image.open(io.BytesIO(data)) as source:
+                    if source.width > 4096 or source.height > 4096 or source.width < 256 or source.height < 256:
+                        return self.send_json(400, {"error": "Reference image dimensions must be 256-4096 pixels"})
+                    reference_path = OUTPUT / f"{job_id}-reference.png"
+                    source.convert("RGB").save(reference_path)
+            job = {"job_id": job_id, "status": "queued", "model": "LTX-Video-2B-I2V" if reference_path else "CogVideoX-2B"}
             JOBS[job_id] = job
             save_job(job_id)
-            threading.Thread(target=run_job, args=(job_id, prompt), daemon=True).start()
+            threading.Thread(target=run_job, args=(job_id, prompt, reference_path), daemon=True).start()
             self.send_json(202, job)
-        except (ValueError, json.JSONDecodeError):
-            self.send_json(400, {"error": "Invalid JSON request"})
+        except (ValueError, json.JSONDecodeError, UnidentifiedImageError, base64.binascii.Error):
+            self.send_json(400, {"error": "Invalid JSON or reference image"})
 
 
 if __name__ == "__main__":

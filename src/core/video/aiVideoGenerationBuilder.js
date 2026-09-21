@@ -154,15 +154,21 @@ function normalizeProvider(provider = "") {
   return clean(provider || "fallback-motion").toLowerCase();
 }
 
-async function requestLocalVideoClip({ prompt, outputPath }) {
+async function requestLocalVideoClip({ prompt, outputPath, referenceImagePath = null }) {
   const baseUrl = String(process.env.AIGENIKZ_VIDEO_WORKER_URL || "").trim().replace(/\/$/, "");
   const token = String(process.env.AIGENIKZ_VIDEO_WORKER_TOKEN || "").trim();
   if (!baseUrl || !token) throw new Error("Aigenikz local video worker is not configured.");
+  const referenceImage = referenceImagePath ? imageToDataUri(referenceImagePath) : null;
+  if (referenceImagePath && !referenceImage) throw new Error("Character reference image is unavailable.");
   const auth = { Authorization: `Bearer ${token}` };
   const start = await fetch(`${baseUrl}/v1/video/generations`, {
     method: "POST",
     headers: { ...auth, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, model: "CogVideoX-2B" }),
+    body: JSON.stringify({
+      prompt,
+      model: referenceImagePath ? "LTX-Video-2B-I2V" : "CogVideoX-2B",
+      ...(referenceImage ? { reference_image: referenceImage } : {}),
+    }),
     signal: AbortSignal.timeout(30000),
   });
   const submitted = await start.json().catch(() => ({}));
@@ -466,6 +472,7 @@ async function tryProvider({
   storyboard,
   directorPlan,
   outputPath,
+  referenceImagePath,
 }) {
   const finalProvider = normalizeProvider(provider);
 
@@ -499,9 +506,11 @@ async function tryProvider({
   }
 
   if (finalProvider === "aigenikz-local") {
-    const prompt = buildRunwayPrompt({ scene, topic, platform, style, storyboard, directorPlan });
-    const result = await requestLocalVideoClip({ prompt, outputPath });
-    return { provider: "aigenikz-local", model: "CogVideoX-2B", prompt, ...result };
+    const prompt = referenceImagePath
+      ? limitPrompt(`Original cinematic anime fantasy video. Use the supplied character reference as the first frame. Preserve the same face, hair, outfit, and color design. Action: ${scene.visual}. Camera: ${scene.cameraNote || "steady medium shot"}. Visible subject and deliberate body movement throughout. No text or logos.`, 950)
+      : buildRunwayPrompt({ scene, topic, platform, style, storyboard, directorPlan });
+    const result = await requestLocalVideoClip({ prompt, outputPath, referenceImagePath });
+    return { provider: "aigenikz-local", model: referenceImagePath ? "LTX-Video-2B-I2V" : "CogVideoX-2B", prompt, ...result };
   }
 
   if (finalProvider === "veo") {
@@ -558,6 +567,7 @@ export async function generateAIVideoClip({
   index = 0,
   provider = AI_VIDEO_PROVIDER,
   allowFallback = true,
+  referenceImagePath = null,
 } = {}) {
   ensureDir(OUTPUT_DIR);
   ensureDir(AI_VIDEO_DIR);
@@ -596,6 +606,7 @@ export async function generateAIVideoClip({
         storyboard,
         directorPlan,
         outputPath,
+        referenceImagePath,
       });
 
       return {
@@ -608,7 +619,7 @@ export async function generateAIVideoClip({
         outputPath: result.outputPath,
         publicUrl,
         prompt: result.prompt,
-        duration: normalized.duration,
+        duration: result.artifactValidation?.duration || normalized.duration,
         liveAction: true,
         fallbackUsed: false,
         remoteUrl: result.remoteUrl,
