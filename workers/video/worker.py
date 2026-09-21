@@ -18,6 +18,7 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 TOKEN = os.getenv("AIGENIKZ_VIDEO_WORKER_TOKEN", "")
 JOBS = {}
 LOCK = threading.Lock()
+GPU_LOCK = threading.Lock()
 
 
 def save_job(job_id):
@@ -35,8 +36,9 @@ for saved in OUTPUT.glob("*.json"):
             continue
         if job.get("status") in ("queued", "running"):
             job.update(status="failed", error="PC video worker restarted before this render completed. Please retry.")
-        if job.get("status") == "completed" and not (OUTPUT / f"{job_id}.mp4").exists():
-            job.update(status="failed", error="Generated MP4 is missing from the PC video worker.")
+        extension = ".png" if job.get("kind") == "image" else ".mp4"
+        if job.get("status") == "completed" and not (OUTPUT / f"{job_id}{extension}").exists():
+            job.update(status="failed", error=f"Generated {extension} is missing from the PC AI worker.")
         JOBS[job_id] = job
         save_job(job_id)
     except (OSError, ValueError):
@@ -53,13 +55,43 @@ def run_job(job_id, prompt, reference_path=None):
         if reference_path:
             command.extend(["--image", str(reference_path)])
         try:
-            result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
+            with GPU_LOCK:
+                result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
             if result.returncode or not path.exists() or path.stat().st_size < 10000:
                 raise RuntimeError((result.stderr or result.stdout or "Video model returned no MP4")[-1000:])
             JOBS[job_id].update(status="completed", bytes=path.stat().st_size)
         except Exception as exc:
             JOBS[job_id].update(status="failed", error=str(exc)[:1000])
         save_job(job_id)
+
+
+def run_image_job(job_id, prompt, aspect, seed):
+    path = OUTPUT / f"{job_id}.png"
+    with LOCK:
+        JOBS[job_id]["status"] = "running"
+        save_job(job_id)
+    command = [
+        sys.executable,
+        str(ROOT / "generate_image.py"),
+        "--prompt", prompt,
+        "--output", str(path),
+        "--aspect", aspect,
+        "--seed", str(seed),
+    ]
+    try:
+        with GPU_LOCK:
+            result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
+        if result.returncode or not path.exists() or path.stat().st_size < 10000:
+            raise RuntimeError((result.stderr or result.stdout or "Image model returned no PNG")[-1500:])
+        with Image.open(path) as image:
+            image.verify()
+        with LOCK:
+            JOBS[job_id].update(status="completed", bytes=path.stat().st_size)
+            save_job(job_id)
+    except Exception as exc:
+        with LOCK:
+            JOBS[job_id].update(status="failed", error=str(exc)[:1500])
+            save_job(job_id)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -82,7 +114,28 @@ class Handler(BaseHTTPRequestHandler):
             return
         parts = urlparse(self.path).path.strip("/").split("/")
         if parts == ["health"]:
-            return self.send_json(200, {"ok": True, "models": ["CogVideoX-2B", "LTX-Video-2B-I2V"], "real_video": True})
+            return self.send_json(200, {
+                "ok": True,
+                "models": ["Animagine-XL-4.0", "CogVideoX-2B", "LTX-Video-2B-I2V"],
+                "real_image": True,
+                "real_video": True,
+            })
+        if len(parts) in (4, 5) and parts[:3] == ["v1", "image", "generations"]:
+            job = JOBS.get(parts[3])
+            if not job or job.get("kind") != "image":
+                return self.send_json(404, {"error": "Image job not found"})
+            if len(parts) == 4:
+                return self.send_json(200, job)
+            if parts[4] == "file" and job["status"] == "completed":
+                path = OUTPUT / f"{parts[3]}.png"
+                self.send_response(200)
+                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Length", str(path.stat().st_size))
+                self.end_headers()
+                with path.open("rb") as image:
+                    while chunk := image.read(1024 * 1024):
+                        self.wfile.write(chunk)
+                return
         if len(parts) in (4, 5) and parts[:3] == ["v1", "video", "generations"]:
             job = JOBS.get(parts[3])
             if not job:
@@ -104,7 +157,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not self.authorized():
             return
-        if urlparse(self.path).path != "/v1/video/generations":
+        request_path = urlparse(self.path).path
+        if request_path not in ("/v1/video/generations", "/v1/image/generations"):
             return self.send_json(404, {"error": "Not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -115,6 +169,30 @@ class Handler(BaseHTTPRequestHandler):
             if not prompt:
                 return self.send_json(400, {"error": "Prompt is required"})
             job_id = uuid.uuid4().hex
+            if request_path == "/v1/image/generations":
+                aspect = str(payload.get("aspect", "landscape"))
+                if aspect not in ("portrait", "landscape", "square"):
+                    return self.send_json(400, {"error": "Aspect must be portrait, landscape, or square"})
+                try:
+                    seed = int(payload.get("seed", -1))
+                except (TypeError, ValueError):
+                    return self.send_json(400, {"error": "Seed must be an integer"})
+                if seed < 0:
+                    seed = int.from_bytes(os.urandom(4), "big")
+                model = os.getenv("AIGENIKZ_IMAGE_MODEL", "cagliostrolab/animagine-xl-4.0")
+                job = {
+                    "job_id": job_id,
+                    "kind": "image",
+                    "status": "queued",
+                    "model": model,
+                    "seed": seed,
+                    "aspect": aspect,
+                }
+                with LOCK:
+                    JOBS[job_id] = job
+                    save_job(job_id)
+                threading.Thread(target=run_image_job, args=(job_id, prompt, aspect, seed), daemon=True).start()
+                return self.send_json(202, job)
             reference_path = None
             reference_image = payload.get("reference_image")
             if reference_image:
@@ -131,9 +209,10 @@ class Handler(BaseHTTPRequestHandler):
                         return self.send_json(400, {"error": "Reference image dimensions must be 256-4096 pixels"})
                     reference_path = OUTPUT / f"{job_id}-reference.png"
                     source.convert("RGB").save(reference_path)
-            job = {"job_id": job_id, "status": "queued", "model": "LTX-Video-2B-I2V" if reference_path else "CogVideoX-2B"}
-            JOBS[job_id] = job
-            save_job(job_id)
+            job = {"job_id": job_id, "kind": "video", "status": "queued", "model": "LTX-Video-2B-I2V" if reference_path else "CogVideoX-2B"}
+            with LOCK:
+                JOBS[job_id] = job
+                save_job(job_id)
             threading.Thread(target=run_job, args=(job_id, prompt, reference_path), daemon=True).start()
             self.send_json(202, job)
         except (ValueError, json.JSONDecodeError, UnidentifiedImageError, base64.binascii.Error):

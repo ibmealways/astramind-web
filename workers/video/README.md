@@ -1,4 +1,6 @@
-# Aigenikz PC video worker
+# Aigenikz PC image and video worker
+
+The worker also exposes Animagine XL 4.0 text-to-image generation for Image Studio. POST /v1/image/generations accepts prompt, aspect (portrait, landscape, or square), and an optional integer seed. Poll GET /v1/image/generations/<id> and download the PNG from /file after completion. This is real local diffusion inference and never substitutes a placeholder when generation fails. Set AIGENIKZ_IMAGE_MODEL to another compatible SDXL Diffusers model when needed.
 
 The local worker has two explicit generation paths:
 

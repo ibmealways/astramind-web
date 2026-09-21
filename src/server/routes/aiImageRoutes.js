@@ -1,8 +1,31 @@
 // src/server/routes/aiImageRoutes.js
 import express from "express";
 import { generateSceneVisuals } from "../../core/content/aiVisualEngine.js";
+import { generateLocalImage } from "../../core/content/localImageGeneration.js";
 
 const router = express.Router();
+
+router.post("/generate", async (req, res) => {
+  try {
+    const prompt = String(req.body?.prompt || "").trim();
+    if (prompt.length < 3 || prompt.length > 3000) {
+      return res.status(400).json({ ok: false, error: "Prompt must contain 3-3000 characters." });
+    }
+    const aspect = ["portrait", "landscape", "square"].includes(req.body?.aspect)
+      ? req.body.aspect
+      : "landscape";
+    const result = await generateLocalImage({
+      prompt,
+      style: req.body?.style,
+      aspect,
+      seed: Number.isInteger(req.body?.seed) ? req.body.seed : -1,
+    });
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    console.error("Local AI image generation error:", error);
+    return res.status(502).json({ ok: false, error: error.message || "Local image generation failed." });
+  }
+});
 
 router.post("/scene-visuals", async (req, res) => {
   try {
