@@ -63,6 +63,7 @@ router.get("/health", (req, res) => {
     route: "GET /api/cinematic-video/health",
     version: "Aigenikz Cinematic Video Routes v10 60-Second Self-Hosted",
     selfHostedMaxDurationSeconds: 60,
+    storyboardProfiles: ["hollow-bloom-episode-one"],
     video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
