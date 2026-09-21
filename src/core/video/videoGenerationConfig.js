@@ -1,6 +1,7 @@
 export const VIDEO_MODES = Object.freeze({
   RUNWAY: "runway",
   VEO: "veo",
+  AIGENIKZ_LOCAL: "aigenikz-local",
   LOCAL_TEST: "local-test",
   DISABLED: "disabled",
 });
@@ -31,7 +32,7 @@ export function normalizeVideoMode(value, { nodeEnv = process.env.NODE_ENV } = {
     return nodeEnv === "production" ? VIDEO_MODES.DISABLED : VIDEO_MODES.LOCAL_TEST;
   }
   if (!SUPPORTED_VIDEO_MODES.includes(normalized)) {
-    throw new Error(`Unsupported video mode: ${value}. Use runway, veo, local-test, or disabled.`);
+    throw new Error(`Unsupported video mode: ${value}. Use aigenikz-local, runway, veo, local-test, or disabled.`);
   }
   return normalized;
 }
@@ -49,17 +50,20 @@ export function getProviderConfiguration(mode, env = process.env) {
   const ttsConfigured = Boolean(clean(env.ELEVENLABS_API_KEY));
   const stockConfigured = Boolean(clean(env.PEXELS_API_KEY));
   const objectStorageConfigured = Boolean(clean(env.OBJECT_STORAGE_UPLOAD_URL) && clean(env.CDN_PUBLIC_URL_TEMPLATE));
+  const localConfigured = Boolean(clean(env.AIGENIKZ_VIDEO_WORKER_URL) && clean(env.AIGENIKZ_VIDEO_WORKER_TOKEN));
 
   return {
     mode: normalizedMode,
     label: normalizedMode === VIDEO_MODES.LOCAL_TEST ? LOCAL_TEST_LABEL : normalizedMode,
-    provider: [VIDEO_MODES.RUNWAY, VIDEO_MODES.VEO].includes(normalizedMode) ? normalizedMode : null,
+    provider: [VIDEO_MODES.RUNWAY, VIDEO_MODES.VEO, VIDEO_MODES.AIGENIKZ_LOCAL].includes(normalizedMode) ? normalizedMode : null,
     configured:
       normalizedMode === VIDEO_MODES.LOCAL_TEST ||
+      (normalizedMode === VIDEO_MODES.AIGENIKZ_LOCAL && localConfigured) ||
       (normalizedMode === VIDEO_MODES.RUNWAY && runwayConfigured) ||
       (normalizedMode === VIDEO_MODES.VEO && veoConfigured),
     fallbackAllowed: normalizedMode === VIDEO_MODES.LOCAL_TEST,
     runwayConfigured,
+    localConfigured,
     veoConfigured,
     ttsConfigured,
     stockConfigured,
@@ -101,7 +105,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
   if (!SUPPORTED_FRAME_RATES.includes(frameRate)) throw new Error(`Unsupported frame rate: ${frameRate}.`);
   if (!SUPPORTED_QUALITIES.includes(quality)) throw new Error(`Unsupported quality: ${quality}.`);
   if (exportFormat !== "mp4") throw new Error("Only MP4 export is currently supported.");
-  if (mode === VIDEO_MODES.DISABLED) throw new Error("Video generation is disabled. Configure runway, veo, or explicitly select local-test.");
+  if (mode === VIDEO_MODES.DISABLED) throw new Error("Video generation is disabled. Configure aigenikz-local, runway, veo, or explicitly select local-test.");
   if (mode === VIDEO_MODES.LOCAL_TEST && !allowFallback) throw new Error(`${LOCAL_TEST_LABEL} requires allowFallback: true.`);
   if (mode !== VIDEO_MODES.LOCAL_TEST && allowFallback) throw new Error("Fallback is prohibited for real-provider video modes.");
   if (raw.voiceover === true && !clean(env.ELEVENLABS_API_KEY)) throw new Error("Voiceover requires ELEVENLABS_API_KEY.");
@@ -111,6 +115,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
 
   const provider = getProviderConfiguration(mode, env);
   if (mode === VIDEO_MODES.RUNWAY && !provider.runwayConfigured) throw new Error("Runway mode requires RUNWAY_API_KEY (aliases: RUNWAYML_API_SECRET, RUNWAY_API_SECRET).");
+  if (mode === VIDEO_MODES.AIGENIKZ_LOCAL && !provider.localConfigured) throw new Error("Aigenikz local video requires AIGENIKZ_VIDEO_WORKER_URL and AIGENIKZ_VIDEO_WORKER_TOKEN.");
   if (mode === VIDEO_MODES.VEO) {
     if (!provider.veoConfigured) throw new Error("Veo mode requires GOOGLE_API_KEY (aliases: GEMINI_API_KEY, GOOGLE_GENAI_API_KEY).");
     throw new Error("Veo mode is unavailable because the provider request implementation has not been verified.");
@@ -119,7 +124,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
   return {
     mode,
     provider: mode === VIDEO_MODES.LOCAL_TEST ? null : mode,
-    model: clean(raw.model || (mode === VIDEO_MODES.RUNWAY ? env.RUNWAY_MODEL || env.AI_VIDEO_MODEL || "gen4.5" : "local-test")),
+    model: clean(raw.model || (mode === VIDEO_MODES.RUNWAY ? env.RUNWAY_MODEL || env.AI_VIDEO_MODEL || "gen4.5" : mode === VIDEO_MODES.AIGENIKZ_LOCAL ? "CogVideoX-2B" : "local-test")),
     durationTarget: duration,
     aspectRatio,
     resolution,
@@ -144,7 +149,7 @@ export function validateVideoOptions(raw = {}, { env = process.env, maxDuration 
     idempotencyKey: clean(raw.idempotencyKey || ""),
     diagnostics: {
       label: mode === VIDEO_MODES.LOCAL_TEST ? LOCAL_TEST_LABEL : `${mode} provider video`,
-      realProvider: mode === VIDEO_MODES.RUNWAY || mode === VIDEO_MODES.VEO,
+      realProvider: mode === VIDEO_MODES.RUNWAY || mode === VIDEO_MODES.VEO || mode === VIDEO_MODES.AIGENIKZ_LOCAL,
       fallbackAllowed: mode === VIDEO_MODES.LOCAL_TEST,
       providerConfigured: provider.configured,
     },

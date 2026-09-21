@@ -154,6 +154,46 @@ function normalizeProvider(provider = "") {
   return clean(provider || "fallback-motion").toLowerCase();
 }
 
+async function requestLocalVideoClip({ prompt, outputPath, referenceImagePath = null }) {
+  const baseUrl = String(process.env.AIGENIKZ_VIDEO_WORKER_URL || "").trim().replace(/\/$/, "");
+  const token = String(process.env.AIGENIKZ_VIDEO_WORKER_TOKEN || "").trim();
+  if (!baseUrl || !token) throw new Error("Aigenikz local video worker is not configured.");
+  const referenceImage = referenceImagePath ? imageToDataUri(referenceImagePath) : null;
+  if (referenceImagePath && !referenceImage) throw new Error("Character reference image is unavailable.");
+  const auth = { Authorization: `Bearer ${token}` };
+  const start = await fetch(`${baseUrl}/v1/video/generations`, {
+    method: "POST",
+    headers: { ...auth, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt,
+      model: referenceImagePath ? "LTX-Video-2B-I2V" : "CogVideoX-2B",
+      ...(referenceImage ? { reference_image: referenceImage } : {}),
+    }),
+    signal: AbortSignal.timeout(30000),
+  });
+  const submitted = await start.json().catch(() => ({}));
+  if (!start.ok) throw new Error(submitted.error || `Local video worker rejected the request (${start.status}).`);
+  const jobId = submitted.job_id;
+  if (!jobId) throw new Error("Local video worker returned no job ID.");
+  const deadline = Date.now() + 25 * 60 * 1000;
+  let job = submitted;
+  while (job.status === "queued" || job.status === "running") {
+    if (Date.now() > deadline) throw new Error("Local video generation timed out after 25 minutes.");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    const status = await fetch(`${baseUrl}/v1/video/generations/${encodeURIComponent(jobId)}`, { headers: auth, signal: AbortSignal.timeout(30000) });
+    job = await status.json().catch(() => ({}));
+    if (!status.ok) throw new Error(job.error || `Local video status failed (${status.status}).`);
+  }
+  if (job.status !== "completed") throw new Error(job.error || "Local video generation failed.");
+  const response = await fetch(`${baseUrl}/v1/video/generations/${encodeURIComponent(jobId)}/file`, { headers: auth, signal: AbortSignal.timeout(120000) });
+  if (!response.ok || !(response.headers.get("content-type") || "").includes("video/")) throw new Error(`Local worker did not return an MP4 (${response.status}).`);
+  const video = Buffer.from(await response.arrayBuffer());
+  if (video.length < 10000) throw new Error("Local worker returned an empty or invalid video.");
+  fs.writeFileSync(outputPath, video);
+  const artifactValidation = await validateVideoArtifact({ filePath: outputPath, source: "aigenikz-local", rejectStatic: true });
+  return { outputPath, artifactValidation };
+}
+
 function buildRunwayPrompt({
   scene,
   topic,
@@ -432,6 +472,7 @@ async function tryProvider({
   storyboard,
   directorPlan,
   outputPath,
+  referenceImagePath,
 }) {
   const finalProvider = normalizeProvider(provider);
 
@@ -462,6 +503,14 @@ async function tryProvider({
       raw: runwayResult.task,
       artifactValidation: runwayResult.artifactValidation,
     };
+  }
+
+  if (finalProvider === "aigenikz-local") {
+    const prompt = referenceImagePath
+      ? limitPrompt(`Original cinematic anime fantasy video. Use the supplied character reference as the first frame. Preserve the same face, hair, outfit, and color design. Action: ${scene.visual}. Camera: ${scene.cameraNote || "steady medium shot"}. Visible subject and deliberate body movement throughout. No text or logos.`, 950)
+      : buildRunwayPrompt({ scene, topic, platform, style, storyboard, directorPlan });
+    const result = await requestLocalVideoClip({ prompt, outputPath, referenceImagePath });
+    return { provider: "aigenikz-local", model: referenceImagePath ? "LTX-Video-2B-I2V" : "CogVideoX-2B", prompt, ...result };
   }
 
   if (finalProvider === "veo") {
@@ -518,6 +567,7 @@ export async function generateAIVideoClip({
   index = 0,
   provider = AI_VIDEO_PROVIDER,
   allowFallback = true,
+  referenceImagePath = null,
 } = {}) {
   ensureDir(OUTPUT_DIR);
   ensureDir(AI_VIDEO_DIR);
@@ -556,6 +606,7 @@ export async function generateAIVideoClip({
         storyboard,
         directorPlan,
         outputPath,
+        referenceImagePath,
       });
 
       return {
@@ -568,7 +619,7 @@ export async function generateAIVideoClip({
         outputPath: result.outputPath,
         publicUrl,
         prompt: result.prompt,
-        duration: normalized.duration,
+        duration: result.artifactValidation?.duration || normalized.duration,
         liveAction: true,
         fallbackUsed: false,
         remoteUrl: result.remoteUrl,

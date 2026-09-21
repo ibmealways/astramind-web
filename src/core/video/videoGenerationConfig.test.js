@@ -23,6 +23,19 @@ describe("video generation configuration", () => {
     )).toThrow("Fallback is prohibited");
   });
 
+  test("local AI video requires a connected worker and never uses still fallback", () => {
+    expect(() => validateVideoOptions(
+      { mode: "aigenikz-local", durationTarget: 30 },
+      { env: { NODE_ENV: "test" } }
+    )).toThrow("AIGENIKZ_VIDEO_WORKER_URL");
+    const options = validateVideoOptions(
+      { mode: "aigenikz-local", durationTarget: 30 },
+      { env: { NODE_ENV: "test", AIGENIKZ_VIDEO_WORKER_URL: "https://example.com", AIGENIKZ_VIDEO_WORKER_TOKEN: "test" } }
+    );
+    expect(options.diagnostics.realProvider).toBe(true);
+    expect(options.allowFallback).toBe(false);
+  });
+
   test("unverified features and unknown options fail", () => {
     expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, voiceover: true })).toThrow("ELEVENLABS_API_KEY");
     expect(() => validateVideoOptions({ mode: "local-test", allowFallback: true, mystery: true })).toThrow("Unsupported video options");

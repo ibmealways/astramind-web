@@ -182,6 +182,9 @@ test-results/
 ############################
 
 __pycache__/
+workers/video/output/
+workers/video/.venv/
+workers/video/.worker-token
 *.pyc
 
 ############################

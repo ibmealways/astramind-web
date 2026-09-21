@@ -75,7 +75,7 @@ export function buildMediaSourcePlan({ scenes = [], mode = "local-test", stockEn
     const stockMatch = stockEnabled && /people|nature|food|movement|city|office|fitness|wellness|smoothie|tai chi|meal/i.test(`${scene?.visual || ""} ${scene?.caption || ""}`);
     const preferredSource = stockMatch
       ? "licensed-stock"
-      : mode === "runway"
+      : mode === "runway" || mode === "veo" || mode === "aigenikz-local"
       ? "short-video-model"
       : "image-reference";
 
@@ -85,7 +85,7 @@ export function buildMediaSourcePlan({ scenes = [], mode = "local-test", stockEn
       duration: Number(scene?.duration || 5),
       preferredSource,
       fallbackSource: "image-reference",
-      requiresPaidProvider: preferredSource === "short-video-model",
+      requiresPaidProvider: preferredSource === "short-video-model" && mode !== "aigenikz-local",
     };
   });
 }

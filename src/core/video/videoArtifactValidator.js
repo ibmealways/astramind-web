@@ -104,7 +104,7 @@ export async function validateVideoArtifact({
   ]);
   const blackMatches = [...analysisOutput.matchAll(/black_start:([\d.]+)\s+black_end:([\d.]+)/g)];
   const blackDuration = blackMatches.reduce((sum, match) => sum + Math.max(0, Number(match[2]) - Number(match[1])), 0);
-  const frozen = /freeze_start:\s*0(?:\.0+)?/i.test(analysisOutput) && /freeze_end:/i.test(analysisOutput);
+  const frozen = /freeze_start:\s*0(?:\.0+)?/i.test(analysisOutput);
   const mostlyBlack = probe.duration > 0 && blackDuration / probe.duration >= 0.9;
   if (mostlyBlack) throw new Error("Video artifact was rejected as a black-video fallback.");
   if (rejectStatic && frozen) throw new Error("Provider video artifact was rejected because it contains only a frozen image.");
