@@ -17,8 +17,8 @@
       "name": "Timmy",
       "role": "defender",
       "power": "translucent defensive energy shield",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/timmy-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "jorge",
@@ -26,8 +26,8 @@
       "role": "speedster",
       "power": "golden speed trails",
       "appearance": "runner's pose with a bag of food",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/jorge-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "jack",
@@ -35,16 +35,16 @@
       "role": "scout",
       "power": "heightened senses",
       "appearance": "rugged scout outfit and a wolf companion",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/jack-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "susan",
       "name": "Susan",
       "role": "healer",
       "power": "glowing healing tattoos across her arms",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/susan-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "rose",
@@ -52,16 +52,16 @@
       "role": "nature guardian",
       "power": "enormous vines and tree roots",
       "appearance": "green-and-gold clothing inspired by nature",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/rose-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "shaun",
       "name": "Shaun",
       "role": "fire wielder",
       "power": "controlled orange fire in one hand",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/shaun-candidate.png",
+      "approval": "pending"
     },
     {
       "id": "max",
@@ -69,8 +69,8 @@
       "role": "inventor",
       "power": "floating blue electrical inventions",
       "appearance": "futuristic tech jacket",
-      "referenceImage": null,
-      "approval": "needed"
+      "referenceImage": "characters/max-candidate.png",
+      "approval": "pending"
     }
   ],
   "shots": [
