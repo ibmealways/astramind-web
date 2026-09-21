@@ -97,6 +97,7 @@ router.get("/health", (req, res) => {
     route: "GET /api/cinematic-video/health",
     version: "Aigenikz Cinematic Video Routes v12 Live Worker Progress",
     workerProgress: true,
+    localSceneImageToVideo: true,
     video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
