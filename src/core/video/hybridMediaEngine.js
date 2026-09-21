@@ -1,6 +1,10 @@
 import { generateAIVideoClip } from "./aiVideoGenerationBuilder.js";
 import { fetchLicensedStockClip } from "./licensedStockProvider.js";
 
+function getVisualPath(visual = {}) {
+  return visual?.imagePath || visual?.outputPath || visual?.path || visual?.filePath || null;
+}
+
 export async function generateHybridMediaClips({ scenes = [], visuals = [], sourcePlan = [], mode, topic, platform, style, storyboard, projectId } = {}) {
   const clips = [];
   for (let index = 0; index < scenes.length; index += 1) {
@@ -11,7 +15,11 @@ export async function generateHybridMediaClips({ scenes = [], visuals = [], sour
       continue;
     }
     if (plan.preferredSource === "short-video-model") {
-      clips.push(await generateAIVideoClip({ scene, visual: visuals[index], storyboard, topic, platform, style, projectId, index, provider: mode, allowFallback: false }));
+      const referenceImagePath = mode === "aigenikz-local" ? getVisualPath(visuals[index]) : null;
+      if (mode === "aigenikz-local" && !referenceImagePath) {
+        throw new Error(`Scene ${index + 1} has no generated reference image for local animation.`);
+      }
+      clips.push(await generateAIVideoClip({ scene, visual: visuals[index], storyboard, topic, platform, style, projectId, index, provider: mode, allowFallback: false, referenceImagePath }));
       continue;
     }
     clips.push(null);
