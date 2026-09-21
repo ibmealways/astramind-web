@@ -56,15 +56,50 @@ function resolveGeneratedImageUrl(value) {
   return resolved;
 }
 
+router.get("/worker-progress", requireAuth, async (req, res) => {
+  try {
+    const baseUrl = String(process.env.AIGENIKZ_VIDEO_WORKER_URL || "").trim().replace(/\/$/, "");
+    const token = String(process.env.AIGENIKZ_VIDEO_WORKER_TOKEN || "").trim();
+    if (!baseUrl || !token) return res.status(503).json({ ok: false, connected: false, error: "PC video worker is not configured." });
+    const response = await fetch(`${baseUrl}/v1/jobs`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(15000),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `PC video worker returned HTTP ${response.status}.`);
+    const since = Date.parse(String(req.query.since || ""));
+    const jobs = (Array.isArray(payload.jobs) ? payload.jobs : []).filter((job) => {
+      if (!Number.isFinite(since)) return true;
+      const timestamp = Date.parse(job.queued_at || job.started_at || "");
+      return Number.isFinite(timestamp) && timestamp >= since - 5000;
+    });
+    const active = jobs.filter((job) => ["queued", "running"].includes(job.status));
+    return res.json({
+      ok: true,
+      connected: true,
+      busy: active.length > 0,
+      activeJobs: active.length,
+      completedJobs: jobs.filter((job) => job.kind === "video" && job.status === "completed").length,
+      failedJobs: jobs.filter((job) => job.kind === "video" && job.status === "failed").length,
+      current: active.find((job) => job.kind === "video") || active[0] || jobs[0] || null,
+      jobs,
+      checkedAt: payload.checked_at || new Date().toISOString(),
+    });
+  } catch (error) {
+    return res.status(502).json({ ok: false, connected: false, error: error.message || "PC video worker is unreachable." });
+  }
+});
+
 router.get("/health", (req, res) => {
   const configuredMode = getConfiguredVideoMode();
   return res.json({
     ok: true,
     route: "GET /api/cinematic-video/health",
-    version: "Aigenikz Cinematic Video Routes v11 Local Render Ready",
+    version: "Aigenikz Cinematic Video Routes v12 Live Worker Progress",
     selfHostedMaxDurationSeconds: 60,
     selfHostedRequiresPexels: false,
     storyboardProfiles: ["hollow-bloom-episode-one"],
+    workerProgress: true,
     video: getProviderConfiguration(configuredMode),
     orchestratorHealth: getPipelineOrchestratorHealth(),
     generatedAt: new Date().toISOString(),
@@ -174,7 +209,7 @@ router.post("/render", requireAuth, renderRateLimit, async (req, res) => {
     const response = {
       ok: true,
       route: "POST /api/cinematic-video/render",
-      version: "Aigenikz Cinematic Video Routes v9 Verified Modes",
+      version: "Aigenikz Cinematic Video Routes v12 Live Worker Progress",
       projectId: result.projectId || null,
       executionId: result.executionId || null,
       videoUrl: delivery.videoUrl,

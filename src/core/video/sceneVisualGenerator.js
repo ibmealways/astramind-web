@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import sharp from "sharp";
+import { generateLocalImage } from "../content/localImageGeneration.js";
 
 const OPENAI_API_KEY = 
   process.env.OPENAI_API_KEY ||
@@ -521,7 +522,7 @@ export async function generateSceneVisual({
   )}.png`;
 
   const imagePath = path.join(VISION_DIR, filename);
-  const publicUrl = `/renders/vision-v2/${filename}`;
+  let publicUrl = `/renders/vision-v2/${filename}`;
 
   const prompt = buildAdvancedImagePrompt({
     scene: normalized,
@@ -539,7 +540,16 @@ export async function generateSceneVisual({
 
   try {
 
-  if (
+  if (provider === "aigenikz-local") {
+    const generated = await generateLocalImage({
+      prompt,
+      style,
+      aspect: /tiktok|reel|short|vertical/i.test(platform) ? "portrait" : "landscape",
+    });
+    finalPath = generated.outputPath;
+    publicUrl = generated.publicUrl;
+    source = "aigenikz-local";
+  } else if (
     provider === "openai"
   ) {
 
