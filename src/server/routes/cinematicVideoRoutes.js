@@ -1,4 +1,6 @@
 import express from "express";
+import fs from "fs";
+import path from "path";
 import requireAuth from "../middleware/requireAuth.js";
 import { platformRateLimitMiddleware } from "../../core/platform/rateLimiter.js";
 import { getPlanLimits } from "../../core/platform/developerPlans.js";
@@ -14,6 +16,7 @@ import { listCharacterReferences, resolveCharacterReference } from "../../core/v
 const router = express.Router();
 const activeRendersByUser = new Map();
 const completedIdempotentRenders = new Map();
+const GENERATED_IMAGES_DIR = path.resolve("public", "renders", "generated-images");
 const renderRateLimit = platformRateLimitMiddleware({
   route: "cinematic-video-render",
   identityResolver: (req) => req.user?.id || req.ip,
@@ -42,6 +45,14 @@ function getRenderPath(result) {
   const render = getRenderResult(result);
   const candidates = [result?.videoUrl, result?.outputPath, result?.videoPath, render?.videoUrl, render?.outputPath, render?.videoPath, render?.output?.outputPath, render?.output?.videoPath];
   return candidates.find((candidate) => typeof candidate === "string" && candidate.trim()) || null;
+}
+
+function resolveGeneratedImageUrl(value) {
+  const match = String(value || "").match(/^\/renders\/generated-images\/([a-z0-9-]+\.png)$/i);
+  if (!match) return null;
+  const resolved = path.resolve(GENERATED_IMAGES_DIR, match[1]);
+  if (!resolved.startsWith(`${GENERATED_IMAGES_DIR}${path.sep}`) || !fs.existsSync(resolved)) return null;
+  return resolved;
 }
 
 router.get("/health", (req, res) => {
@@ -87,7 +98,10 @@ router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
     const prompt = String(req.body?.prompt || "").trim();
     if (!prompt || prompt.length > 1200) throw new Error("Enter a video prompt of 1–1200 characters.");
     const referenceId = String(req.body?.referenceId || "").trim();
-    const referenceImagePath = referenceId ? resolveCharacterReference(referenceId).imagePath : null;
+    const generatedImageUrl = String(req.body?.generatedImageUrl || "").trim();
+    const generatedImagePath = generatedImageUrl ? resolveGeneratedImageUrl(generatedImageUrl) : null;
+    if (generatedImageUrl && !generatedImagePath) throw new Error("Generated image reference is unavailable.");
+    const referenceImagePath = referenceId ? resolveCharacterReference(referenceId).imagePath : generatedImagePath;
     const clip = await generateAIVideoClip({
       scene: { id: `local-${Date.now()}`, title: "Generated AI video", visual: prompt, duration: 6 },
       topic: prompt,
@@ -97,7 +111,7 @@ router.post("/local-clip", requireAuth, renderRateLimit, async (req, res) => {
       allowFallback: false,
       referenceImagePath,
     });
-    return res.json({ ok: true, videoUrl: clip.publicUrl, mode: "aigenikz-local", model: clip.model, referenceId: referenceId || null, duration: clip.duration, label: "Aigenikz local AI video", artifactValidation: clip.artifactValidation });
+    return res.json({ ok: true, videoUrl: clip.publicUrl, mode: "aigenikz-local", model: clip.model, referenceId: referenceId || null, generatedImageUrl: generatedImageUrl || null, duration: clip.duration, label: "Aigenikz local AI video", artifactValidation: clip.artifactValidation });
   } catch (error) {
     return res.status(502).json({ ok: false, error: error.message || "Local AI video generation failed." });
   }
