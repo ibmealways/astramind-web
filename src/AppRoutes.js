@@ -13,6 +13,7 @@ import Settings from "./pages/Settings.js";
 
 import CreatorSetup from "./pages/CreatorSetup.js";
 import CreatorDashboard from "./pages/CreatorDashboard.js";
+import ProjectLibrary from "./pages/ProjectLibrary.js";
 
 import FinanceIncome from "./pages/modules/FinanceIncome.js";
 import FinanceExpenses from "./pages/modules/FinanceExpenses.js";
@@ -223,6 +224,14 @@ export default function AppRoutes() {
         }
       />
 
+      <Route
+        path="/project-library"
+        element={
+          <ProtectedRoute>
+            <ProjectLibrary />
+          </ProtectedRoute>
+        }
+      />
       {/* SETTINGS */}
       <Route
         path="/settings"

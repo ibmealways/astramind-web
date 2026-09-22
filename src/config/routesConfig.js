@@ -76,6 +76,14 @@ export const ROUTES_CONFIG = [
     searchable: true,
   },
   {
+    path: "/project-library",
+    label: "Project Library",
+    icon: "\u{1F5C2}",
+    featureFlag: null,
+    group: "Content Creation OS",
+    searchable: true,
+  },
+  {
     path: "/content-lab",
     label: "Content Lab",
     icon: "🧪",
