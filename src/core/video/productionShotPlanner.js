@@ -1,3 +1,5 @@
+import { SCENE_METHODS, routeSceneProduction } from "./sceneCapabilityRouter.js";
+
 const DEFAULT_MAX_CLIP_SECONDS = 10;
 const DEFAULT_MIN_CLIP_SECONDS = 5;
 
@@ -73,9 +75,16 @@ export function splitScenesIntoProductionShots({
 export function buildMediaSourcePlan({ scenes = [], mode = "local-test", stockEnabled = false } = {}) {
   return scenes.map((scene, index) => {
     const stockMatch = stockEnabled && /people|nature|food|movement|city|office|fitness|wellness|smoothie|tai chi|meal/i.test(`${scene?.visual || ""} ${scene?.caption || ""}`);
+    const route = routeSceneProduction(scene, {
+      policy: mode === "runway" || mode === "veo" ? "maximum-quality" : "affordable",
+      localVideoAvailable: mode === "aigenikz-local",
+      commercialVideoAvailable: mode === "runway" || mode === "veo",
+      characterRigAvailable: false,
+    });
+    const requiresGeneratedVideo = [SCENE_METHODS.LOCAL_VIDEO, SCENE_METHODS.COMMERCIAL_VIDEO].includes(route.method);
     const preferredSource = stockMatch
       ? "licensed-stock"
-      : mode === "runway" || mode === "veo" || mode === "aigenikz-local"
+      : requiresGeneratedVideo
       ? "short-video-model"
       : "image-reference";
 
@@ -84,6 +93,9 @@ export function buildMediaSourcePlan({ scenes = [], mode = "local-test", stockEn
       sourceSceneId: scene?.sourceSceneId || scene?.id || `scene_${index + 1}`,
       duration: Number(scene?.duration || 5),
       preferredSource,
+      productionMethod: route.method,
+      routingReason: route.reason,
+      relativeCost: route.relativeCost,
       fallbackSource: "image-reference",
       requiresPaidProvider: preferredSource === "short-video-model" && mode !== "aigenikz-local",
     };
