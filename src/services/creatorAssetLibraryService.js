@@ -25,6 +25,16 @@ export async function listCreatorProjects(userId) {
   return db.prepare("SELECT * FROM platform_projects WHERE user_id = ? ORDER BY updated_at DESC").all(userId).map((row) => ({ id: row.id, type: row.type, title: row.title, summary: row.summary, metadata: parse(row.metadata_json), createdAt: row.created_at, updatedAt: row.updated_at }));
 }
 
+
+export async function updateCreatorProject({ userId, projectId, title, summary, type, metadata }) {
+  const db = await getPlatformDb();
+  if (!ownedProject(db, projectId, userId)) throw new Error("Project not found.");
+  const current = db.prepare("SELECT * FROM platform_projects WHERE id = ? AND user_id = ?").get(projectId, userId);
+  const timestamp = now();
+  db.prepare("UPDATE platform_projects SET title = ?, summary = ?, type = ?, metadata_json = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .run(String(title ?? current.title).trim() || "Untitled Project", String(summary ?? current.summary), String(type ?? current.type), json(metadata ?? parse(current.metadata_json)), timestamp, projectId, userId);
+  return { id: projectId, userId, title: String(title ?? current.title).trim() || "Untitled Project", summary: String(summary ?? current.summary), type: String(type ?? current.type), metadata: metadata ?? parse(current.metadata_json), updatedAt: timestamp };
+}
 export async function createEpisode({ userId, projectId, title, episodeNumber = 1, synopsis = "", metadata = {} }) {
   const db = await getPlatformDb();
   if (!ownedProject(db, projectId, userId)) throw new Error("Project not found.");
@@ -34,6 +44,16 @@ export async function createEpisode({ userId, projectId, title, episodeNumber = 
   return { id: episodeId, projectId, title, episodeNumber: Number(episodeNumber), synopsis, metadata, status: "draft" };
 }
 
+
+export async function updateEpisode({ userId, projectId, episodeId, title, episodeNumber, synopsis, status, metadata }) {
+  const db = await getPlatformDb();
+  const current = db.prepare("SELECT * FROM creator_episodes WHERE id = ? AND project_id = ? AND user_id = ?").get(episodeId, projectId, userId);
+  if (!current) throw new Error("Episode not found.");
+  const timestamp = now();
+  db.prepare("UPDATE creator_episodes SET title = ?, episode_number = ?, synopsis = ?, status = ?, metadata_json = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .run(String(title ?? current.title).trim() || `Episode ${episodeNumber ?? current.episode_number}`, Number(episodeNumber ?? current.episode_number), String(synopsis ?? current.synopsis), String(status ?? current.status), json(metadata ?? parse(current.metadata_json)), timestamp, episodeId, userId);
+  return { id: episodeId, projectId, title: title ?? current.title, episodeNumber: Number(episodeNumber ?? current.episode_number), synopsis: synopsis ?? current.synopsis, status: status ?? current.status, updatedAt: timestamp };
+}
 export async function createScene({ userId, projectId, episodeId = null, title, sceneNumber = 1, durationSeconds = 5, script = "", visualPrompt = "", productionMethod = "", metadata = {} }) {
   const db = await getPlatformDb();
   if (!ownedProject(db, projectId, userId)) throw new Error("Project not found.");
@@ -44,6 +64,16 @@ export async function createScene({ userId, projectId, episodeId = null, title, 
   return { id: sceneId, projectId, episodeId, sceneNumber: Number(sceneNumber), title, durationSeconds: Math.max(1, Number(durationSeconds)), status: "draft" };
 }
 
+
+export async function updateScene({ userId, projectId, sceneId, episodeId, title, sceneNumber, durationSeconds, script, visualPrompt, productionMethod, status, metadata }) {
+  const db = await getPlatformDb();
+  const current = db.prepare("SELECT * FROM creator_scenes WHERE id = ? AND project_id = ? AND user_id = ?").get(sceneId, projectId, userId);
+  if (!current) throw new Error("Scene not found.");
+  const timestamp = now();
+  db.prepare("UPDATE creator_scenes SET episode_id = ?, title = ?, scene_number = ?, duration_seconds = ?, script = ?, visual_prompt = ?, production_method = ?, status = ?, metadata_json = ?, updated_at = ? WHERE id = ? AND user_id = ?")
+    .run(episodeId === undefined ? current.episode_id : (episodeId || null), String(title ?? current.title).trim() || `Scene ${sceneNumber ?? current.scene_number}`, Number(sceneNumber ?? current.scene_number), Math.max(1, Number(durationSeconds ?? current.duration_seconds)), String(script ?? current.script), String(visualPrompt ?? current.visual_prompt), String(productionMethod ?? current.production_method), String(status ?? current.status), json(metadata ?? parse(current.metadata_json)), timestamp, sceneId, userId);
+  return { id: sceneId, projectId, episodeId: episodeId === undefined ? current.episode_id : episodeId, title: title ?? current.title, sceneNumber: Number(sceneNumber ?? current.scene_number), durationSeconds: Math.max(1, Number(durationSeconds ?? current.duration_seconds)), status: status ?? current.status, updatedAt: timestamp };
+}
 export async function registerAsset({ userId, projectId = null, sceneId = null, assetType, name, source = "user", mimeType = "", storageUri = "", localPath = "", parentAssetId = null, reusable = true, metadata = {} }) {
   const db = await getPlatformDb();
   if (!ASSET_TYPES.has(assetType)) throw new Error(`Unsupported asset type: ${assetType}.`);
