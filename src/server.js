@@ -33,6 +33,7 @@ import tradePilotRoutes from "./server/routes/tradePilotRoutes.js";
 import videoRenderRoutes from "./server/routes/videorenderRoutes.js";
 import cinematicVideoRoutes from "./server/routes/cinematicVideoRoutes.js";
 import audioStudioRoutes from "./server/routes/audioStudioRoutes.js";
+import creatorLibraryRoutes from "./server/routes/creatorLibraryRoutes.js";
 
 startExecutionEngine();
 
@@ -61,6 +62,7 @@ app.use("/api/tradepilot", tradePilotRoutes);
 app.use("/api/video", videoRenderRoutes);
 app.use("/api/cinematic-video", cinematicVideoRoutes);
 app.use("/api/audio-studio", audioStudioRoutes);
+app.use("/api/creator-library", creatorLibraryRoutes);
 app.use("/api/ai-image", aiImageRoutes);
 app.use("/api/developer", developerApiRoutes);
 
