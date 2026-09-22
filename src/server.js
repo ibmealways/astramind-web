@@ -52,7 +52,7 @@ app.use(
 // Stripe webhook needs raw body, so billing mounts before express.json()
 app.use("/api/billing", billingRoutes);
 
-app.use(express.json());
+app.use(express.json({ limit: "12mb" }));
 app.use("/api/scheduler", schedulerRoutes);
 app.use("/api/platform", platformRoutes);
 app.use("/api/auth", authRoutes);
