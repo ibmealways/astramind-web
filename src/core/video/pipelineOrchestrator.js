@@ -1995,11 +1995,14 @@ pipelineContext.sceneAssets =
         })
       : { ok: true, provider: "local-test", clips: [], liveActionCount: 0, fallbackCount: productionTimeline?.scenes?.length || 0 };
 
+    const plannedGeneratedClipCount = mediaSourcePlan.filter((item) =>
+      ["short-video-model", "licensed-stock"].includes(item.preferredSource)
+    ).length;
     if (
       (options.mode === "runway" || options.mode === "veo" || options.mode === "aigenikz-local") &&
-      aiVideoResult.liveActionCount !== (productionTimeline?.scenes?.length || 0)
+      aiVideoResult.liveActionCount !== plannedGeneratedClipCount
     ) {
-      throw new Error("The selected provider did not return a live-action clip for every scene.");
+      throw new Error("The selected providers did not return every clip required by the production routing plan.");
     }
 
       console.log(

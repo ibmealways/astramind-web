@@ -52,7 +52,9 @@ function readJson(filePath, fallback) {
 
 function writeJson(filePath, data) {
   ensureDir(path.dirname(filePath));
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf8");
+  const temporaryPath = `${filePath}.${process.pid}.tmp`;
+  fs.writeFileSync(temporaryPath, JSON.stringify(data, null, 2), "utf8");
+  fs.renameSync(temporaryPath, filePath);
 }
 
 function loadQueueDb() {
@@ -124,6 +126,7 @@ export function enqueueRenderJob({
     },
     result: null,
     error: null,
+    checkpoints: [],
     timestamps: {
       createdAt: nowIso(),
       queuedAt: nowIso(),
@@ -148,6 +151,27 @@ export function enqueueRenderJob({
     ok: true,
     job,
   };
+}
+
+export function saveRenderCheckpoint(jobId, checkpoint = {}) {
+  const db = loadQueueDb();
+  const job = db.jobs[jobId];
+  if (!job) return { ok: false, reason: "job_not_found", jobId };
+  const entry = {
+    checkpointId: checkpoint.checkpointId || makeId("checkpoint"),
+    stage: checkpoint.stage || "production",
+    sceneId: checkpoint.sceneId || null,
+    shotId: checkpoint.shotId || null,
+    assetType: checkpoint.assetType || null,
+    assetPath: checkpoint.assetPath || null,
+    publicUrl: checkpoint.publicUrl || null,
+    metadata: checkpoint.metadata || {},
+    createdAt: nowIso(),
+  };
+  job.checkpoints = [...(job.checkpoints || []).filter((item) => item.checkpointId !== entry.checkpointId), entry];
+  job.timestamps.updatedAt = nowIso();
+  saveQueueDb(db);
+  return { ok: true, checkpoint: entry, job };
 }
 
 export function getRenderJob(jobId) {
@@ -502,6 +526,7 @@ export default {
   markJobProgress,
   markJobCompleted,
   markJobFailed,
+  saveRenderCheckpoint,
   cancelRenderJob,
   getQueueStats,
 };
