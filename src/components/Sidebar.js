@@ -28,7 +28,6 @@ const navGroups = [
     title: "Content Creation OS",
     items: [
       { to: "/project-library", label: "Project Library", icon: "\u{1F5C2}" },
-      { to: "/project-library", label: "Project Library", icon: "\u{1F5C2}" },
       { to: "/content", label: "Content Creator", icon: "🎬" },
       { to: "/content-lab/latest", label: "Content Lab", icon: "🧪" },
       { to: "/content/script", label: "Script Writer", icon: "✍️" },
