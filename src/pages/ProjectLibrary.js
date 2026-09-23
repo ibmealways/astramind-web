@@ -51,7 +51,7 @@ export default function ProjectLibrary() {
   const [projectForm, setProjectForm] = useState(recovered?.projectForm || EMPTY_PROJECT);
   const [episodeForm, setEpisodeForm] = useState(recovered?.episodeForm || EMPTY_EPISODE);
   const [sceneForm, setSceneForm] = useState(recovered?.sceneForm || EMPTY_SCENE);
-  const [assetForm, setAssetForm] = useState(recovered?.assetForm || EMPTY_ASSET);
+  const [assetForm, setAssetForm] = useState({ ...EMPTY_ASSET, ...(recovered?.assetForm || {}) });
   const [status, setStatus] = useState(recovered ? "Recovered an unfinished draft from this device." : "Ready");
   const [busy, setBusy] = useState(false);
   const [generatingAsset, setGeneratingAsset] = useState(false);
