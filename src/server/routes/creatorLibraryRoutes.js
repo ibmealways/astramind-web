@@ -1,10 +1,20 @@
 import express from "express";
 import requireAuth from "../middleware/requireAuth.js";
+import { ensureCreatorCloudSchema, usingCloudCreatorDb } from "../db/creatorCloudDb.js";
 import { createCreatorProject, listCreatorProjects, updateCreatorProject, createEpisode, updateEpisode, createScene, updateScene, registerAsset, listAssets, getProjectLibrary } from "../../services/creatorAssetLibraryService.js";
 
 const router = express.Router();
 router.use(requireAuth);
 const failure = (res, error) => res.status(/not found/i.test(error.message) ? 404 : 400).json({ ok: false, error: error.message });
+
+router.get("/health", async (req, res) => {
+  try {
+    if (usingCloudCreatorDb) await ensureCreatorCloudSchema();
+    res.json({ ok: true, storage: usingCloudCreatorDb ? "postgresql" : "sqlite-fallback", durable: usingCloudCreatorDb });
+  } catch (error) {
+    res.status(503).json({ ok: false, storage: "postgresql", durable: false, error: error.message });
+  }
+});
 
 router.get("/projects", async (req, res) => { try { const projects = await listCreatorProjects(req.user.id); res.json({ ok: true, projects }); } catch (error) { failure(res, error); } });
 router.patch("/projects/:projectId", async (req, res) => { try { const project = await updateCreatorProject({ ...req.body, projectId: req.params.projectId, userId: req.user.id }); res.json({ ok: true, project }); } catch (error) { failure(res, error); } });
