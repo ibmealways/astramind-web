@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 
 import torch
-from diffusers import StableDiffusionXLPipeline
+from diffusers import StableDiffusionXLPipeline, StableDiffusionXLImg2ImgPipeline
+from PIL import Image, ImageOps
 
 
 DEFAULT_MODEL = os.getenv("AIGENIKZ_IMAGE_MODEL", "cagliostrolab/animagine-xl-4.0")
@@ -29,6 +30,8 @@ def main():
     parser.add_argument("--output", required=True)
     parser.add_argument("--aspect", choices=("portrait", "landscape", "square"), default="landscape")
     parser.add_argument("--seed", type=int, default=-1)
+    parser.add_argument("--reference")
+    parser.add_argument("--reference-strength", type=float, default=0.45)
     parser.add_argument("--steps", type=int, default=28)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     args = parser.parse_args()
@@ -41,7 +44,8 @@ def main():
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
 
-    pipe = StableDiffusionXLPipeline.from_pretrained(
+    pipeline_class = StableDiffusionXLImg2ImgPipeline if args.reference else StableDiffusionXLPipeline
+    pipe = pipeline_class.from_pretrained(
         args.model,
         torch_dtype=torch.float16,
         use_safetensors=True,
@@ -50,7 +54,7 @@ def main():
     pipe.vae.enable_slicing()
     pipe.vae.enable_tiling()
 
-    image = pipe(
+    generation = dict(
         prompt=args.prompt,
         negative_prompt=NEGATIVE_PROMPT,
         width=width,
@@ -58,7 +62,14 @@ def main():
         guidance_scale=5.0,
         num_inference_steps=max(16, min(args.steps, 40)),
         generator=torch.Generator(device="cpu").manual_seed(seed),
-    ).images[0]
+    )
+    if args.reference:
+        reference_strength = max(0.35, min(args.reference_strength, 0.9))
+        with Image.open(args.reference) as source:
+            reference = ImageOps.fit(source.convert("RGB"), (width, height), method=Image.Resampling.LANCZOS)
+        generation["image"] = reference
+        generation["strength"] = max(0.15, min(1.0 - reference_strength, 0.65))
+    image = pipe(**generation).images[0]
     image.save(output, format="PNG", optimize=True)
     print(f"saved={output} seed={seed} model={args.model} size={width}x{height}")
 
