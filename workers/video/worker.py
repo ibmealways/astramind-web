@@ -76,7 +76,7 @@ def run_job(job_id, prompt, reference_path=None):
             save_job(job_id)
 
 
-def run_image_job(job_id, prompt, aspect, seed):
+def run_image_job(job_id, prompt, aspect, seed, reference_path=None, reference_strength=0.45):
     path = OUTPUT / f"{job_id}.png"
     with LOCK:
         JOBS[job_id]["status"] = "running"
@@ -91,6 +91,8 @@ def run_image_job(job_id, prompt, aspect, seed):
         "--aspect", aspect,
         "--seed", str(seed),
     ]
+    if reference_path:
+        command.extend(["--reference", str(reference_path), "--reference-strength", str(reference_strength)])
     try:
         with GPU_LOCK:
             result = subprocess.run(command, capture_output=True, text=True, timeout=25 * 60)
@@ -198,6 +200,27 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send_json(400, {"error": "Seed must be an integer"})
                 if seed < 0:
                     seed = int.from_bytes(os.urandom(4), "big")
+                reference_path = None
+                reference_image = payload.get("reference_image")
+                try:
+                    reference_strength = float(payload.get("reference_strength", 0.45))
+                except (TypeError, ValueError):
+                    return self.send_json(400, {"error": "Reference strength must be a number"})
+                reference_strength = max(0.35, min(reference_strength, 0.9))
+                if reference_image:
+                    if not isinstance(reference_image, str) or "," not in reference_image:
+                        return self.send_json(400, {"error": "Reference image must be a PNG or JPEG data URL"})
+                    header, encoded = reference_image.split(",", 1)
+                    if header not in ("data:image/png;base64", "data:image/jpeg;base64"):
+                        return self.send_json(400, {"error": "Only PNG and JPEG reference images are supported"})
+                    data = base64.b64decode(encoded, validate=True)
+                    if len(data) > 8 * 1024 * 1024:
+                        return self.send_json(400, {"error": "Reference image exceeds 8 MB"})
+                    with Image.open(io.BytesIO(data)) as source:
+                        if source.width > 4096 or source.height > 4096 or source.width < 256 or source.height < 256:
+                            return self.send_json(400, {"error": "Reference image dimensions must be 256-4096 pixels"})
+                        reference_path = OUTPUT / f"{job_id}-image-reference.png"
+                        source.convert("RGB").save(reference_path)
                 model = os.getenv("AIGENIKZ_IMAGE_MODEL", "cagliostrolab/animagine-xl-4.0")
                 job = {
                     "job_id": job_id,
@@ -207,12 +230,14 @@ class Handler(BaseHTTPRequestHandler):
                     "seed": seed,
                     "aspect": aspect,
                     "stage": "Queued for PC GPU",
+                    "reference_used": bool(reference_path),
+                    "reference_strength": reference_strength if reference_path else None,
                     "queued_at": now_iso(),
                 }
                 with LOCK:
                     JOBS[job_id] = job
                     save_job(job_id)
-                threading.Thread(target=run_image_job, args=(job_id, prompt, aspect, seed), daemon=True).start()
+                threading.Thread(target=run_image_job, args=(job_id, prompt, aspect, seed, reference_path, reference_strength), daemon=True).start()
                 return self.send_json(202, job)
             reference_path = None
             reference_image = payload.get("reference_image")

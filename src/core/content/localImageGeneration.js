@@ -26,7 +26,7 @@ export function buildImagePrompt({ prompt, style = "cinematic anime fantasy" }) 
   ].join(" ");
 }
 
-export async function generateLocalImage({ prompt, style, aspect = "landscape", seed = -1 }) {
+export async function generateLocalImage({ prompt, style, aspect = "landscape", seed = -1, referenceImage = null, referenceStrength = 0.45 }) {
   const baseUrl = String(process.env.AIGENIKZ_VIDEO_WORKER_URL || "").trim().replace(/\/$/, "");
   const token = String(process.env.AIGENIKZ_VIDEO_WORKER_TOKEN || "").trim();
   if (!baseUrl || !token) throw new Error("Aigenikz local AI worker is not configured.");
@@ -35,7 +35,12 @@ export async function generateLocalImage({ prompt, style, aspect = "landscape", 
   const submittedResponse = await fetch(`${baseUrl}/v1/image/generations`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: finalPrompt, aspect, seed }),
+    body: JSON.stringify({
+      prompt: finalPrompt,
+      aspect,
+      seed,
+      ...(referenceImage ? { reference_image: referenceImage, reference_strength: referenceStrength } : {}),
+    }),
     signal: AbortSignal.timeout(30000),
   });
   const submitted = await submittedResponse.json().catch(() => ({}));
@@ -75,6 +80,8 @@ export async function generateLocalImage({ prompt, style, aspect = "landscape", 
     source: "aigenikz-local",
     model: job.model,
     seed: job.seed,
+    referenceUsed: Boolean(job.reference_used),
+    referenceStrength: job.reference_strength ?? null,
     prompt: finalPrompt,
     fallbackUsed: false,
   };
